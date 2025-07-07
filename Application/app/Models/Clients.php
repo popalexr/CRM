@@ -33,4 +33,8 @@ class Clients extends Model
     ];
 
     protected $dates = ['deleted_at'];
+    public function contactPersons() 
+    {
+        return $this->hasMany(ClientContacts::class, 'client_id'); // Specificam explicit FK 'client_id'
+    }
 }

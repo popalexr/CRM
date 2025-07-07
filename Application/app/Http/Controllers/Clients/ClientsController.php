@@ -124,4 +124,13 @@ class ClientsController extends Controller
 
         return $clients->toArray();
     }
+    public function show(Clients $client) 
+    {
+        
+        $client->load('contactPersons');
+        return Inertia::render('Clients/Show', [
+            'client' => $client,
+           
+        ]);
+    }
 }

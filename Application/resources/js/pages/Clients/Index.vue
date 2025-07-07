@@ -143,7 +143,7 @@ const getFullAddress = (client: any) => {
 };
 
 const handleView = (clientId: number) => {
-    console.log('View client:', clientId);
+     router.visit(route('clients.show', clientId));
 };
 
 const handleEdit = (clientId: number) => {
