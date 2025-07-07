@@ -21,6 +21,10 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        Schema::table('client_contacts', function (Blueprint $table) {
+            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
+        });
     }
 
     /**
