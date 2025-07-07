@@ -35,4 +35,29 @@ export interface User {
     updated_at: string;
 }
 
+export interface Client {
+    id: number;
+    client_name: string;
+    client_logo?: string;
+    client_type: string;
+    client_email?: string;
+    client_phone?: string;
+    cui?: string;
+    registration_number?: string;
+    address?: string;
+    city?: string;
+    county?: string;
+    country?: string;
+    bank_name?: string;
+    iban?: string;
+    swift?: string;
+    vat_number?: string;
+    tax_code?: string;
+    currency: string;
+    notes?: string;
+    created_at?: string;
+    updated_at?: string;
+    deleted_at?: string;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { type BreadcrumbItem, type Client } from '@/types';
+import { Head, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { 
     Table, 
@@ -26,19 +26,9 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/clients',
     },
 ];
-// Test data for clients (Static data for demonstration purposes)
-const clients = [
-    {
-        id: 1,
-        logo: '/logo1.png',
-        name: 'Test',
-        address: 'Test',
-        city: 'Test',
-        county: 'Test',
-        country: 'Test',
-        initials: 'Te'
-    }
-];
+
+const page = usePage();
+const clients = page.props.clients as Array<Client>;
 
 const getFullAddress = (client: any) => {
     return `${client.address}, ${client.city}, ${client.county}, ${client.country}`;
@@ -79,7 +69,7 @@ const handleAddClient = () => {
             </div>
 
             <!-- Table Section -->
-            <div class="rounded-md border">
+            <div class="rounded-md border" v-if="clients.length > 0">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -94,16 +84,16 @@ const handleAddClient = () => {
                             <TableCell>
                                 <Avatar class="h-10 w-10">
                                     <AvatarImage 
-                                        v-if="client.logo" 
-                                        :src="client.logo" 
-                                        :alt="client.name" 
+                                        v-if="client.client_logo" 
+                                        :src="client.client_logo" 
+                                        :alt="client.client_name" 
                                     />
                                     <AvatarFallback class="text-sm font-medium">
-                                        {{ client.initials }}
+                                        {{ client.client_name.charAt(0).toUpperCase() }}
                                     </AvatarFallback>
                                 </Avatar>
                             </TableCell>
-                            <TableCell class="font-medium">{{ client.name }}</TableCell>
+                            <TableCell class="font-medium">{{ client.client_name }}</TableCell>
                             <TableCell class="text-muted-foreground">
                                 {{ getFullAddress(client) }}
                             </TableCell>
@@ -139,8 +129,7 @@ const handleAddClient = () => {
                 </Table>
             </div>
 
-            <!-- Empty State (if no clients) -->
-            <div v-if="clients.length === 0" class="flex flex-col items-center justify-center py-16">
+            <div v-else class="flex flex-col items-center justify-center py-16">
                 <div class="text-center">
                     <h3 class="text-lg font-medium text-gray-900">No clients found</h3>
                     <p class="mt-1 text-sm text-gray-500">Get started by adding your first client.</p>
