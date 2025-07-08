@@ -1,61 +1,38 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Link, Head } from '@inertiajs/vue3';
+import { Link, Head, usePage, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator'; // Adaugat un separator optional
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Client } from '@/types';
+import { ArrowLeft } from 'lucide-vue-next';
 
 
-const props = defineProps({
-    client: {
-        type: Object as () => {
-            id: number;
-            client_name: string;
-            client_logo: string | null;
-            client_type: 'individual' | 'business';
-            client_email: string | null;
-            client_phone: string | null;
-            cui: string | null;
-            registration_number: string | null;
-            address: string | null;
-            city: string | null;
-            county: string | null;
-            country: string | null;
-            bank_name: string | null;
-            iban: string | null;
-            swift: string | null;
-            vat_number: string | null;
-            tax_code: string | null;
-            currency: string | null;
-            notes: string | null;
-            contact_persons?: Array<{
-                 id: number;
-                 name: string;
-                 email: string | null;
-                 phone: string | null;
-             }>;
-        },
-        required: true,
-    },
-    // invoices: Array,
-});
+const page = usePage();
 
-const isPJ = computed(() => props.client.client_type === 'business');
+const client = page.props.client as Client;
+const contactPersons = page.props.contactPersons || [];
+
+const isPJ = computed(() => client.client_type === 'business');
 
 const hasContactPersons = computed(() =>
-    Array.isArray(props.client.contact_persons) && props.client.contact_persons.length > 0
+    Array.isArray(contactPersons) && contactPersons.length > 0
 );
 
 const fullAddress = computed(() => {
     const parts = [];
-    if (props.client.address) parts.push(props.client.address);
-    if (props.client.city) parts.push(props.client.city);
-    if (props.client.county) parts.push(props.client.county);
-    if (props.client.country) parts.push(props.client.country);
+    if (client.address) parts.push(client.address);
+    if (client.city) parts.push(client.city);
+    if (client.county) parts.push(client.county);
+    if (client.country) parts.push(client.country);
     return parts.filter(part => part).join(', ');
 });
+
+const handleBack = () => {
+    router.visit(route('clients.index'));
+};
 
 </script>
 
@@ -65,15 +42,17 @@ const fullAddress = computed(() => {
     <AppLayout>
         <div class="container mx-auto px-4 py-6">
              <div class="flex items-center justify-between mb-6">
-                 <h1 class="text-2xl font-bold">{{ client.client_name }}</h1>
-                 <div class="flex items-center gap-2">
-                     <Link :href="route('clients.index')">
-                         <Button variant="outline">Înapoi la lista clienți</Button>
-                     </Link>
-                     <Link :href="route('clients.edit', client.id)">
-                          <Button>Editare Client</Button>
-                     </Link>
-                 </div>
+                <div class="flex gap-2">
+                    <Button variant="ghost" size="sm" @click="handleBack" class="gap-2">
+                        <ArrowLeft class="h-4 w-4" />
+                    </Button>
+                    <h1 class="text-2xl font-bold">{{ client.client_name }}</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Link :href="route('clients.form', {id: client.id})">
+                        <Button>Editare Client</Button>
+                    </Link>
+                </div>
              </div>
 
              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -128,7 +107,7 @@ const fullAddress = computed(() => {
                     </CardHeader>
                     <CardContent>
                         <div v-if="hasContactPersons" class="space-y-4 text-sm">
-                             <div v-for="contact in client.contact_persons" :key="contact.id" class="border-b pb-2 last:border-0 last:pb-0">
+                             <div v-for="contact in contactPersons" :key="contact.id" class="border-b pb-2 last:border-0 last:pb-0">
                                  <p class="font-medium">{{ contact.name }}</p>
                                  <p v-if="contact.email" class="text-muted-foreground">{{ contact.email }}</p>
                                  <p v-if="contact.phone" class="text-muted-foreground">{{ contact.phone }}</p>

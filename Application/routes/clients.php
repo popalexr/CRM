@@ -1,16 +1,16 @@
 <?php
 
 use App\Http\Controllers\Clients\ClientsController;
+use App\Http\Controllers\Clients\ClientsDetailsController;
+use App\Http\Controllers\Clients\ClientsFormController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
-    Route::prefix('clients')->group(function () {
-        Route::get('/', [ClientsController::class, 'index'])->name('clients.index');
-        Route::post('/', [ClientsController::class, 'store'])->name('clients.store');
-        Route::get('/{client}', [ClientsController::class, 'show'])->name('clients.show');
-        Route::get('/{client}/edit', [ClientsController::class, 'edit'])->name('clients.edit');
-        Route::put('/{client}', [ClientsController::class, 'update'])->name('clients.update');
-        Route::delete('/{client}', [ClientsController::class, 'destroy'])->name('clients.destroy');
-        
+    Route::prefix('clients')->group(function () {      
+        Route::get('/', ClientsController::class)->name('clients.index');
+        Route::get('/form', ClientsFormController::class)->name('clients.form');
+        Route::get('/details', ClientsDetailsController::class)->name('clients.details');
+
+        Route::post('/form', [ClientsFormController::class, 'post'])->name('clients.form.post');
     });
 });
