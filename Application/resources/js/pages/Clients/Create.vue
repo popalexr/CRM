@@ -20,6 +20,7 @@ import {
 import { ArrowLeft, Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import InputError from '@/components/InputError.vue';
+import ContactsFormManager from '@/components/ContactsFormManager.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -50,13 +51,14 @@ const form = useForm({
     bank: '',
     currency: '', // <-- add this line
     notes: '',
+    contactPersons: [] as Array<{name: string, position: string, email: string, phone: string}>,
 });
 
 const handleBack = () => {
     router.visit(route('clients.index'));
 };
 
-const clientTypeChanged = (value: string | number | null) => {
+const clientTypeChanged = (value: any) => {
     isBusinessClient.value = value === 'business';
 };
 
@@ -307,9 +309,7 @@ const handleSubmit = () => {
                                 <CardTitle>Client Contacts</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p class="text-muted-foreground">
-                                    Manage contacts associated with this client. You can add, edit, or remove contacts.
-                                </p>
+                                <ContactsFormManager v-model="form.contactPersons" />
                             </CardContent>
                         </Card>
                     </TabsContent>

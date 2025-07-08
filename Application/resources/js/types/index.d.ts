@@ -60,4 +60,16 @@ export interface Client {
     deleted_at?: string;
 }
 
+export interface ClientContact {
+    id?: number;
+    client_id: number;
+    contact_name: string;
+    contact_email?: string;
+    contact_phone?: string;
+    contact_position?: string;
+    created_at?: string;
+    updated_at?: string;
+    deleted_at?: string;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;

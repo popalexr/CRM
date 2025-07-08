@@ -96,10 +96,10 @@ class ClientsFormController extends Controller
         // Create contact persons for the client
         foreach ($request->input('contactPersons') as $contact) {
             $client->contactPersons()->create([
-                'name'  => $contact['name'],
-                'email' => $contact['email'] ?? null,
-                'phone' => $contact['phone'] ?? null,
-                'function' => $contact['function'] ?? null,
+                'contact_name'  => $contact['name'],
+                'contact_email' => $contact['email'] ?? null,
+                'contact_phone' => $contact['phone'] ?? null,
+                'contact_position' => $contact['position'] ?? null,
             ]);
         }
     }
@@ -134,10 +134,10 @@ class ClientsFormController extends Controller
         // Create contact persons for the client
         foreach ($request->input('contactPersons') as $contact) {
             $this->client->contactPersons()->create([
-                'name'  => $contact['name'],
-                'email' => $contact['email'] ?? null,
-                'phone' => $contact['phone'] ?? null,
-                'function' => $contact['function'] ?? null,
+                'contact_name'  => $contact['name'],
+                'contact_email' => $contact['email'] ?? null,
+                'contact_phone' => $contact['phone'] ?? null,
+                'contact_position' => $contact['position'] ?? null,
             ]);
         }
     }

@@ -18,8 +18,10 @@ import {
 } from '@/components/ui/select';
 
 import { ArrowLeft, Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import InputError from '@/components/InputError.vue';
+import ContactsFormManager from '@/components/ContactsFormManager.vue';
+import axios from 'axios';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -53,6 +55,26 @@ const form = useForm({
     bank: client.bank_name,
     currency: client.currency || '', // Add this line
     notes: client.notes || '',
+    contactPersons: [] as Array<{name: string, position: string, email: string, phone: string}>,
+});
+
+const loadExistingContacts = async () => {
+    try {
+        const response = await axios.get(`/clients/${client.id}/contacts`);
+        const contacts = response.data.contacts;
+        form.contactPersons = contacts.map((contact: any) => ({
+            name: contact.contact_name,
+            position: contact.contact_position || '',
+            email: contact.contact_email || '',
+            phone: contact.contact_phone || '',
+        }));
+    } catch (error) {
+        console.error('Error loading contacts:', error);
+    }
+};
+
+onMounted(() => {
+    loadExistingContacts();
 });
 
 const handleBack = () => {
@@ -311,8 +333,9 @@ const handleSubmit = () => {
                                 <CardTitle>Client Contacts</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p class="text-muted-foreground">
-                                    Manage contacts associated with this client. You can add, edit, or remove contacts.
+                                <ContactsFormManager v-model="form.contactPersons" />
+                                <p class="text-sm text-muted-foreground mt-2">
+                                    Note: Changes here will be saved when you save the client form.
                                 </p>
                             </CardContent>
                         </Card>
