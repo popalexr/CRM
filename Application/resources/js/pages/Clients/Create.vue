@@ -48,6 +48,7 @@ const form = useForm({
     iban: '',
     swift: '',
     bank: '',
+    currency: '', // <-- add this line
     notes: '',
 });
 
@@ -55,12 +56,39 @@ const handleBack = () => {
     router.visit(route('clients.index'));
 };
 
-const clientTypeChanged = (value: string) => {
+const clientTypeChanged = (value: string | number | null) => {
     isBusinessClient.value = value === 'business';
 };
 
 const handleSubmit = () => {
-    form.post(route('clients.form.post'));
+    // Basic validation
+    if (!form.client_name.trim()) {
+        form.errors.client_name = 'Client name is required';
+        return;
+    }
+    
+    if (!form.client_type) {
+        form.errors.client_type = 'Client type is required';
+        return;
+    }
+    
+    if (!form.currency.trim()) {
+        form.errors.currency = 'Currency is required';
+        return;
+    }
+    
+    // Clear errors before submitting
+    form.clearErrors();
+    
+    form.post(route('clients.form.post'), {
+        onSuccess: () => {
+
+            router.visit(route('clients.index'));
+        },
+        onError: (errors) => {
+            console.error('Form submission errors:', errors);
+        }
+    });
 };
 
 </script>
@@ -208,6 +236,17 @@ const handleSubmit = () => {
                                             id="bank" 
                                             v-model="form.bank" 
                                             placeholder="Bank name (if applicable)"
+                                        />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="currency">Currency</Label>
+                                            <InputError :message="form.errors.currency" />
+                                        </div>
+                                        <Input
+                                            id="currency"
+                                            v-model="form.currency"
+                                            placeholder="Currency (e.g. EUR, USD, RON)"
                                         />
                                     </div>
                                 </div>

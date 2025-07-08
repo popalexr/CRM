@@ -51,6 +51,7 @@ const form = useForm({
     iban: client.iban,
     swift: client.swift,
     bank: client.bank_name,
+    currency: client.currency || '', // Add this line
     notes: client.notes || '',
 });
 
@@ -58,12 +59,39 @@ const handleBack = () => {
     router.visit(route('clients.index'));
 };
 
-const clientTypeChanged = (value: string) => {
-    isBusinessClient.value = value === 'business';
+const clientTypeChanged = (value: any) => {
+    const type = typeof value === 'object' && value !== null && 'value' in value ? value.value : value;
+    isBusinessClient.value = type === 'business';
 };
 
 const handleSubmit = () => {
-    form.post(route('clients.form.post'));
+    // Basic validation
+    if (!form.client_name.trim()) {
+        form.errors.client_name = 'Client name is required';
+        return;
+    }
+    
+    if (!form.client_type) {
+        form.errors.client_type = 'Client type is required';
+        return;
+    }
+    
+    if (!form.currency.trim()) {
+        form.errors.currency = 'Currency is required';
+        return;
+    }
+    
+    // Clear errors before submitting
+    form.clearErrors();
+    
+    form.post(route('clients.form.post'), {
+        onSuccess: () => {
+            router.visit(route('clients.index'));
+        },
+        onError: (errors) => {
+            console.error('Form submission errors:', errors);
+        }
+    });
 };
 
 </script>
@@ -179,6 +207,7 @@ const handleSubmit = () => {
                                         />
                                     </div>
                                 </div>
+                                <!-- Add this section for banking information including currency -->
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
@@ -211,6 +240,17 @@ const handleSubmit = () => {
                                             id="bank" 
                                             v-model="form.bank" 
                                             placeholder="Bank name (if applicable)"
+                                        />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="currency">Currency</Label>
+                                            <InputError :message="form.errors.currency" />
+                                        </div>
+                                        <Input
+                                            id="currency"
+                                            v-model="form.currency"
+                                            placeholder="Currency (e.g. EUR, USD, RON)"
                                         />
                                     </div>
                                 </div>
