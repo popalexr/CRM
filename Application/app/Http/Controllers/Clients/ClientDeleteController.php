@@ -8,14 +8,26 @@ use Illuminate\Support\Carbon;
 
 class ClientDeleteController extends Controller
 {
+    private ?Clients $client = null;
+
+    public function __construct(private Request $request)
+    {
+        if ($this->request->has('id')) {
+            $this->client = Clients::find($this->request->input('id'));
+        }
+    }
+
     public function __invoke(Request $request)
     {
-        $clientId = $request->input('id');
+        if (blank($this->client)) {
+            return redirect()
+                ->route('clients.index')
+                ->with('error', 'Client not found.');
+        }
 
-        $client = Clients::findOrFail($clientId);
-        $client->deleted_at = Carbon::now(); // setează data și ora curentă
-        $client->save();
+        $this->client->deleted_at = Carbon::now(); // setează data și ora curentă
+        $this->client->save();
 
-        return redirect()->back()->with('success', 'Clientul a fost marcat ca șters.');
+        return redirect()->route("clients.index")->with('success', 'Clientul a fost marcat ca șters.');
     }
 }
