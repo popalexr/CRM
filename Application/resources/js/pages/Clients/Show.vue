@@ -82,10 +82,8 @@ const saveContact = async () => {
   
   try {
     if (editingContact.value) {
-      // Update existing contact
       await axios.put(`/clients/${client.id}/contacts/${editingContact.value.id}`, contactForm);
     } else {
-      // Create new contact
       await axios.post(`/clients/${client.id}/contacts`, contactForm);
     }
     

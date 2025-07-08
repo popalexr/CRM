@@ -53,7 +53,7 @@ const form = useForm({
     iban: client.iban,
     swift: client.swift,
     bank: client.bank_name,
-    currency: client.currency || '', // Add this line
+    currency: client.currency || '',
     notes: client.notes || '',
     contactPersons: [] as Array<{name: string, position: string, email: string, phone: string}>,
 });
@@ -87,25 +87,6 @@ const clientTypeChanged = (value: any) => {
 };
 
 const handleSubmit = () => {
-    // Basic validation
-    if (!form.client_name.trim()) {
-        form.errors.client_name = 'Client name is required';
-        return;
-    }
-    
-    if (!form.client_type) {
-        form.errors.client_type = 'Client type is required';
-        return;
-    }
-    
-    if (!form.currency.trim()) {
-        form.errors.currency = 'Currency is required';
-        return;
-    }
-    
-    // Clear errors before submitting
-    form.clearErrors();
-    
     form.post(route('clients.form.post'), {
         onSuccess: () => {
             router.visit(route('clients.index'));
