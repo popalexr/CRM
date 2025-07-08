@@ -43,7 +43,7 @@ const handleEdit = (clientId: number) => {
 };
 
 const handleDelete = (clientId: number) => {
-    console.log('Delete client:', clientId);
+router.post(route('clients.delete', {id: clientId}))
 };
 
 const handleAddClient = () => {
