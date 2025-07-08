@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator'; // Adaugat un separator optional
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Client, ClientContact } from '@/types';
 import { ArrowLeft, Edit, Plus, Trash2 } from 'lucide-vue-next';
 import {
@@ -52,6 +54,7 @@ const fullAddress = computed(() => {
 });
 
 const handleBack = () => {
+    console.log('handleBack called');
     router.visit(route('clients.index'));
 };
 
@@ -183,37 +186,47 @@ const loadContacts = async () => {
                      </CardContent>
                  </Card>
 
-                  <!-- Sectiunea 2: Persoane de Contact (in aceeasi coloana cu detalii generale pe md+) -->
                  <Card v-if="isPJ" class="md:col-span-1">
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <CardTitle>Persoane de Contact</CardTitle>
-                            <Button variant="outline" size="sm" @click="openAddContactDialog" class="gap-1">
-                                <Plus class="h-4 w-4" />
-                                Add
-                            </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="hasContactPersons" class="space-y-4 text-sm">
-                             <div v-for="contact in contacts" :key="contact.id" class="border-b pb-2 last:border-0 last:pb-0">
-                                 <div class="flex items-start justify-between">
-                                     <div class="flex-1">
-                                         <p class="font-medium">{{ contact.contact_name }}</p>
-                                         <p v-if="contact.contact_position" class="text-xs text-muted-foreground">{{ contact.contact_position }}</p>
-                                         <p v-if="contact.contact_email" class="text-muted-foreground">{{ contact.contact_email }}</p>
-                                         <p v-if="contact.contact_phone" class="text-muted-foreground">{{ contact.contact_phone }}</p>
-                                     </div>
-                                     <div class="flex gap-1">
-                                         <Button variant="ghost" size="sm" @click="openEditContactDialog(contact)">
-                                             <Edit class="h-3 w-3" />
-                                         </Button>
-                                         <Button variant="ghost" size="sm" @click="deleteContact(contact.id!)">
-                                             <Trash2 class="h-3 w-3" />
-                                         </Button>
-                                     </div>
-                                 </div>
-                             </div>
+                        <div v-if="hasContactPersons">
+                            <ScrollArea class="h-[200px] w-full">
+                                <div class="pr-4">
+                                    <Accordion type="single" class="w-full" collapsible>
+                                        <AccordionItem 
+                                            v-for="contact in contacts" 
+                                            :key="contact.id"
+                                            :value="`contact-${contact.id}`"
+                                            @click.stop
+                                        >
+                                            <AccordionTrigger class="text-left">
+                                                <div class="flex items-center justify-between w-full pr-2">
+                                                    <div>
+                                                        <p class="font-medium">{{ contact.contact_name }}</p>
+                                                    </div>
+                                                </div>
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                <div class="space-y-2 text-sm">
+                                                    <p v-if="contact.contact_email" class="text-muted-foreground">
+                                                        <strong>Email:</strong> {{ contact.contact_email }}
+                                                    </p>
+                                                    <p v-if="contact.contact_phone" class="text-muted-foreground">
+                                                        <strong>Phone:</strong> {{ contact.contact_phone }}
+                                                    </p>
+                                                    <p v-if="contact.contact_position" class="text-muted-foreground">
+                                                        <strong>Position:</strong> {{ contact.contact_position }}
+                                                    </p>
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </div>
+                            </ScrollArea>
                         </div>
                          <div v-else class="text-center text-muted-foreground text-sm">
                              Nu există persoane de contact asociate.
