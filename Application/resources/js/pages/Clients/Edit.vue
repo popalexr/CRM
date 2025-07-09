@@ -40,6 +40,7 @@ const client = page.props.client as Client;
 const isBusinessClient = ref(client.client_type === 'business');
 
 const form = useForm({
+    id: client.id,
     client_name: client.client_name,
     client_type: client.client_type,
     email: client.client_email,
@@ -87,7 +88,7 @@ const clientTypeChanged = (value: any) => {
 };
 
 const handleSubmit = () => {
-    form.post(route('clients.form.post'), {
+    form.post(route('clients.form.post', { id: client.id }), {
         onSuccess: () => {
             router.visit(route('clients.index'));
         },

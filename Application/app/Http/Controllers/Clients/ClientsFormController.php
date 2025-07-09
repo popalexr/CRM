@@ -16,10 +16,35 @@ class ClientsFormController extends Controller
 
     public function __construct(private Request $request)
     {
-        if ($this->request->has('id')) {
-            $this->client = Clients::find($this->request->input('id'));
-
-            $this->clientId = (int) $this->request->input('id');
+        $id = null;
+        
+        // For GET requests, check query parameters
+        if ($this->request->isMethod('GET') && $this->request->has('id')) {
+            $id = $this->request->input('id');
+        }
+        
+        // For POST requests, check request body
+        if ($this->request->isMethod('POST') && $this->request->has('id')) {
+            $id = $this->request->input('id');
+        }
+        
+        \Log::info('ClientsFormController::__construct - Debug info:', [
+            'method' => $this->request->method(),
+            'has_id_query' => $this->request->has('id'),
+            'id_value' => $id,
+            'id_as_int' => (int) $id,
+            'all_request' => $this->request->all()
+        ]);
+        
+        if ($id && (int) $id > 0) {
+            $this->clientId = (int) $id;
+            $this->client = Clients::find($this->clientId);
+            
+            \Log::info('Client loaded in constructor:', [
+                'clientId' => $this->clientId,
+                'client_found' => !blank($this->client),
+                'client_data' => $this->client ? $this->client->toArray() : null
+            ]);
         }
     }
     
@@ -48,23 +73,56 @@ class ClientsFormController extends Controller
     /**
      * Handle the form submission for creating or editing a client.
      */
-    public function post(ClientsFormRequest $request)
+    public function post(ClientsFormRequest $request, $id = null)
     {
-        if (blank($this->client))
+        // Use route parameter if available, otherwise use form data
+        $clientId = $id ?: $request->input('id');
+        
+        // Debug information
+        \Log::info('ClientsFormController::post - Debug info:', [
+            'route_id' => $id,
+            'form_id' => $request->input('id'),
+            'final_clientId' => $clientId,
+            'constructor_clientId' => $this->clientId,
+            'client_exists' => !blank($this->client),
+            'all_request_data' => $request->all()
+        ]);
+        
+        // Override constructor values with route parameter if available
+        if ($clientId && (int) $clientId > 0) {
+            $this->clientId = (int) $clientId;
+            if (!$this->client) {
+                $this->client = Clients::find($this->clientId);
+            }
+        }
+        
+        // If no client ID is provided, create a new client
+        if ($this->clientId < 1)
         {
+            \Log::info('Creating new client');
             $this->handleCreateClient($request);
             
-            return;
+            return redirect()
+                ->route('clients.index')
+                ->with('success', 'Client created successfully.');
         }
 
-        if ($this->clientId > 0 && blank($this->client)) // Check if client exists
+        // If client ID is provided but client doesn't exist, show error
+        if ($this->clientId > 0 && blank($this->client))
         {
+            \Log::error('Client ID provided but client not found', ['clientId' => $this->clientId]);
             return redirect()
                 ->route('clients.index')
                 ->with('error', 'Client not found.');
         }
 
+        // Update existing client
+        \Log::info('Updating existing client', ['clientId' => $this->clientId]);
         $this->handleUpdateClient($request);
+        
+        return redirect()
+            ->route('clients.index')
+            ->with('success', 'Client updated successfully.');
     }
 
     /**
@@ -74,6 +132,7 @@ class ClientsFormController extends Controller
     {
         $client = Clients::create([
             'client_name'         => $request->input('client_name'),
+            'client_logo'         => null, // Set to null for now, can be updated later when logo upload is implemented
             'client_type'         => $request->input('client_type'),
             'cui'                 => $request->input('cui'),
             'registration_number' => $request->input('registrationNumber'),
@@ -110,8 +169,8 @@ class ClientsFormController extends Controller
     private function handleUpdateClient(ClientsFormRequest $request)
     {
         $this->client->update([
-            'client_name'         => $request->input('name'),
-            'client_type'         => $request->input('clientType'),
+            'client_name'         => $request->input('client_name'),
+            'client_type'         => $request->input('client_type'),
             'cui'                 => $request->input('cui'),
             'registration_number' => $request->input('registrationNumber'),
             'client_email'        => $request->input('email'),
@@ -123,6 +182,7 @@ class ClientsFormController extends Controller
             'iban'                => $request->input('iban'),
             'bank_name'           => $request->input('bank'),
             'currency'            => $request->input('currency'),
+            'notes'               => $request->input('notes', null),
         ]);
 
         $this->deleteContactPersons();

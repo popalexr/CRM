@@ -15,7 +15,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/form', ClientsFormController::class)->name('clients.form');
         Route::get('/details', ClientsDetailsController::class)->name('clients.details');
 
-        Route::post('/form', [ClientsFormController::class, 'post'])->name('clients.form.post');
+        Route::post('/form/{id?}', [ClientsFormController::class, 'post'])->name('clients.form.post');
         Route::post('/delete', [ClientDeleteController::class, '__invoke'])->name('clients.delete');
         
         // Contact routes
