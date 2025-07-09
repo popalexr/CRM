@@ -18,10 +18,24 @@ withDefaults(defineProps<Props>(), {
 const page = usePage();
 
 const error = page.props.flash.error || null;
+const success = page.props.flash.success || null;
+const info = page.props.flash.info || null;
 
 onMounted(() => {
     if (error) {
         toast.error(error, {
+            duration: 5000
+        });
+    }
+
+    if (success) {
+        toast.success(success, {
+            duration: 5000
+        });
+    }
+
+    if (info) {
+        toast.info(info, {
             duration: 5000
         });
     }
