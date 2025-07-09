@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Link, Head, usePage, router } from '@inertiajs/vue3';
-import { computed, ref, reactive } from 'vue';
+import { computed, ref } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator'; // Adaugat un separator optional
 import { Button } from '@/components/ui/button';
@@ -9,16 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Client, ClientContact } from '@/types';
-import { ArrowLeft, Edit, Plus, Trash2 } from 'lucide-vue-next';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import axios from 'axios';
+import { ArrowLeft } from 'lucide-vue-next';
 
 
 const page = usePage();
@@ -26,17 +17,6 @@ const page = usePage();
 const client = page.props.client as Client;
 const initialContacts = (page.props.clientContacts || []) as ClientContact[];
 const contacts = ref<ClientContact[]>(initialContacts);
-
-const showContactDialog = ref(false);
-const editingContact = ref<ClientContact | null>(null);
-const loading = ref(false);
-
-const contactForm = reactive({
-  contact_name: '',
-  contact_position: '',
-  contact_email: '',
-  contact_phone: '',
-});
 
 const isPJ = computed(() => client.client_type === 'business');
 
@@ -56,68 +36,6 @@ const fullAddress = computed(() => {
 const handleBack = () => {
     console.log('handleBack called');
     router.visit(route('clients.index'));
-};
-
-const resetForm = () => {
-  contactForm.contact_name = '';
-  contactForm.contact_position = '';
-  contactForm.contact_email = '';
-  contactForm.contact_phone = '';
-};
-
-const openAddContactDialog = () => {
-  editingContact.value = null;
-  resetForm();
-  showContactDialog.value = true;
-};
-
-const openEditContactDialog = (contact: ClientContact) => {
-  editingContact.value = contact;
-  contactForm.contact_name = contact.contact_name;
-  contactForm.contact_position = contact.contact_position || '';
-  contactForm.contact_email = contact.contact_email || '';
-  contactForm.contact_phone = contact.contact_phone || '';
-  showContactDialog.value = true;
-};
-
-const saveContact = async () => {
-  loading.value = true;
-  
-  try {
-    if (editingContact.value) {
-      await axios.put(`/clients/${client.id}/contacts/${editingContact.value.id}`, contactForm);
-    } else {
-      await axios.post(`/clients/${client.id}/contacts`, contactForm);
-    }
-    
-    await loadContacts();
-    showContactDialog.value = false;
-    resetForm();
-  } catch (error) {
-    console.error('Error saving contact:', error);
-  } finally {
-    loading.value = false;
-  }
-};
-
-const deleteContact = async (contactId: number) => {
-  if (!confirm('Are you sure you want to delete this contact?')) return;
-  
-  try {
-    await axios.delete(`/clients/${client.id}/contacts/${contactId}`);
-    await loadContacts();
-  } catch (error) {
-    console.error('Error deleting contact:', error);
-  }
-};
-
-const loadContacts = async () => {
-  try {
-    const response = await axios.get(`/clients/${client.id}/contacts`);
-    contacts.value = response.data.contacts;
-  } catch (error) {
-    console.error('Error loading contacts:', error);
-  }
 };
 
 </script>
@@ -246,64 +164,4 @@ const loadContacts = async () => {
              </div>
         </div>
      </AppLayout>
-     
-     <!-- Add/Edit Contact Dialog -->
-     <Dialog v-model:open="showContactDialog">
-      <DialogContent class="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>
-            {{ editingContact ? 'Edit Contact' : 'Add Contact' }}
-          </DialogTitle>
-        </DialogHeader>
-        <form @submit.prevent="saveContact" class="space-y-4">
-          <div class="space-y-2">
-            <Label for="contact_name">Name *</Label>
-            <Input
-              id="contact_name"
-              v-model="contactForm.contact_name"
-              placeholder="Contact name"
-              required
-            />
-          </div>
-          <div class="space-y-2">
-            <Label for="contact_position">Position</Label>
-            <Input
-              id="contact_position"
-              v-model="contactForm.contact_position"
-              placeholder="Job title or position"
-            />
-          </div>
-          <div class="space-y-2">
-            <Label for="contact_email">Email</Label>
-            <Input
-              id="contact_email"
-              v-model="contactForm.contact_email"
-              type="email"
-              placeholder="Email address"
-            />
-          </div>
-          <div class="space-y-2">
-            <Label for="contact_phone">Phone</Label>
-            <Input
-              id="contact_phone"
-              v-model="contactForm.contact_phone"
-              type="tel"
-              placeholder="Phone number"
-            />
-          </div>
-          <div class="flex justify-end gap-2">
-            <Button type="button" variant="outline" @click="showContactDialog = false">
-              Cancel
-            </Button>
-            <Button type="submit" :disabled="loading">
-              {{ editingContact ? 'Update' : 'Add' }} Contact
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
 </template>
-
-<style scoped>
-/* Add specific styles if needed */
-</style>

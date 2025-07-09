@@ -40,7 +40,7 @@ class ClientsFormRequest extends FormRequest
             'contactPersons.*.name'     => 'required|string|max:255',
             'contactPersons.*.email'    => 'nullable|email|max:255',
             'contactPersons.*.phone'    => 'nullable|string|max:255',
-            'contactPersons.*.function' => 'nullable|string|max:255',
+            'contactPersons.*.position' => 'nullable|string|max:255',
         ];
     }
 

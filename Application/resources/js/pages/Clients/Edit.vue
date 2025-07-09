@@ -18,11 +18,10 @@ import {
 } from '@/components/ui/select';
 import ScrollArea from '@/components/ui/scroll-area/ScrollArea.vue';
 
-import { ArrowLeft, Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
-import { ref, computed, onMounted } from 'vue';
+import { ArrowLeft, Plus } from 'lucide-vue-next';
+import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import ContactsFormManager from '@/components/ContactsFormManager.vue';
-import axios from 'axios';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -37,6 +36,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const page = usePage();
 const client = page.props.client as Client;
+const clientContacts = page.props.clientContacts as Array<{name: string, position: string, email: string, phone: string}>;
 
 const isBusinessClient = ref(client.client_type === 'business');
 
@@ -57,26 +57,7 @@ const form = useForm({
     bank: client.bank_name,
     currency: client.currency || '',
     notes: client.notes || '',
-    contactPersons: [] as Array<{name: string, position: string, email: string, phone: string}>,
-});
-
-const loadExistingContacts = async () => {
-    try {
-        const response = await axios.get(`/clients/${client.id}/contacts`);
-        const contacts = response.data.contacts;
-        form.contactPersons = contacts.map((contact: any) => ({
-            name: contact.contact_name,
-            position: contact.contact_position || '',
-            email: contact.contact_email || '',
-            phone: contact.contact_phone || '',
-        }));
-    } catch (error) {
-        console.error('Error loading contacts:', error);
-    }
-};
-
-onMounted(() => {
-    loadExistingContacts();
+    contactPersons: clientContacts,
 });
 
 const handleBack = () => {
