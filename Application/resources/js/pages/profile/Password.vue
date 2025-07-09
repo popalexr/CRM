@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
+import SettingsLayout from '@/layouts/profile/Layout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -14,7 +14,7 @@ import { type BreadcrumbItem } from '@/types';
 const breadcrumbItems: BreadcrumbItem[] = [
     {
         title: 'Password settings',
-        href: '/settings/password',
+        href: route('password.edit'),
     },
 ];
 

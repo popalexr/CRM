@@ -6,12 +6,12 @@ import HeadingSmall from '@/components/HeadingSmall.vue';
 import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/AppLayout.vue';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
+import SettingsLayout from '@/layouts/profile/Layout.vue';
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
         title: 'Appearance settings',
-        href: '/settings/appearance',
+        href: route('appearance'),
     },
 ];
 </script>
