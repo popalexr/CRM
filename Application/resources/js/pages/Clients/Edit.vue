@@ -16,6 +16,7 @@ import {
     SelectValue,
     SelectGroup
 } from '@/components/ui/select';
+import ScrollArea from '@/components/ui/scroll-area/ScrollArea.vue';
 
 import { ArrowLeft, Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
 import { ref, computed, onMounted } from 'vue';
@@ -315,10 +316,14 @@ const handleSubmit = () => {
                                 <CardTitle>Client Contacts</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <ContactsFormManager v-model="form.contactPersons" />
-                                <p class="text-sm text-muted-foreground mt-2">
-                                    Note: Changes here will be saved when you save the client form.
-                                </p>
+                                <ScrollArea class="h-[60vh] w-full">
+                                    <div class="p-2">
+                                        <ContactsFormManager v-model="form.contactPersons" />
+                                        <p class="text-sm text-muted-foreground mt-2">
+                                            Note: Changes here will be saved when you save the client form.
+                                        </p>
+                                    </div>
+                                </ScrollArea>
                             </CardContent>
                         </Card>
                     </TabsContent>
