@@ -19,6 +19,7 @@ import {
     DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Edit, Eye, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -28,7 +29,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const page = usePage();
-const clients = page.props.clients as Array<Client>;
+const clients = ref(page.props.clients as Array<Client>);
 
 const getFullAddress = (client: any) => {
     return `${client.address}, ${client.city}, ${client.county}, ${client.country}`;
@@ -43,7 +44,14 @@ const handleEdit = (clientId: number) => {
 };
 
 const handleDelete = (clientId: number) => {
-router.post(route('clients.delete', {id: clientId}))
+    router.post(route('clients.delete', {id: clientId}), {}, {
+        onSuccess: () => {
+            clients.value = clients.value.filter(client => client.id !== clientId);
+        },
+        onError: (errors) => {
+            console.error('Eroare la ștergerea clientului:', errors);
+        }
+    });
 };
 
 const handleAddClient = () => {
@@ -73,8 +81,8 @@ const handleAddClient = () => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Logo</TableHead>
                             <TableHead>Company Name</TableHead>
+                            <TableHead>Client Type</TableHead>
                             <TableHead>Full Address</TableHead>
                             <TableHead class="text-right">Actions</TableHead>
                         </TableRow>
@@ -82,18 +90,24 @@ const handleAddClient = () => {
                     <TableBody>
                         <TableRow v-for="client in clients" :key="client.id">
                             <TableCell>
-                                <Avatar class="h-10 w-10">
-                                    <AvatarImage 
-                                        v-if="client.client_logo" 
-                                        :src="client.client_logo" 
-                                        :alt="client.client_name" 
-                                    />
-                                    <AvatarFallback class="text-sm font-medium">
-                                        {{ client.client_name.charAt(0).toUpperCase() }}
-                                    </AvatarFallback>
-                                </Avatar>
+                                <div class="flex items-center gap-3">
+                                    <Avatar class="h-10 w-10">
+                                        <AvatarImage 
+                                            v-if="client.client_logo" 
+                                            :src="client.client_logo" 
+                                            :alt="client.client_name" 
+                                        />
+                                        <AvatarFallback class="text-sm font-medium">
+                                            {{ client.client_name.charAt(0).toUpperCase() }}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <div class="font-medium">{{ client.client_name }}</div>
+                                        <div class="text-sm text-muted-foreground">CUI: {{ client.cui }}</div>
+                                    </div>
+                                </div>
                             </TableCell>
-                            <TableCell class="font-medium">{{ client.client_name }}</TableCell>
+                            <TableCell>{{ client.client_type }}</TableCell>
                             <TableCell class="text-muted-foreground">
                                 {{ getFullAddress(client) }}
                             </TableCell>
