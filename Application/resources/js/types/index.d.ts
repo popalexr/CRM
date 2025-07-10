@@ -73,3 +73,67 @@ export interface ClientContact {
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;
+
+export interface CompanyInfo {
+    company_name: string;
+    company_type: string;
+    address: string;
+    city: string;
+    county: string;
+    country: string;
+    email: string;
+    phone: string;
+    iban: string;
+    bank: string;
+    swift: string;
+    vat_payer: boolean;
+}
+
+export interface VatRate {
+    id: string;
+    name: string;
+    rate: number;
+}
+
+export interface SettingsPageProps {
+    companyInfo: CompanyInfo;
+    vatRates: VatRate[];
+    companyTypes: Array<{ value: string; label: string }>;
+    formLabels: {
+        placeholders: Record<string, string>;
+        labels: Record<string, string>;
+        buttons: Record<string, string>;
+        headings: Record<string, string>;
+        messages: Record<string, string>;
+    };
+}
+
+export interface SettingsFormLabels {
+    placeholders: Record<string, string>;
+    labels: Record<string, string>;
+    buttons: Record<string, string>;
+    headings: Record<string, string>;
+    messages: Record<string, string>;
+}
+
+export interface CompanyFormData {
+    company_name: string;
+    company_type: string;
+    address: string;
+    city: string;
+    county: string;
+    country: string;
+    email: string;
+    phone: string;
+    iban: string;
+    bank: string;
+    swift: string;
+    vat_payer: boolean;
+    [key: string]: any;
+}
+
+export interface VatFormData {
+    name: string;
+    rate: number;
+    [key: string]: any;
+}
