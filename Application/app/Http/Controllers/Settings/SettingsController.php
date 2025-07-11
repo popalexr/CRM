@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\Setting;
+use App\Models\Settings;
 use Inertia\Inertia;
 
 class SettingsController extends Controller
@@ -17,9 +17,7 @@ class SettingsController extends Controller
 
         return Inertia::render('Settings/Index', [
             'companyInfo' => $settings['companyInfo'],
-            'vatRates' => $settings['vatRates'],
-            'companyTypes' => Setting::getCompanyTypes(),
-            'formLabels' => Setting::getFormLabels(),
+            'companyTypes' => config('application_settings.company_types'),
         ]);
     }
 
@@ -30,7 +28,7 @@ class SettingsController extends Controller
      */
     private function getSettings(): array
     {
-        $allSettings = Setting::all()->keyBy('key');
+        $allSettings = Settings::all()->keyBy('key');
 
         $companyInfo = [
             'company_name' => $allSettings->get('company_name')?->value ?? '',
@@ -38,7 +36,7 @@ class SettingsController extends Controller
             'address' => $allSettings->get('address')?->value ?? '',
             'city' => $allSettings->get('city')?->value ?? '',
             'county' => $allSettings->get('county')?->value ?? '',
-            'country' => $allSettings->get('country')?->value ?? 'România',
+            'country' => $allSettings->get('country')?->value ?? '',
             'email' => $allSettings->get('email')?->value ?? '',
             'phone' => $allSettings->get('phone')?->value ?? '',
             'iban' => $allSettings->get('iban')?->value ?? '',
@@ -47,29 +45,8 @@ class SettingsController extends Controller
             'vat_payer' => filter_var($allSettings->get('vat_payer')?->value ?? false, FILTER_VALIDATE_BOOLEAN),
         ];
 
-        $vatRatesSettings = $allSettings->filter(function ($setting) {
-            return str_starts_with($setting->key, 'vat_rate_') && !str_contains($setting->key, '_name');
-        });
-
-        $vatRates = [];
-        foreach ($vatRatesSettings as $setting) {
-            $rateId = str_replace('vat_rate_', '', $setting->key);
-            $nameKey = 'vat_rate_' . $rateId . '_name';
-            
-            $vatRates[] = [
-                'id' => $rateId,
-                'rate' => floatval($setting->value),
-                'name' => $allSettings->get($nameKey)?->value ?? 'TVA ' . $setting->value . '%',
-            ];
-        }
-
-        if (empty($vatRates)) {
-            $vatRates = Setting::getDefaultVatRates();
-        }
-
         return [
             'companyInfo' => $companyInfo,
-            'vatRates' => $vatRates,
         ];
     }
 }

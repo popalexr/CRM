@@ -1,24 +1,65 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Settings, Building, Receipt } from 'lucide-vue-next';
-import { useSettings } from '@/composables/useSettings';
+import { ref } from 'vue';
+import { BreadcrumbItem, CompanyInfo } from '@/types';
+import InputError from '@/components/InputError.vue';
 
-const {
-    labels, breadcrumbs, companyForm, vatForm, vatRates, companyTypes, saveCompanyInfo, addVatRate, removeVatRate, } = useSettings();
+const page = usePage();
+    
+const companyInfo = ref(page.props.companyInfo as CompanyInfo);
+const companyTypes = page.props.companyTypes as Array<{ value: string; label: string }>;
+
+const companyForm = useForm({
+    company_name: companyInfo.value.company_name,
+    company_type: companyInfo.value.company_type,
+    address: companyInfo.value.address,
+    city: companyInfo.value.city,
+    county: companyInfo.value.county,
+    country: companyInfo.value.country,
+    email: companyInfo.value.email,
+    phone: companyInfo.value.phone,
+    iban: companyInfo.value.iban,
+    bank: companyInfo.value.bank,
+    swift: companyInfo.value.swift,
+    vat_payer: companyInfo.value.vat_payer,
+});
+
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Settings',
+        href: route('settings.index'),
+    },
+    {
+        title: 'Company Settings',
+        href: route('settings.index'),
+    },
+];
+
+const saveCompanyInfo = () => {
+    companyForm.post(route('settings.company.update'), {
+        onSuccess: () => {
+            Object.assign(companyInfo.value, companyForm.data());
+        }
+    });
+};
+
+const showVatRates = () => {
+    router.visit(route('settings.vat'));
+};
 </script>
 
 <template>
-    <Head :title="labels.headings.page_title" />
+    <Head title="Company Settings" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-6">
@@ -27,49 +68,52 @@ const {
                     <div>
                         <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
                             <Settings class="h-6 w-6" />
-                            {{ labels.headings.page_title }}
+                            Company Settings
                         </h1>
                     </div>
                 </div>
             </div>
 
             <Tabs default-value="company" class="w-full">
-                <TabsList class="mb-6">
-                    <TabsTrigger value="company" class="flex items-center gap-2">
+                <TabsList class="mb-6 bg-light">
+                    <Button class="flex items-center gap-2 active mr-2">
                         <Building class="h-4 w-4" />
-                        Informații Companie
-                    </TabsTrigger>
-                    <TabsTrigger value="vat" class="flex items-center gap-2">
+                        General Information
+                    </Button>
+                    <Button class="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/10" @click="showVatRates">
                         <Receipt class="h-4 w-4" />
-                        Cote TVA
-                    </TabsTrigger>
+                        VAT Rates
+                    </Button>
                 </TabsList>
 
                 <!-- Company Information Tab -->
                 <TabsContent value="company">
                     <Card>
                         <CardHeader>
-                            <CardTitle>{{ labels.headings.company_info }}</CardTitle>
-                            <CardDescription>
-                                {{ labels.headings.company_info_desc }}
-                            </CardDescription>
+                            <CardTitle>General Information</CardTitle>
                         </CardHeader>
                         <CardContent class="space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-2">
-                                    <Label for="company_name">{{ labels.labels.company_name }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="company_name">Company Name</Label>
+                                        <InputError :message="companyForm.errors.company_name" />
+                                    </div>
                                     <Input 
                                         id="company_name"
                                         v-model="companyForm.company_name"
-                                        :placeholder="labels.placeholders.company_name"
+                                        placeholder="Company name"
                                     />
                                 </div>
                                 
                                 <div class="space-y-2">
-                                    <Label for="company_type">{{ labels.labels.company_type }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="company_type">Company Type</Label>
+                                        <InputError :message="companyForm.errors.company_type" />
+                                    </div>
                                     <Select v-model="companyForm.company_type">
-                                        <SelectTrigger>
-                                            <SelectValue :placeholder="labels.placeholders.company_type" />
+                                        <SelectTrigger class="w-full">
+                                            <SelectValue placeholder="Select the company type" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem 
@@ -84,88 +128,115 @@ const {
                                 </div>
                                 
                                 <div class="space-y-2">
-                                    <Label for="email">{{ labels.labels.email }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="email">Email</Label>
+                                        <InputError :message="companyForm.errors.email" />
+                                    </div>
                                     <Input 
                                         id="email"
                                         type="email"
                                         v-model="companyForm.email"
-                                        :placeholder="labels.placeholders.email"
+                                        placeholder="Email address"
                                     />
                                 </div>
                                 
                                 <div class="space-y-2">
-                                    <Label for="phone">{{ labels.labels.phone }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="phone">Phone Number</Label>
+                                        <InputError :message="companyForm.errors.phone" />
+                                    </div>
                                     <Input 
                                         id="phone"
                                         v-model="companyForm.phone"
-                                        :placeholder="labels.placeholders.phone"
+                                        placeholder="Phone number"
                                     />
                                 </div>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                                 <div class="space-y-2">
-                                    <Label for="iban">{{ labels.labels.iban }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="iban">IBAN</Label>
+                                        <InputError :message="companyForm.errors.iban" />
+                                    </div>
                                     <Input 
                                         id="iban"
                                         v-model="companyForm.iban"
-                                        :placeholder="labels.placeholders.iban"
+                                        placeholder="IBAN account"
                                     />
                                 </div>
                                 
                                 <div class="space-y-2">
-                                    <Label for="bank">{{ labels.labels.bank }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="bank">Bank</Label>
+                                        <InputError :message="companyForm.errors.bank" />
+                                    </div>
                                     <Input 
                                         id="bank"
                                         v-model="companyForm.bank"
-                                        :placeholder="labels.placeholders.bank"
+                                        placeholder="Bank"
                                     />
                                 </div>
                                 
                                 <div class="space-y-2">
-                                    <Label for="swift">{{ labels.labels.swift }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="swift">SWIFT Code</Label>
+                                        <InputError :message="companyForm.errors.swift" />
+                                    </div>
                                     <Input 
                                         id="swift"
                                         v-model="companyForm.swift"
-                                        :placeholder="labels.placeholders.swift"
+                                        placeholder="SWFT"
                                     />
                                 </div>
                             </div>
 
                             <div class="mt-6 space-y-2">
-                                <Label for="address">{{ labels.labels.address }}</Label>
+                                <div class="flex justify-between">
+                                    <Label for="address">Address</Label>
+                                    <InputError :message="companyForm.errors.address" />
+                                </div>
                                 <Input 
                                     id="address"
                                     v-model="companyForm.address"
-                                    :placeholder="labels.placeholders.address"
+                                    placeholder="Full address"
                                 />
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                                 <div class="space-y-2">
-                                    <Label for="city">{{ labels.labels.city }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="city">City</Label>
+                                        <InputError :message="companyForm.errors.city" />
+                                    </div>
                                     <Input 
                                         id="city"
                                         v-model="companyForm.city"
-                                        :placeholder="labels.placeholders.city"
+                                        placeholder="City"
                                     />
                                 </div>
                                 
                                 <div class="space-y-2">
-                                    <Label for="county">{{ labels.labels.county }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="county">County</Label>
+                                        <InputError :message="companyForm.errors.county" />
+                                    </div>
                                     <Input 
                                         id="county"
                                         v-model="companyForm.county"
-                                        :placeholder="labels.placeholders.county"
+                                        placeholder="County"
                                     />
                                 </div>
                                 
                                 <div class="space-y-2">
-                                    <Label for="country">{{ labels.labels.country }}</Label>
+                                    <div class="flex justify-between">
+                                        <Label for="country">Country</Label>
+                                        <InputError :message="companyForm.errors.country" />
+                                    </div>
                                     <Input 
                                         id="country"
                                         v-model="companyForm.country"
-                                        :placeholder="labels.placeholders.country"
+                                        placeholder="Country"
                                     />
                                 </div>
                             </div>
@@ -175,95 +246,17 @@ const {
                                     id="vat_payer"
                                     v-model="companyForm.vat_payer"
                                 />
-                                <Label for="vat_payer">{{ labels.labels.vat_payer }}</Label>
+                                <Label for="vat_payer">VAT Payer</Label>
                             </div>
                             
                             <div class="flex justify-end mt-6">
                                 <Button 
                                     @click="saveCompanyInfo"
-                                    :disabled="companyForm.processing"
                                     class="gap-2"
                                 >
                                     <Plus class="h-4 w-4" />
-                                    {{ labels.buttons.save_company }}
+                                    Save
                                 </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <!-- VAT Rates Tab -->
-                <TabsContent value="vat">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{{ labels.headings.vat_rates }}</CardTitle>
-                            <CardDescription>
-                                {{ labels.headings.vat_rates_desc }}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent class="space-y-6">
-                            <div v-if="vatRates.length > 0" class="space-y-3">
-                                <h4 class="font-medium">{{ labels.headings.vat_configured }}</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    <div 
-                                        v-for="rate in vatRates" 
-                                        :key="rate.id"
-                                        class="flex items-center justify-between p-3 border rounded-lg"
-                                    >
-                                        <div>
-                                            <div class="font-medium">{{ rate.name }}</div>
-                                            <Badge variant="secondary">{{ rate.rate }}%</Badge>
-                                        </div>
-                                        <Button 
-                                            variant="ghost" 
-                                            size="sm"
-                                            @click="removeVatRate(rate.id)"
-                                            class="text-red-600 hover:text-red-800"
-                                        >
-                                            {{ labels.buttons.delete_vat }}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Separator />
-
-                            <div class="space-y-4">
-                                <h4 class="font-medium">{{ labels.headings.add_new_vat }}</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div class="space-y-2">
-                                        <Label for="vat_name">{{ labels.labels.vat_name }}</Label>
-                                        <Input 
-                                            id="vat_name"
-                                            v-model="vatForm.name"
-                                            :placeholder="labels.placeholders.vat_name"
-                                        />
-                                    </div>
-                                    
-                                    <div class="space-y-2">
-                                        <Label for="vat_rate">{{ labels.labels.vat_rate }}</Label>
-                                        <Input 
-                                            id="vat_rate"
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            max="100"
-                                            v-model="vatForm.rate"
-                                            :placeholder="labels.placeholders.vat_rate"
-                                        />
-                                    </div>
-                                    
-                                    <div class="flex items-end">
-                                        <Button 
-                                            @click="addVatRate"
-                                            :disabled="vatForm.processing || !vatForm.name || vatForm.rate < 0"
-                                            class="w-full gap-2"
-                                        >
-                                            <Plus class="h-4 w-4" />
-                                            {{ labels.buttons.add_vat }}
-                                        </Button>
-                                    </div>
-                                </div>
                             </div>
                         </CardContent>
                     </Card>
