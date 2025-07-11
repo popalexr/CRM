@@ -98,6 +98,8 @@ class ClientsFormController extends Controller
             'bank_name'           => $request->input('bank'),
             'currency'            => $request->input('currency'),
             'notes'               => $request->input('notes', null),
+            'client_tva'          => $request->boolean('client_tva'),
+
         ]);
 
         if (! ($request->has('contactPersons') && is_array($request->input('contactPersons')))) { // If no contact persons are provided, return
@@ -130,6 +132,8 @@ class ClientsFormController extends Controller
             'bank_name'           => $request->input('bank'),
             'currency'            => $request->input('currency'),
             'notes'               => $request->input('notes', null),
+            'client_tva'          => $request->boolean('client_tva'),
+
         ]);
 
         $this->deleteContactPersons();

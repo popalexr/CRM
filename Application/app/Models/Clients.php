@@ -30,6 +30,7 @@ class Clients extends Model
         'tax_code',
         'currency',
         'notes',
+        'client_tva',
     ];
 
     protected $dates = ['deleted_at'];

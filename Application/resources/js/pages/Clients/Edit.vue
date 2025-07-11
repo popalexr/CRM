@@ -22,6 +22,7 @@ import { ArrowLeft, Plus } from 'lucide-vue-next';
 import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import ContactsFormManager from '@/components/ContactsFormManager.vue';
+import { Switch } from '@/components/ui/switch';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -57,6 +58,7 @@ const form = useForm({
     bank: client.bank_name,
     currency: client.currency || '',
     notes: client.notes || '',
+    client_tva: client.client_tva ?? false,
     contactPersons: clientContacts,
 });
 
@@ -286,6 +288,12 @@ const handleSubmit = () => {
                                         />
                                     </div>
                                 </div>
+                                 <div class="mt-6 space-y-2">
+                                                <Label for="client_tva">Plătitor de TVA</Label>
+                                                <Switch id="client_tva" v-model="form.client_tva" />
+                                                <InputError :message="form.errors.client_tva" />
+                                            </div>
+
                             </CardContent>
                         </Card>
                     </TabsContent>

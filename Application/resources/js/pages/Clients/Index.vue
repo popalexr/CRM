@@ -85,6 +85,7 @@ const handleAddClient = () => {
                             <TableHead>Client Type</TableHead>
                             <TableHead>Full Address</TableHead>
                             <TableHead class="text-right">Actions</TableHead>
+                            <TableHead>Status TVA</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -111,6 +112,15 @@ const handleAddClient = () => {
                             <TableCell class="text-muted-foreground">
                                 {{ getFullAddress(client) }}
                             </TableCell>
+                            <TableCell>
+                              <span
+                                    class="px-2 py-1 text-xs font-semibold rounded-full"
+                                    :class="client.client_tva ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'"
+                                 > 
+                                    {{ client.client_tva ? 'Plătitor TVA' : 'Neplătitor' }}
+                                 </span>
+                            </TableCell>
+
                             <TableCell class="text-right">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger as-child>
