@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Clients\ClientsFormRequest;
 use App\Models\ClientContacts;
 use App\Models\Clients;
+use App\Models\TemporaryFiles;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -55,6 +56,10 @@ class ClientsFormController extends Controller
         if ($this->clientId < 1)
         {
             $this->handleCreateClient($request);
+
+            if ($this->clientHasNewLogo($request)) {
+                $this->saveClientLogo($request->input('logo_file_id'));
+            }
             
             return redirect()
                 ->route('clients.index')
@@ -71,6 +76,10 @@ class ClientsFormController extends Controller
 
         // Update existing client
         $this->handleUpdateClient($request);
+
+        if ($this->clientHasNewLogo($request)) {
+            $this->saveClientLogo($request->input('logo_file_id'));
+        }
         
         return redirect()
             ->route('clients.index')
@@ -84,7 +93,7 @@ class ClientsFormController extends Controller
     {
         $this->client = Clients::create([
             'client_name'         => $request->input('client_name'),
-            'client_logo'         => null, // Set to null for now, can be updated later when logo upload is implemented
+            'client_logo'         => null, // Set to null before saving, will be updated later if a logo is provided
             'client_type'         => $request->input('client_type'),
             'cui'                 => $request->input('cui'),
             'registration_number' => $request->input('registrationNumber'),
@@ -197,5 +206,47 @@ class ClientsFormController extends Controller
                 ];
             })
             ->toArray();
+    }
+
+    /**
+     * Check if the client has a new logo.
+     */
+    private function clientHasNewLogo($request): bool
+    {
+        if (is_null($request->input('logo_file_id'))) {
+            return false;
+        }
+
+        if ($request->input('logo_file_id') < 1) {
+            return false;
+        }
+
+        $tmp = TemporaryFiles::find($request->input('logo_file_id'));
+
+        return ! blank ($tmp) && file_exists(storage_path($tmp->file_path));
+    }
+
+    /**
+     * Save the new logo for the client.
+     */
+    private function saveClientLogo($fileId): void
+    {
+        $tmp = TemporaryFiles::find($fileId);
+
+        if (blank($tmp) || ! file_exists(storage_path($tmp->file_path))) {
+            return;
+        }
+
+        $tmp_storage = storage_path($tmp->file_path);
+
+        $new_storage = storage_path('app/public/clients/' . $tmp->file_name);
+
+        if (! file_exists($new_storage)) {
+            copy($tmp_storage, $new_storage);
+        }
+
+        $this->client->client_logo = '/storage/clients/' . $tmp->file_name;
+
+        $this->client->save();
     }
 }

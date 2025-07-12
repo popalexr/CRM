@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,10 +18,11 @@ import {
 } from '@/components/ui/select';
 
 import { ArrowLeft, Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import InputError from '@/components/InputError.vue';
 import ContactsFormManager from '@/components/ContactsFormManager.vue';
 import { Switch } from '@/components/ui/switch';
+import Dropzone from '@/components/Dropzone.vue';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -36,6 +37,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const isBusinessClient = ref(false);
+
+const csrf_token = computed(() => usePage().props.csrf);
 
 const form = useForm({
     client_name: '',
@@ -54,6 +57,7 @@ const form = useForm({
     currency: '',
     notes: '',
     client_tva: false,
+    logo_file_id: '',
     contactPersons: [] as Array<{name: string, position: string, email: string, phone: string}>,
 });
 
@@ -75,6 +79,22 @@ const handleSubmit = () => {
         }
     });
 };
+
+const fileUploadSuccess = (response: any) => {
+    const responseData = response.response || response;
+    
+    if (responseData && responseData.file_id) {
+        form.logo_file_id = responseData.file_id;
+    }
+}
+
+const fileUploadError = (errorMessage: string) => {
+    console.error('File upload error:', errorMessage);
+};
+
+const uploadedFileRemoved = () => {
+    form.logo_file_id = '';
+}
 
 </script>
 
@@ -99,6 +119,7 @@ const handleSubmit = () => {
                     <!-- General Information Tab Content -->
                     <TabsList class="mb-2">
                         <TabsTrigger value="general">General</TabsTrigger>
+                        <TabsTrigger value="logo">Logo</TabsTrigger>
                         <TabsTrigger value="contacts" v-show="isBusinessClient === true">Contacts</TabsTrigger>
                         <TabsTrigger value="notes">Notes</TabsTrigger>
                     </TabsList>
@@ -289,6 +310,26 @@ const handleSubmit = () => {
                                             </div>
 
                                 
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="logo" force-mount class="data-[state=inactive]:hidden">
+                        <!-- Logo Tab Content -->
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Client Logo</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <InputError :message="form.errors.logo" />
+                                <Dropzone 
+                                    :url="route('upload.image')"
+                                    @success="fileUploadSuccess"
+                                    @error="fileUploadError"
+                                    @removed="uploadedFileRemoved"
+                                    :headers="{'X-CSRF-TOKEN': csrf_token }"
+                                    accepted-files="image/jpeg,image/png,image/jpg,image/bmp"
+                                />
                             </CardContent>
                         </Card>
                     </TabsContent>
