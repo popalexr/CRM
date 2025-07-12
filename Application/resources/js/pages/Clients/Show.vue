@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Link, Head, usePage, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator'; // Adaugat un separator optional
+import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -68,11 +68,12 @@ const handleBack = () => {
                      <CardContent>
                          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                              <div class="md:col-span-1 flex justify-center">
-                                <Avatar class="w-24 h-24 rounded-lg">
+                                <Avatar class="overflow-hidden aspect-square rounded-lg w-24 h-24">
                                      <AvatarImage
                                          v-if="client.client_logo"
                                          :src="client.client_logo"
                                          :alt="client.client_name"
+                                         class="w-full h-full object-cover object-center"
                                      />
                                      <AvatarFallback class="text-4xl font-medium rounded-lg">
                                         {{ client.client_name.charAt(0).toUpperCase() }}

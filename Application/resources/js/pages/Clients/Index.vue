@@ -32,7 +32,23 @@ const page = usePage();
 const clients = ref(page.props.clients as Array<Client>);
 
 const getFullAddress = (client: any) => {
+    if (!client.address)
+        client.address = '-';
+
+    if (!client.city)
+        client.city = '-';
+
+    if (!client.county)
+        client.county = '-';
+
+    if (!client.country)
+        client.country = '-';
+    
     return `${client.address}, ${client.city}, ${client.county}, ${client.country}`;
+};
+
+const getClientType = (client: Client) => {
+    return client.client_type === 'business' ? 'Business' : 'Individual';
 };
 
 const handleView = (clientId: number) => {
@@ -89,14 +105,14 @@ const handleAddClient = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="client in clients" :key="client.id">
+                        <TableRow v-for="client in clients" :key="client.id" @click="handleView(client.id)" class="cursor-pointer">
                             <TableCell>
                                 <div class="flex items-center gap-3">
-                                    <Avatar class="h-10 w-10">
+                                    <Avatar class="overflow-hidden aspect-square rounded-full h-10 w-10">
                                         <AvatarImage 
-                                            v-if="client.client_logo" 
-                                            :src="client.client_logo" 
-                                            :alt="client.client_name" 
+                                            v-if="client.client_logo"
+                                            :src="client.client_logo"
+                                            :alt="client.client_name"
                                         />
                                         <AvatarFallback class="text-sm font-medium">
                                             {{ client.client_name.charAt(0).toUpperCase() }}
@@ -108,7 +124,7 @@ const handleAddClient = () => {
                                     </div>
                                 </div>
                             </TableCell>
-                            <TableCell>{{ client.client_type }}</TableCell>
+                            <TableCell>{{ getClientType(client) }}</TableCell>
                             <TableCell class="text-muted-foreground">
                                 {{ getFullAddress(client) }}
                             </TableCell>
@@ -121,7 +137,7 @@ const handleAddClient = () => {
                                  </span>
                             </TableCell>
 
-                            <TableCell class="text-right">
+                            <TableCell class="text-right" @click.stop>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger as-child>
                                         <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
