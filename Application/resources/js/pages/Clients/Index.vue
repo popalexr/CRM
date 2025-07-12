@@ -84,8 +84,8 @@ const handleAddClient = () => {
                             <TableHead>Company Name</TableHead>
                             <TableHead>Client Type</TableHead>
                             <TableHead>Full Address</TableHead>
-                            <TableHead class="text-right">Actions</TableHead>
                             <TableHead>Status TVA</TableHead>
+                            <TableHead class="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
