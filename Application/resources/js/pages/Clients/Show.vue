@@ -99,6 +99,9 @@ const handleBack = () => {
                                   <p v-if="client.iban"><strong>IBAN:</strong> {{ client.iban }}</p>
                                   <p v-if="client.bank_name"><strong>Bancă:</strong> {{ client.bank_name }}</p>
                                   <p v-if="client.currency"><strong>Monedă facturare:</strong> {{ client.currency }}</p>
+                                  <p><strong>Plătitor TVA:</strong> 
+                                        <span>{{ client.client_tva ? 'Da' : 'Nu' }}</span>
+                                  </p>
                                   <p v-if="client.notes"><strong>Note:</strong> {{ client.notes }}</p>
                              </div>
                          </div>
