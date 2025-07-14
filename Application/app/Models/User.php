@@ -53,7 +53,32 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
-            'permissions' => 'array',
         ];
+    }
+
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin;
+    }
+
+    /**
+     * Check if the user has a specific permission.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        return in_array($permission, $this->getAllPermissions());
+    }
+
+    /**
+     * Get all permissions of the user.
+     *
+     * @return array<string>
+     */
+    public function getAllPermissions(): array
+    {
+        return json_decode($this->permissions) ?? [];
     }
 }
