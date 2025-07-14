@@ -5,29 +5,45 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Settings, Users } from 'lucide-vue-next';
+import { LayoutGrid, Settings, Users } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import { onBeforeMount } from 'vue';
+import { hasPermission } from '@/composables/hasPermission';
 
-const mainNavItems: NavItem[] = [
+let mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: '/',
         icon: LayoutGrid,
-    },
-    {
-        title: 'Clients',
-        href: '/clients',
-        icon: Users,
-    },
+    }
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Setări',
-        href: '/settings',
-        icon: Settings,
-    },
-];
+let footerNavItems: NavItem[] = [];
+
+const getAllowedMainNavItems = () => {
+    if (hasPermission('clients-view')) {
+        mainNavItems.push({
+            title: 'Clients',
+            href: route('clients.index'),
+            icon: Users,
+        });
+    }
+};
+
+const getAllowedFooterNavItems = () => {
+    if (hasPermission('settings-view')) {
+        footerNavItems.push({
+            title: 'Settings',
+            href: route('settings.index'),
+            icon: Settings,
+        });
+    }
+};
+
+onBeforeMount(() => {
+    getAllowedMainNavItems();
+    getAllowedFooterNavItems();
+});
 </script>
 
 <template>

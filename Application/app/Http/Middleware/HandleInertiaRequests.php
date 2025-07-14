@@ -57,6 +57,8 @@ class HandleInertiaRequests extends Middleware
                 'info' => $request->session()->get('info'),
             ],
             'csrf' => csrf_token(),
+            'permissions' => $request->user() ? $request->user()->getAllPermissions() : [],
+            'isAdmin' => $request->user() ? $request->user()->isAdmin() : false,
         ];
     }
 }
