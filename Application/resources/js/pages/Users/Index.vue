@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type User, type UserIndexProps, type FormDataStructure } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 interface Props extends UserIndexProps {
-    formData: FormDataStructure;
+    users: User[];
+    formData?: FormDataStructure;
 }
 
 const props = defineProps<Props>();
@@ -22,12 +24,37 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+const page = usePage();
+const successMessage = computed(() => page.props.flash.success);
+const errorMessage = computed(() => page.props.flash.error);
+
 const handleAddUser = () => {
     router.visit(route('users.form'));
 };
 
 const handleEditUser = (userId: number) => {
     router.visit(route('users.form', { id: userId }));
+};
+
+const handleDeleteUser = (userId: number) => {
+    if (confirm('delete this user?')) {
+        router.delete(route('users.destroy'), {
+            data: { id: userId },
+            onSuccess: () => {
+                console.log('User successfully deleted!!');
+            },
+            onError: (errors) => {
+                console.error('Error deleting user:', errors);
+                let errorDetails = '';
+                if (typeof errors === 'object') {
+                    errorDetails = Object.values(errors).flat().join(', ');
+                } else if (typeof errors === 'string') {
+                    errorDetails = errors;
+                }
+                alert('Error deleting user: ' + errorDetails);
+            }
+        });
+    }
 };
 
 const formatDate = (dateString: string) => {
@@ -51,8 +78,15 @@ const getPermissionCount = (permissions: string[]) => {
                 </div>
                 <Button @click="handleAddUser" class="gap-2">
                     <Plus class="h-4 w-4" />
-                    {{ props.formData.buttons.add_new }}
+                    {{ props.formData?.buttons?.add_new || 'Add New User' }}
                 </Button>
+            </div>
+
+            <div v-if="successMessage" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                {{ successMessage }}
+            </div>
+            <div v-if="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                {{ errorMessage }}
             </div>
 
             <Card>
@@ -103,7 +137,7 @@ const getPermissionCount = (permissions: string[]) => {
                                                 <Edit class="mr-2 h-4 w-4" />
                                                 Edit
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem class="text-destructive">
+                                            <DropdownMenuItem @click="handleDeleteUser(user.id)" class="text-destructive">
                                                 <Trash2 class="mr-2 h-4 w-4" />
                                                 Delete
                                             </DropdownMenuItem>
