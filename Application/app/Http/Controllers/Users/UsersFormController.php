@@ -14,16 +14,28 @@ class UsersFormController extends Controller
      */
     public function __invoke(Request $request)
     {
+        app()->setLocale('en'); 
+        // default until we make it dynamic from user settings or preferences
+        
         $availablePermissions = $this->getAvailablePermissions();
         
-        $formConstants = config('user_forms');
+        $formConfig = config('user_forms');
+        
+        $formData = [
+            'labels' => __('users.labels'),
+            'placeholders' => __('users.placeholders'),
+            'tabs' => __('users.tabs'),
+            'buttons' => __('users.buttons'),
+            'messages' => __('users.messages'),
+            'config' => $formConfig,
+        ];
         
         $userId = $request->input('id');
         
         if (empty($userId) || $userId == 0) {
             return Inertia::render('Users/Create', [
                 'availablePermissions' => $availablePermissions,
-                'formConstants' => $formConstants,
+                'formData' => $formData,
             ]);
         }
         
@@ -32,7 +44,7 @@ class UsersFormController extends Controller
         if (!$user) {
             return redirect()
                 ->route('users.index')
-                ->with('errors', 'User not found');
+                ->with('errors', __('users.messages.user_not_found'));
         }
         
         return Inertia::render('Users/Edit', [
@@ -49,7 +61,7 @@ class UsersFormController extends Controller
                 'permissions' => $user->getAllPermissions(),
             ],
             'availablePermissions' => $availablePermissions,
-            'formConstants' => $formConstants,
+            'formData' => $formData,
         ]);
     }
 

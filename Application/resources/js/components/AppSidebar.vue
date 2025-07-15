@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { LayoutGrid, Settings, Users } from 'lucide-vue-next';
+import { LayoutGrid, Settings, Users, UserCog } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { onBeforeMount } from 'vue';
 import { hasPermission } from '@/composables/hasPermission';
@@ -21,7 +21,15 @@ let mainNavItems: NavItem[] = [
 let footerNavItems: NavItem[] = [];
 
 const getAllowedMainNavItems = () => {
-    if (hasPermission('clients-view')) {
+    if (hasPermission('users.view')) {
+        mainNavItems.push({
+            title: 'Users',
+            href: route('users.index'),
+            icon: UserCog,
+        });
+    }
+    
+    if (hasPermission('clients.view')) {
         mainNavItems.push({
             title: 'Clients',
             href: route('clients.index'),
@@ -31,7 +39,7 @@ const getAllowedMainNavItems = () => {
 };
 
 const getAllowedFooterNavItems = () => {
-    if (hasPermission('settings-view')) {
+    if (hasPermission('settings.view')) {
         footerNavItems.push({
             title: 'Settings',
             href: route('settings.index'),

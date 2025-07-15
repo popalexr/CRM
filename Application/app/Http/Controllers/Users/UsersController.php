@@ -14,12 +14,23 @@ class UsersController extends Controller
      */
     public function __invoke()
     {
-        // Get form constants from config
-        $formConstants = config('user_forms');
+        app()->setLocale('en');
+        // default until we make it dynamic from user settings or preferences
+        
+        $formConfig = config('user_forms');
+        
+        $formData = [
+            'labels' => __('users.labels'),
+            'placeholders' => __('users.placeholders'), 
+            'tabs' => __('users.tabs'),
+            'buttons' => __('users.buttons'),
+            'messages' => __('users.messages'),
+            'config' => $formConfig,
+        ];
         
         return Inertia::render('Users/Index', [
             'users' => User::all(),
-            'formConstants' => $formConstants,
+            'formData' => $formData,
         ]);
     }
 

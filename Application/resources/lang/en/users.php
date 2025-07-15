@@ -1,0 +1,132 @@
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Management Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines are used for user management forms,
+    | tables, messages, and other user-related content.
+    |
+    */
+
+    // Form labels
+    'labels' => [
+        'name' => 'Name',
+        'email' => 'Email Address',
+        'phone' => 'Phone Number',
+        'birth_date' => 'Birth Date',
+        'address' => 'Address',
+        'city' => 'City',
+        'county' => 'County',
+        'country' => 'Country',
+        'password' => 'Password',
+        'password_confirmation' => 'Confirm Password',
+        'avatar' => 'User Avatar',
+        'permissions' => 'Roles & Permissions',
+        'optional' => 'optional',
+        'create_user' => 'Create User',
+        'edit_user' => 'Edit User',
+    ],
+
+    // Form placeholders
+    'placeholders' => [
+        'name' => 'User\'s name',
+        'email' => 'email@example.com',
+        'phone' => 'Phone number',
+        'address' => 'User\'s address',
+        'city' => 'City',
+        'county' => 'County',
+        'country' => 'Country',
+        'password' => 'User\'s password',
+        'password_confirmation' => 'Confirm password',
+        'password_edit' => 'Leave blank to keep current password',
+        'password_confirmation_edit' => 'Confirm new password',
+    ],
+
+    // Edit mode labels
+    'edit_labels' => [
+        'password' => 'New Password (optional)',
+        'password_confirmation' => 'Confirm New Password',
+    ],
+
+    // Form tabs
+    'tabs' => [
+        'details' => [
+            'label' => 'Details',
+            'title' => 'User Details',
+        ],
+        'avatar' => [
+            'label' => 'Avatar',
+            'title' => 'User Avatar',
+        ],
+        'permissions' => [
+            'label' => 'Permissions',
+            'title' => 'Roles & Permissions',
+        ],
+    ],
+
+    // Buttons
+    'buttons' => [
+        'save' => 'Save User',
+        'create' => 'Create User', 
+        'update' => 'Update User',
+        'add_new' => 'Add New User',
+        'add_user' => 'Add User',
+        'back' => 'Back',
+        'edit' => 'Edit',
+        'delete' => 'Delete',
+        'cancel' => 'Cancel',
+    ],
+
+    // Page titles
+    'titles' => [
+        'create' => 'Add User',
+        'edit' => 'Edit User',
+        'index' => 'Users',
+    ],
+
+    // Page descriptions
+    'descriptions' => [
+        'index' => 'Manage system users and their permissions',
+    ],
+
+    // Breadcrumbs
+    'breadcrumbs' => [
+        'users' => 'Users',
+        'add_user' => 'Add User',
+        'edit_user' => 'Edit User',
+    ],
+
+    // Messages
+    'messages' => [
+        'user_not_found' => 'User not found',
+        'form_submission_error' => 'Form submission errors',
+        'file_upload_error' => 'File upload error',
+        'no_users_found' => 'No users found.',
+        'add_first_user' => 'Add the first user',
+        'user_created' => 'User created successfully',
+        'user_updated' => 'User updated successfully',
+        'user_deleted' => 'User deleted successfully',
+    ],
+
+    // Table headers
+    'table' => [
+        'name' => 'Name',
+        'email' => 'Email',
+        'phone' => 'Phone',
+        'permissions' => 'Permissions',
+        'created' => 'Created',
+        'actions' => 'Actions',
+    ],
+
+    // Validation messages
+    'validation' => [
+        'required' => 'This field is required',
+        'email' => 'Please enter a valid email address',
+        'min_password' => 'Password must be at least 8 characters',
+        'password_confirmed' => 'Password confirmation does not match',
+    ],
+];

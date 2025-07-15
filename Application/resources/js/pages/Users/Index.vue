@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type User, type UserIndexProps, type UserFormConstants } from '@/types';
+import { type BreadcrumbItem, type User, type UserIndexProps, type FormDataStructure } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
 
 interface Props extends UserIndexProps {
-    formConstants: UserFormConstants;
+    formData: FormDataStructure;
 }
 
 const props = defineProps<Props>();
@@ -51,7 +51,7 @@ const getPermissionCount = (permissions: string[]) => {
                 </div>
                 <Button @click="handleAddUser" class="gap-2">
                     <Plus class="h-4 w-4" />
-                    Add User
+                    {{ props.formData.buttons.add_new }}
                 </Button>
             </div>
 

@@ -108,7 +108,15 @@ export interface UserFormConstants {
     validation_messages: Record<string, string>;
 }
 
-// Handler function types
+export interface FormDataStructure {
+    labels: Record<string, string>;
+    placeholders: Record<string, string>;
+    tabs: Record<string, UserFormTab>;
+    buttons: Record<string, string>;
+    messages: Record<string, string>;
+    config: any;
+}
+
 export type UserFormSubmitHandler = () => void;
 export type UserNavigationHandler = () => void;
 export type UserEditHandler = (userId: number) => void;
@@ -118,7 +126,6 @@ export type FileUploadErrorHandler = (error: FileUploadError) => void;
 export type FileUploadRemovedHandler = () => void;
 export type PermissionToggleHandler = (permissionId: string) => void;
 
-// Form validation types
 export interface UserFormValidation {
     name: string[];
     email: string[];
@@ -134,6 +141,5 @@ export interface UserFormValidation {
     permissions?: string[];
 }
 
-// Date formatting types
 export type DateFormatHandler = (dateString: string) => string;
 export type PermissionCountHandler = (permissions: string[]) => number;

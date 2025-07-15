@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type User, type Permission, type UserEditProps, type UserFormConstants } from '@/types';
+import { type BreadcrumbItem, type User, type Permission, type UserEditProps, type FormDataStructure } from '@/types';
 import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
 
 interface Props extends UserEditProps {
-    formConstants: UserFormConstants;
+    formData: FormDataStructure;
 }
 
 const props = defineProps<Props>();
@@ -113,7 +113,7 @@ const togglePermission = (permissionId: string) => {
                         <ArrowLeft class="h-4 w-4" />
                     </Button>
                     <div>
-                        <h1 class="text-2xl font-bold tracking-tight">Edit User</h1>
+                        <h1 class="text-2xl font-bold tracking-tight">{{ props.formData.labels.edit_user }}</h1>
                     </div>
                 </div>
             </div>
@@ -121,58 +121,58 @@ const togglePermission = (permissionId: string) => {
             <form @submit.prevent="handleSubmit">
                 <Tabs default-value="details">
                     <TabsList class="mb-2">
-                        <TabsTrigger value="details">Detalii User</TabsTrigger>
-                        <TabsTrigger value="avatar">Avatar</TabsTrigger>
-                        <TabsTrigger value="permissions">Rol și Permisiuni</TabsTrigger>
+                        <TabsTrigger value="details">{{ props.formData.tabs.details.label }}</TabsTrigger>
+                        <TabsTrigger value="avatar">{{ props.formData.tabs.avatar.label }}</TabsTrigger>
+                        <TabsTrigger value="permissions">{{ props.formData.tabs.permissions.label }}</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="details">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Detalii User</CardTitle>
+                                <CardTitle>{{ props.formData.tabs.details.title }}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="name">Nume</Label>
+                                            <Label for="name">{{ props.formData.labels.name }}</Label>
                                             <InputError :message="form.errors.name" />
                                         </div>
                                         <Input 
                                             id="name" 
                                             v-model="form.name" 
-                                            placeholder="Numele utilizatorului"
+                                            :placeholder="props.formData.placeholders.name"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="email">Adresă de email</Label>
+                                            <Label for="email">{{ props.formData.labels.email }}</Label>
                                             <InputError :message="form.errors.email" />
                                         </div>
                                         <Input 
                                             id="email" 
                                             v-model="form.email" 
                                             type="email" 
-                                            placeholder="email@example.com"
+                                            :placeholder="props.formData.placeholders.email"
                                         />
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="phone">Număr telefon</Label>
+                                            <Label for="phone">{{ props.formData.labels.phone }}</Label>
                                             <InputError :message="form.errors.phone" />
                                         </div>
                                         <Input 
                                             id="phone" 
                                             v-model="form.phone" 
                                             type="tel" 
-                                            placeholder="Numărul de telefon"
+                                            :placeholder="props.formData.placeholders.phone"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="birth_date">Data nașterii</Label>
+                                            <Label for="birth_date">{{ props.formData.labels.birth_date }}</Label>
                                             <InputError :message="form.errors.birth_date" />
                                         </div>
                                         <Input 
@@ -184,73 +184,73 @@ const togglePermission = (permissionId: string) => {
                                 </div>
                                 <div class="mt-6 space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <Label for="address">Adresă</Label>
+                                        <Label for="address">{{ props.formData.labels.address }}</Label>
                                         <InputError :message="form.errors.address" />
                                     </div>
                                     <Input
                                         id="address" 
                                         v-model="form.address" 
-                                        placeholder="Adresa utilizatorului"
+                                        :placeholder="props.formData.placeholders.address"
                                     />
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="city">Oraș</Label>
+                                            <Label for="city">{{ props.formData.labels.city }}</Label>
                                             <InputError :message="form.errors.city" />
                                         </div>
                                         <Input 
                                             id="city" 
                                             v-model="form.city" 
-                                            placeholder="Orașul"
+                                            :placeholder="props.formData.placeholders.city"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="county">Județ</Label>
+                                            <Label for="county">{{ props.formData.labels.county }}</Label>
                                             <InputError :message="form.errors.county" />
                                         </div>
                                         <Input 
                                             id="county" 
                                             v-model="form.county" 
-                                            placeholder="Județul"
+                                            :placeholder="props.formData.placeholders.county"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="country">Țară</Label>
+                                            <Label for="country">{{ props.formData.labels.country }}</Label>
                                             <InputError :message="form.errors.country" />
                                         </div>
                                         <Input 
                                             id="country" 
                                             v-model="form.country" 
-                                            placeholder="Țara"
+                                            :placeholder="props.formData.placeholders.country"
                                         />
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="password">Parolă nouă (opțional)</Label>
+                                            <Label for="password">{{ props.formData.labels.password }} ({{ props.formData.labels.optional }})</Label>
                                             <InputError :message="form.errors.password" />
                                         </div>
                                         <Input 
                                             id="password" 
                                             v-model="form.password" 
                                             type="password" 
-                                            placeholder="Lasă gol pentru a păstra parola actuală"
+                                            :placeholder="props.formData.placeholders.password_edit"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="password_confirmation">Confirmă parola nouă</Label>
+                                            <Label for="password_confirmation">{{ props.formData.labels.password_confirmation }}</Label>
                                             <InputError :message="form.errors.password_confirmation" />
                                         </div>
                                         <Input 
                                             id="password_confirmation" 
                                             v-model="form.password_confirmation" 
                                             type="password" 
-                                            placeholder="Confirmă parola nouă"
+                                            :placeholder="props.formData.placeholders.password_confirmation"
                                         />
                                     </div>
                                 </div>
@@ -261,7 +261,7 @@ const togglePermission = (permissionId: string) => {
                     <TabsContent value="avatar" force-mount class="data-[state=inactive]:hidden">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Avatar Utilizator</CardTitle>
+                                <CardTitle>{{ props.formData.tabs.avatar.title }}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <InputError :message="form.errors.avatar_file_id" />
@@ -280,7 +280,7 @@ const togglePermission = (permissionId: string) => {
                     <TabsContent value="permissions">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Rol și Permisiuni</CardTitle>
+                                <CardTitle>{{ props.formData.tabs.permissions.title }}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div class="space-y-6">
@@ -320,7 +320,7 @@ const togglePermission = (permissionId: string) => {
                 <div class="mt-6 flex justify-end">
                     <Button type="submit" class="gap-2">
                         <Plus class="h-4 w-4" />
-                        Actualizează Utilizator
+                        {{ props.formData.buttons.update }}
                     </Button>
                 </div>
             </form>

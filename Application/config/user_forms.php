@@ -4,119 +4,99 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | User Forms Constants
+    | User Forms Configuration
     |--------------------------------------------------------------------------
     |
-    | This file contains all form-related constants for user management,
-    | including field labels, placeholders, messages, and other form constants.
+    | This file contains non-translatable form configurations for user management,
+    | including field types, validation rules, and other technical settings.
+    | All translatable content is now in resources/lang/users.php
     |
     */
 
-    'labels' => [
-        'name' => 'Nume',
-        'email' => 'Adresă de email',
-        'phone' => 'Număr telefon',
-        'birth_date' => 'Data nașterii',
-        'address' => 'Adresă',
-        'city' => 'Oraș',
-        'county' => 'Județ',
-        'country' => 'Țară',
-        'password' => 'Parolă',
-        'password_confirmation' => 'Confirmă parola',
-        'avatar' => 'Avatar Utilizator',
-        'permissions' => 'Rol și Permisiuni',
+    'field_types' => [
+        'name' => 'text',
+        'email' => 'email',
+        'phone' => 'tel',
+        'birth_date' => 'date',
+        'address' => 'text',
+        'city' => 'text',
+        'county' => 'text',
+        'country' => 'text',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+        'avatar_file_id' => 'file',
+        'permissions' => 'checkbox_group',
     ],
 
-    'placeholders' => [
-        'name' => 'Numele utilizatorului',
-        'email' => 'email@example.com',
-        'phone' => 'Numărul de telefon',
-        'address' => 'Adresa utilizatorului',
-        'city' => 'Orașul',
-        'county' => 'Județul',
-        'country' => 'Țara',
-        'password' => 'Parola utilizatorului',
-        'password_confirmation' => 'Confirmă parola',
-        'password_edit' => 'Lasă gol pentru a păstra parola actuală',
-        'password_confirmation_edit' => 'Confirmă parola nouă',
-    ],
-
-    'edit_labels' => [
-        'password' => 'Parolă nouă (opțional)',
-        'password_confirmation' => 'Confirmă parola nouă',
-    ],
-
-    'tabs' => [
-        'details' => [
-            'key' => 'details',
-            'label' => 'Detalii User',
-            'title' => 'Detalii User',
+    'validation_rules' => [
+        'create' => [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'county' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
+            'password' => 'required|string|min:8|confirmed',
+            'avatar_file_id' => 'nullable|string',
+            'permissions' => 'nullable|array',
         ],
-        'avatar' => [
-            'key' => 'avatar', 
-            'label' => 'Avatar',
-            'title' => 'Avatar Utilizator',
-        ],
-        'permissions' => [
-            'key' => 'permissions',
-            'label' => 'Rol și Permisiuni', 
-            'title' => 'Rol și Permisiuni',
+        'update' => [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,{id}',
+            'phone' => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'county' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
+            'password' => 'nullable|string|min:8|confirmed',
+            'avatar_file_id' => 'nullable|string',
+            'permissions' => 'nullable|array',
         ],
     ],
 
-    'buttons' => [
-        'create' => 'Salvează Utilizator',
-        'update' => 'Actualizează Utilizator',
-        'add_user' => 'Add User',
-        'back' => 'Înapoi',
-    ],
-
-    'titles' => [
-        'create' => 'Add User',
-        'edit' => 'Edit User',
-        'index' => 'Users',
-    ],
-
-    'descriptions' => [
-        'index' => 'Manage system users and their permissions',
-    ],
-
-    'breadcrumbs' => [
-        'users' => 'Users',
-        'add_user' => 'Add User', 
-        'edit_user' => 'Edit User',
-    ],
-
-    'messages' => [
-        'user_not_found' => 'User not found',
-        'form_submission_error' => 'Form submission errors',
-        'file_upload_error' => 'File upload error',
-        'no_users_found' => 'No users found.',
-        'add_first_user' => 'Add the first user',
-    ],
-
-    'table_headers' => [
-        'name' => 'Name',
-        'email' => 'Email', 
-        'phone' => 'Phone',
-        'permissions' => 'Permissions',
-        'created' => 'Created',
-        'actions' => 'Actions',
-    ],
-
-    'actions' => [
-        'edit' => 'Edit',
-        'delete' => 'Delete',
+    'form_layout' => [
+        'details_tab' => [
+            'rows' => [
+                [
+                    'fields' => ['name', 'email'],
+                    'columns' => 2,
+                ],
+                [
+                    'fields' => ['phone', 'birth_date'],
+                    'columns' => 2,
+                ],
+                [
+                    'fields' => ['address'],
+                    'columns' => 1,
+                ],
+                [
+                    'fields' => ['city', 'county', 'country'],
+                    'columns' => 3,
+                ],
+                [
+                    'fields' => ['password', 'password_confirmation'],
+                    'columns' => 2,
+                ],
+            ],
+        ],
     ],
 
     'file_upload' => [
         'accepted_files' => 'image/jpeg,image/png,image/jpg,image/bmp',
+        'max_size' => '2048', // KB
+        'path' => 'avatars',
     ],
 
-    'validation_messages' => [
-        'required' => 'This field is required',
-        'email' => 'Please enter a valid email address',
-        'min_password' => 'Password must be at least 8 characters',
-        'password_confirmed' => 'Password confirmation does not match',
+    'table_config' => [
+        'per_page' => 15,
+        'sortable_columns' => ['name', 'email', 'created_at'],
+        'searchable_columns' => ['name', 'email', 'phone'],
+    ],
+
+    'default_permissions' => [
+        'users.view',
     ],
 ];
