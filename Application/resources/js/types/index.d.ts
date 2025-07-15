@@ -137,3 +137,6 @@ export interface VatFormData {
     rate: number;
     [key: string]: any;
 }
+
+// Export user-related types
+export * from './user';

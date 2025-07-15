@@ -1,0 +1,327 @@
+<script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type Permission, type UserCreateProps, type UserFormConstants, type UserFormData } from '@/types';
+import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Plus } from 'lucide-vue-next';
+import { computed } from 'vue';
+import InputError from '@/components/InputError.vue';
+import Dropzone from '@/components/Dropzone.vue';
+
+interface Props extends UserCreateProps {
+    formConstants: UserFormConstants;
+}
+
+const props = defineProps<Props>();
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: props.formConstants.breadcrumbs.users,
+        href: '/users',
+    },
+    {
+        title: props.formConstants.breadcrumbs.add_user,
+        href: '/users/form',
+    },
+];
+
+const csrf_token = computed(() => usePage().props.csrf);
+
+const form = useForm({
+    name: '',
+    email: '',
+    phone: '',
+    birth_date: '',
+    address: '',
+    city: '',
+    county: '',
+    country: '',
+    password: '',
+    password_confirmation: '',
+    avatar_file_id: '',
+    permissions: [] as string[],
+});
+
+// Group permissions by category
+const groupedPermissions = computed(() => {
+    const groups: Record<string, Permission[]> = {};
+    props.availablePermissions.forEach(permission => {
+        if (!groups[permission.category]) {
+            groups[permission.category] = [];
+        }
+        groups[permission.category].push(permission);
+    });
+    return groups;
+});
+
+const handleBack = () => {
+    router.visit(route('users.index'));
+};
+
+const handleSubmit = () => {
+    form.post(route('users.form.post'), {
+        onSuccess: () => {
+            router.visit(route('users.index'));
+        },
+        onError: (errors) => {
+            console.error('Form submission errors:', errors);
+        }
+    });
+};
+
+const fileUploadSuccess = (response: any) => {
+    const responseData = response.response || response;
+    
+    if (responseData && responseData.file_id) {
+        form.avatar_file_id = responseData.file_id;
+    }
+}
+
+const fileUploadError = (payload: { errorMessage: any }) => {
+    console.error('File upload error:', payload.errorMessage);
+};
+
+const uploadedFileRemoved = () => {
+    form.avatar_file_id = '';
+}
+
+const togglePermission = (permissionId: string) => {
+    const index = form.permissions.indexOf(permissionId);
+    if (index > -1) {
+        form.permissions.splice(index, 1);
+    } else {
+        form.permissions.push(permissionId);
+    }
+};
+</script>
+
+<template>
+    <Head title="Add User" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <Button variant="ghost" size="sm" @click="handleBack" class="gap-2">
+                        <ArrowLeft class="h-4 w-4" />
+                    </Button>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">{{ props.formConstants.titles.create }}</h1>
+                    </div>
+                </div>
+            </div>
+
+            <form @submit.prevent="handleSubmit">
+                <Tabs default-value="details">
+                    <TabsList class="mb-2">
+                        <TabsTrigger value="details">{{ props.formConstants.tabs.details.label }}</TabsTrigger>
+                        <TabsTrigger value="avatar">{{ props.formConstants.tabs.avatar.label }}</TabsTrigger>
+                        <TabsTrigger value="permissions">{{ props.formConstants.tabs.permissions.label }}</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="details">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{{ props.formConstants.tabs.details.title }}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="name">{{ props.formConstants.labels.name }}</Label>
+                                            <InputError :message="form.errors.name" />
+                                        </div>
+                                        <Input 
+                                            id="name" 
+                                            v-model="form.name" 
+                                            :placeholder="props.formConstants.placeholders.name"
+                                        />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="email">{{ props.formConstants.labels.email }}</Label>
+                                            <InputError :message="form.errors.email" />
+                                        </div>
+                                        <Input 
+                                            id="email" 
+                                            v-model="form.email" 
+                                            type="email" 
+                                            :placeholder="props.formConstants.placeholders.email"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="phone">Număr telefon</Label>
+                                            <InputError :message="form.errors.phone" />
+                                        </div>
+                                        <Input 
+                                            id="phone" 
+                                            v-model="form.phone" 
+                                            type="tel" 
+                                            placeholder="Numărul de telefon"
+                                        />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="birth_date">Data nașterii</Label>
+                                            <InputError :message="form.errors.birth_date" />
+                                        </div>
+                                        <Input 
+                                            id="birth_date" 
+                                            v-model="form.birth_date" 
+                                            type="date"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="mt-6 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <Label for="address">Adresă</Label>
+                                        <InputError :message="form.errors.address" />
+                                    </div>
+                                    <Input
+                                        id="address" 
+                                        v-model="form.address" 
+                                        placeholder="Adresa utilizatorului"
+                                    />
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="city">Oraș</Label>
+                                            <InputError :message="form.errors.city" />
+                                        </div>
+                                        <Input 
+                                            id="city" 
+                                            v-model="form.city" 
+                                            placeholder="Orașul"
+                                        />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="county">Județ</Label>
+                                            <InputError :message="form.errors.county" />
+                                        </div>
+                                        <Input 
+                                            id="county" 
+                                            v-model="form.county" 
+                                            placeholder="Județul"
+                                        />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="country">Țară</Label>
+                                            <InputError :message="form.errors.country" />
+                                        </div>
+                                        <Input 
+                                            id="country" 
+                                            v-model="form.country" 
+                                            placeholder="Țara"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="password">Parolă</Label>
+                                            <InputError :message="form.errors.password" />
+                                        </div>
+                                        <Input 
+                                            id="password" 
+                                            v-model="form.password" 
+                                            type="password" 
+                                            placeholder="Parola utilizatorului"
+                                        />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="password_confirmation">Confirmă parola</Label>
+                                            <InputError :message="form.errors.password_confirmation" />
+                                        </div>
+                                        <Input 
+                                            id="password_confirmation" 
+                                            v-model="form.password_confirmation" 
+                                            type="password" 
+                                            placeholder="Confirmă parola"
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="avatar" force-mount class="data-[state=inactive]:hidden">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Avatar Utilizator</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <InputError :message="form.errors.avatar_file_id" />
+                                <Dropzone 
+                                    :url="route('upload.image')"
+                                    @success="fileUploadSuccess"
+                                    @error="fileUploadError"
+                                    @removed="uploadedFileRemoved"
+                                    :headers="{'X-CSRF-TOKEN': csrf_token as string }"
+                                    accepted-files="image/jpeg,image/png,image/jpg,image/bmp"
+                                />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="permissions">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Rol și Permisiuni</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div class="space-y-6">
+                                    <div 
+                                        v-for="(permissions, category) in groupedPermissions" 
+                                        :key="category"
+                                        class="space-y-3"
+                                    >
+                                        <h4 class="text-sm font-medium text-muted-foreground">{{ category }}</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4">
+                                            <div 
+                                                v-for="permission in permissions" 
+                                                :key="permission.id"
+                                                class="flex items-center space-x-2"
+                                            >
+                                                <Checkbox 
+                                                    :id="permission.id"
+                                                    :checked="form.permissions.includes(permission.id)"
+                                                    @update:checked="togglePermission(permission.id)"
+                                                />
+                                                <Label 
+                                                    :for="permission.id"
+                                                    class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    {{ permission.label }}
+                                                </Label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <InputError :message="form.errors.permissions" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+
+                <div class="mt-6 flex justify-end">
+                    <Button type="submit" class="gap-2">
+                        <Plus class="h-4 w-4" />
+                        Salvează Utilizator
+                    </Button>
+                </div>
+            </form>
+        </div>
+    </AppLayout>
+</template>

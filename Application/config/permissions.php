@@ -1,18 +1,54 @@
 <?php
 
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Permissions Configuration
+    |--------------------------------------------------------------------------
+    |
+    | This file contains all available permissions for the CRM system.
+    | Permissions are organized by category for better management.
+    |
+    */
+
     'Users' => [
-        'users-view'    => 'View users',
-        'users-form'    => 'Create and edit users',
-        'users-delete'  => 'Delete users',
+        'users.view'    => 'View Users',
+        'users.create'  => 'Create Users',
+        'users.edit'    => 'Edit Users',
+        'users.delete'  => 'Delete Users',
     ],
+
     'Clients' => [
-        'clients-view'    => 'View clients',
-        'clients-form'    => 'Create and edit clients',
-        'clients-delete'  => 'Delete clients',
+        'clients.view'    => 'View Clients',
+        'clients.create'  => 'Create Clients',
+        'clients.edit'    => 'Edit Clients',
+        'clients.delete'  => 'Delete Clients',
     ],
-    // TODO: Add the rest of the permissions for other modules
+
     'Settings' => [
-        'settings-update' => 'Update settings',
+        'settings.view'   => 'View Settings',
+        'settings.edit'   => 'Edit Settings',
+    ],
+
+    'Reports' => [
+        'reports.view'    => 'View Reports',
+        'reports.create'  => 'Create Reports',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Permission Categories
+    |--------------------------------------------------------------------------
+    |
+    | Human-readable names for permission categories.
+    |
+    */
+
+    'categories' => [
+        'Users' => 'User Management',
+        'Clients' => 'Client Management',
+        'Settings' => 'System Settings',
+        'Reports' => 'Reports & Analytics',
     ],
 ];
