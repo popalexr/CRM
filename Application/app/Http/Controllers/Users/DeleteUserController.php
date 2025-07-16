@@ -6,26 +6,35 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Carbon; 
-use Illuminate\Support\Facades\Redirect;
 
 class DeleteUserController extends Controller
 {
-    
-    public function __invoke(Request $request)
+    private ?User $user = null;
+
+    public function __construct(private Request $request)
     {
-      
-        $userId = $request->input('id');
-        if (! $userId || ! is_numeric($userId)) {
-            return Redirect::route('users.index')->with('error', 'ID utilizator invalid.');
+        if ($this->request->input('id')) {
+            $this->user = User::find($this->request->input('id'));
+        }
+    }
+
+    public function __invoke()
+    {
+        if (! $this->user) {
+            return redirect()->route('users.index')->with('error', 'User not found.');
         }
 
-        $user = User::find($userId);
-
-        if (! $user) {
-            return Redirect::route('users.index')->with('error', 'Utilizatorul nu a fost găsit.');
+        if ($this->user->id === $this->request->user()->id) {
+            return redirect()->route('users.index')->with('error', 'You cannot delete your own account.');
         }
 
-        $user->delete(); 
-        return Redirect::route('users.index')->with('success', 'Utilizatorul a fost șters cu succes.');
+        if ($this->user->isAdmin()) {
+            return redirect()->route('users.index')->with('error', 'You cannot delete an admin user.');
+        }
+
+        $this->user->deleted_at = Carbon::now();
+        $this->user->save();
+
+        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
 }
