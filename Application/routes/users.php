@@ -4,9 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Users\UsersController;
 use App\Http\Controllers\Users\UsersFormController;
 use App\Http\Controllers\Users\DeleteUserController;
+use App\Http\Controllers\Users\UserDetailsController;
 Route::middleware('auth')->prefix('users')->group(function () {
     Route::get('/', UsersController::class)->name('users.index');
     Route::get('/form', UsersFormController::class)->name('users.form');
     Route::post('/form', UsersFormController::class)->name('users.form.post');
+     Route::get('/{user}', UserDetailsController::class)->name('users.show'); 
     Route::delete('/', DeleteUserController::class)->name('users.destroy');
 });

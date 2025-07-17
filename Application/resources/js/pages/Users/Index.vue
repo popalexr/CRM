@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
+import { Edit, MoreHorizontal, Plus, Trash2, Eye } from 'lucide-vue-next'; // Adaugat Eye
 import { computed } from 'vue';
 
 interface Props extends UserIndexProps {
@@ -37,24 +37,28 @@ const handleEditUser = (userId: number) => {
 };
 
 const handleDeleteUser = (userId: number) => {
-    if (confirm('delete this user?')) {
+    if (confirm('Ești sigur că vrei să ștergi acest utilizator? Această acțiune va marca utilizatorul ca șters, dar nu îl va elimina definitiv din baza de date.')) {
         router.delete(route('users.destroy'), {
             data: { id: userId },
             onSuccess: () => {
-                console.log('User successfully deleted!!');
+                console.log('Utilizator șters cu succes!');
             },
             onError: (errors) => {
-                console.error('Error deleting user:', errors);
+                console.error('Eroare la ștergerea utilizatorului:', errors);
                 let errorDetails = '';
                 if (typeof errors === 'object') {
                     errorDetails = Object.values(errors).flat().join(', ');
                 } else if (typeof errors === 'string') {
                     errorDetails = errors;
                 }
-                alert('Error deleting user: ' + errorDetails);
+                alert('Eroare la șterterea utilizatorului: ' + errorDetails);
             }
         });
     }
+};
+
+const handleViewUser = (userId: number) => { // Functie adaugata pentru View Details
+    router.visit(route('users.show', userId));
 };
 
 const formatDate = (dateString: string) => {
@@ -118,7 +122,7 @@ const getPermissionCount = (permissions: string[]) => {
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant="secondary">
-                                        {{ getPermissionCount(user.permissions) }} permissions
+                                        {{ user.permissions ? user.permissions.length : 0 }} permissions
                                     </Badge>
                                 </TableCell>
                                 <TableCell>
@@ -133,10 +137,17 @@ const getPermissionCount = (permissions: string[]) => {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
+                                            <!-- Buton "View Details" adaugat -->
+                                            <DropdownMenuItem @click="handleViewUser(user.id)">
+                                                <Eye class="mr-2 h-4 w-4" />
+                                                View Details
+                                            </DropdownMenuItem>
+                                            <!-- Buton "Edit" existent -->
                                             <DropdownMenuItem @click="handleEditUser(user.id)">
                                                 <Edit class="mr-2 h-4 w-4" />
                                                 Edit
                                             </DropdownMenuItem>
+                                            <!-- Buton "Delete" existent -->
                                             <DropdownMenuItem @click="handleDeleteUser(user.id)" class="text-destructive">
                                                 <Trash2 class="mr-2 h-4 w-4" />
                                                 Delete
