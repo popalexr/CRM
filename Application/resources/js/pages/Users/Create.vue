@@ -42,7 +42,7 @@ const form = useForm({
     county: '',
     country: '',
     avatar_file_id: '',
-    permissions: [] as string[],
+    permissions: [] as Array<string>,
 });
 
 // Group permissions by category
