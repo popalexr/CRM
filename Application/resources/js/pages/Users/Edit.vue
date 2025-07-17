@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Plus } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
 
@@ -43,13 +43,10 @@ const form = useForm({
     city: props.user.city || '',
     county: props.user.county || '',
     country: props.user.country || '',
-    password: '',
-    password_confirmation: '',
     avatar_file_id: '',
     permissions: props.user.permissions || [],
 });
 
-// Group permissions by category
 const groupedPermissions = computed(() => {
     const groups: Record<string, Permission[]> = {};
     props.availablePermissions.forEach(permission => {
@@ -92,12 +89,11 @@ const uploadedFileRemoved = () => {
     form.avatar_file_id = '';
 }
 
-const togglePermission = (permissionId: string) => {
-    const index = form.permissions.indexOf(permissionId);
-    if (index > -1) {
-        form.permissions.splice(index, 1);
-    } else {
+const togglePermission = (checked: string | boolean, permissionId: string) => {
+    if (checked && ! form.permissions.includes(permissionId)) { // if the checkbox is checked and permission is not already in the list
         form.permissions.push(permissionId);
+    } else {
+        form.permissions = form.permissions.filter(id => id !== permissionId);
     }
 };
 </script>
@@ -228,32 +224,6 @@ const togglePermission = (permissionId: string) => {
                                         />
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <Label for="password">{{ props.formData.labels.password }} ({{ props.formData.labels.optional }})</Label>
-                                            <InputError :message="form.errors.password" />
-                                        </div>
-                                        <Input 
-                                            id="password" 
-                                            v-model="form.password" 
-                                            type="password" 
-                                            :placeholder="props.formData.placeholders.password_edit"
-                                        />
-                                    </div>
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <Label for="password_confirmation">{{ props.formData.labels.password_confirmation }}</Label>
-                                            <InputError :message="form.errors.password_confirmation" />
-                                        </div>
-                                        <Input 
-                                            id="password_confirmation" 
-                                            v-model="form.password_confirmation" 
-                                            type="password" 
-                                            :placeholder="props.formData.placeholders.password_confirmation"
-                                        />
-                                    </div>
-                                </div>
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -298,8 +268,8 @@ const togglePermission = (permissionId: string) => {
                                             >
                                                 <Checkbox 
                                                     :id="permission.id"
-                                                    :checked="form.permissions.includes(permission.id)"
-                                                    @update:checked="togglePermission(permission.id)"
+                                                    :model-value="form.permissions.includes(permission.id)"
+                                                    @update:model-value="togglePermission($event, permission.id)"
                                                 />
                                                 <Label 
                                                     :for="permission.id"
