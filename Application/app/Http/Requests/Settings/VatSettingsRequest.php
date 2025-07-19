@@ -23,7 +23,7 @@ class VatSettingsRequest extends FormRequest
     {
         return [
             'id'   => 'sometimes|integer|exists:vat,id',
-            'name' => 'required|string|max:255|unique:vat,name',
+            'name' => 'required|string|max:255',
             'rate' => 'required|numeric|min:0|max:100',
         ];
     }

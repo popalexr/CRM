@@ -32,6 +32,7 @@ class GenerateDefaultUser extends Command
             'name' => 'Admin User',
             'email' => 'admin@admin.com',
             'password' => bcrypt('admin'),
+            'is_admin' => true,
         ]);
 
         $this->info('Default user created successfully.');
