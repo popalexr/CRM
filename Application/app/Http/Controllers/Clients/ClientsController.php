@@ -17,6 +17,7 @@ class ClientsController extends Controller
 
         return Inertia::render('Clients/Index', [
             'clients' => $clients,
+            'formLabels' => $this->getFormLabels(),
         ]);
     }
 
@@ -32,5 +33,19 @@ class ClientsController extends Controller
             ->get();
 
         return $clients->toArray();
+    }
+
+    private function getFormLabels(): array
+    {
+        return [
+            'labels' => __('clients.labels'),
+            'placeholders' => __('clients.placeholders'),
+            'tabs' => __('clients.tabs'),
+            'buttons' => __('clients.buttons'),
+            'headings' => __('clients.headings'),
+            'messages' => __('clients.messages'),
+            'client_types' => __('clients.client_types'),
+            'status' => __('clients.status'),
+        ];
     }
 }

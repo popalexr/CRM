@@ -24,12 +24,13 @@ class ClientsDetailsController extends Controller
         if (blank($this->client)) {
             return redirect()
                 ->route('clients.index')
-                ->with('error', 'Client not found.');
+                ->with('error', __('clients.messages.client_not_found'));
         }
 
         return Inertia::render('Clients/Show' ,[
             'client'         => $this->client,
             'clientContacts' => $this->getClientContacts(),
+            'formLabels'     => $this->getFormLabels(),
         ]);
     }
 
@@ -44,5 +45,19 @@ class ClientsDetailsController extends Controller
             ->get();
 
         return $clientContacts->toArray();
+    }
+
+    private function getFormLabels(): array
+    {
+        return [
+            'labels' => __('clients.labels'),
+            'placeholders' => __('clients.placeholders'),
+            'tabs' => __('clients.tabs'),
+            'buttons' => __('clients.buttons'),
+            'headings' => __('clients.headings'),
+            'messages' => __('clients.messages'),
+            'client_types' => __('clients.client_types'),
+            'status' => __('clients.status'),
+        ];
     }
 }

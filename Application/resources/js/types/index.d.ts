@@ -54,6 +54,7 @@ export interface Client {
     vat_number?: string;
     tax_code?: string;
     currency: string;
+    client_tva?: boolean;
     notes?: string;
     created_at?: string;
     updated_at?: string;
@@ -138,5 +139,27 @@ export interface VatFormData {
     [key: string]: any;
 }
 
-// Export user-related types
+export interface ClientFormLabels {
+    labels: Record<string, string>;
+    placeholders: Record<string, string>;
+    tabs: {
+        general: { label: string; title: string };
+        logo: { label: string; title: string };
+        contacts: { label: string; title: string };
+        notes: { label: string; title: string };
+    };
+    buttons: Record<string, string>;
+    headings: Record<string, string>;
+    messages: Record<string, string>;
+    client_types: Record<string, string>;
+    status: Record<string, string>;
+}
+
+export type ClientPageProps = AppPageProps<{
+    formLabels: ClientFormLabels;
+    clients?: Client[];
+    client?: Client;
+    clientContacts?: ClientContact[];
+}>;
+
 export * from './user';

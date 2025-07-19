@@ -22,12 +22,12 @@ class ClientDeleteController extends Controller
         if (blank($this->client)) {
             return redirect()
                 ->route('clients.index')
-                ->with('error', 'Client not found.');
+                ->with('error', __('clients.messages.client_not_found'));
         }
 
-        $this->client->deleted_at = Carbon::now(); // setează data și ora curentă
+        $this->client->deleted_at = Carbon::now();
         $this->client->save();
 
-        return redirect()->route("clients.index")->with('success', 'Clientul a fost marcat ca șters.');
+        return redirect()->route("clients.index")->with('success', __('clients.messages.client_deleted'));
     }
 }
