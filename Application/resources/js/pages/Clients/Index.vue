@@ -21,6 +21,7 @@ import {
 import { Edit, Eye, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 import LaravelPagination from '@/components/LaravelPagination.vue';
+import { hasPermission } from '@/composables/hasPermission';
 
 const page = usePage<ClientPageProps>();
 const clients = ref(page.props.clients as Array<Client>);
@@ -37,7 +38,7 @@ const formLabels = page.props.formLabels;
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: formLabels.headings.clients,
-        href: '/clients',
+        href: route('clients.index'),
     },
 ];
 
@@ -66,10 +67,18 @@ const handleView = (clientId: number) => {
 };
 
 const handleEdit = (clientId: number) => {
+    if (!hasPermission('clients-form')) {
+        return;
+    }
+
     router.visit(route('clients.form', { id: clientId }));
 };
 
 const handleDelete = (clientId: number) => {
+    if (!hasPermission('clients-delete')) {
+        return;
+    }
+
     router.post(route('clients.delete', {id: clientId}), {}, {
         onSuccess: () => {
             clients.value = clients.value.filter(client => client.id !== clientId);
@@ -81,6 +90,10 @@ const handleDelete = (clientId: number) => {
 };
 
 const handleAddClient = () => {
+    if (!hasPermission('clients-form')) {
+        return;
+    }
+
     router.visit(route('clients.form'));
 };
 </script>
@@ -90,12 +103,12 @@ const handleAddClient = () => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-6">
-                        <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">{{ formLabels.headings.clients }}</h1>
                     <p class="text-muted-foreground">{{ formLabels.headings.manage_clients }}</p>
                 </div>
-                <Button @click="handleAddClient" class="gap-2">
+                <Button @click="handleAddClient" class="gap-2" v-if="hasPermission('clients-form')">
                     <Plus class="h-4 w-4" />
                     {{ formLabels.buttons.add_client }}
                 </Button>
@@ -154,15 +167,15 @@ const handleAddClient = () => {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem @click="handleView(client.id)">
+                                        <DropdownMenuItem @click="handleView(client.id)" v-if="hasPermission('clients-view')">
                                             <Eye class="mr-2 h-4 w-4" />
                                             {{ formLabels.buttons.view }}
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem @click="handleEdit(client.id)">
+                                        <DropdownMenuItem @click="handleEdit(client.id)" v-if="hasPermission('clients-form')">
                                             <Edit class="mr-2 h-4 w-4" />
                                             {{ formLabels.buttons.edit }}
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem 
+                                        <DropdownMenuItem  v-if="hasPermission('clients-delete')"
                                             @click="handleDelete(client.id)"
                                             class="text-red-600 focus:text-red-600"
                                         >
@@ -187,8 +200,8 @@ const handleAddClient = () => {
             <div v-else class="flex flex-col items-center justify-center py-16">
                 <div class="text-center">
                     <h3 class="text-lg font-medium text-gray-900">{{ formLabels.headings.no_clients_found }}</h3>
-                    <p class="mt-1 text-sm text-gray-500">{{ formLabels.headings.get_started }}</p>
-                    <Button @click="handleAddClient" class="mt-4 gap-2">
+                    <p class="mt-1 text-sm text-gray-500" v-if="hasPermission('clients-form')">{{ formLabels.headings.get_started }}</p>
+                    <Button @click="handleAddClient" class="mt-4 gap-2" v-if="hasPermission('clients-form')">
                         <Plus class="h-4 w-4" />
                         {{ formLabels.buttons.add_client }}
                     </Button>

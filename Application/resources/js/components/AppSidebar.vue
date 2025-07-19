@@ -13,7 +13,7 @@ import { hasPermission } from '@/composables/hasPermission';
 let mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/',
+        href: route('home'),
         icon: LayoutGrid,
     }
 ];
@@ -21,15 +21,15 @@ let mainNavItems: NavItem[] = [
 let footerNavItems: NavItem[] = [];
 
 const getAllowedMainNavItems = () => {
-    if (hasPermission('users.view')) {
+    if (hasPermission('users-view')) {
         mainNavItems.push({
             title: 'Users',
             href: route('users.index'),
             icon: UserCog,
         });
     }
-    
-    if (hasPermission('clients.view')) {
+
+    if (hasPermission('clients-view')) {
         mainNavItems.push({
             title: 'Clients',
             href: route('clients.index'),
@@ -39,7 +39,7 @@ const getAllowedMainNavItems = () => {
 };
 
 const getAllowedFooterNavItems = () => {
-    if (hasPermission('settings.view')) {
+    if (hasPermission('settings')) {
         footerNavItems.push({
             title: 'Settings',
             href: route('settings.index'),
