@@ -20,9 +20,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Edit, Eye, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
+import LaravelPagination from '@/components/LaravelPagination.vue';
 
 const page = usePage<ClientPageProps>();
 const clients = ref(page.props.clients as Array<Client>);
+
+const links = ref({
+    current_page: page.props.meta.current_page,
+    per_page: page.props.meta.per_page,
+    total: page.props.meta.total,
+    last_page: page.props.meta.last_page
+});
+
 const formLabels = page.props.formLabels;
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -166,6 +175,13 @@ const handleAddClient = () => {
                         </TableRow>
                     </TableBody>
                 </Table>
+
+                <div class="mt-4 flex justify-end" v-if="links.total > links.per_page">
+                    <LaravelPagination
+                        :meta="links"
+                        :route-name="'clients.index'"
+                    />
+                </div>
             </div>
 
             <div v-else class="flex flex-col items-center justify-center py-16">

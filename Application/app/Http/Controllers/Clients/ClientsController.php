@@ -16,7 +16,13 @@ class ClientsController extends Controller
         $clients = $this->getClients();
 
         return Inertia::render('Clients/Index', [
-            'clients' => $clients,
+            'clients' => $clients['data'],
+            'meta' => [
+                'current_page' => $clients['current_page'],
+                'per_page' => $clients['per_page'],
+                'total' => $clients['total'],
+                'last_page' => $clients['last_page'],
+            ],
             'formLabels' => $this->getFormLabels(),
         ]);
     }
@@ -30,7 +36,7 @@ class ClientsController extends Controller
     {
         $clients = Clients::whereNull('deleted_at')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
         return $clients->toArray();
     }
