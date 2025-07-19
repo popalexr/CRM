@@ -92,12 +92,14 @@ class ClientsFormController extends Controller
      */
     private function handleCreateClient(ClientsFormRequest $request)
     {
+        $isClientTypeBusiness = $request->input('client_type') === 'business';
+
         $this->client = Clients::create([
             'client_name'         => $request->input('client_name'),
             'client_logo'         => null, // Set to null before saving, will be updated later if a logo is provided
             'client_type'         => $request->input('client_type'),
-            'cui'                 => $request->input('cui'),
-            'registration_number' => $request->input('registrationNumber'),
+            'cui'                 => $isClientTypeBusiness ? $request->input('cui') : $request->input('cnp'),
+            'registration_number' => $isClientTypeBusiness ? $request->input('registrationNumber') : null,
             'client_email'        => $request->input('email'),
             'client_phone'        => $request->input('phone'),
             'address'             => $request->input('address'),
@@ -105,10 +107,11 @@ class ClientsFormController extends Controller
             'county'              => $request->input('county'),
             'city'                => $request->input('city'),
             'iban'                => $request->input('iban'),
+            'swift'               => $request->input('swift', null),
             'bank_name'           => $request->input('bank'),
             'currency'            => $request->input('currency'),
             'notes'               => $request->input('notes', null),
-            'client_tva'          => $request->boolean('client_tva'),
+            'client_tva'          => $isClientTypeBusiness ? $request->boolean('client_tva') : true,
 
         ]);
 
@@ -127,11 +130,13 @@ class ClientsFormController extends Controller
      */
     private function handleUpdateClient(ClientsFormRequest $request)
     {
+        $isClientTypeBusiness = $request->input('client_type') === 'business';
+
         $this->client->update([
             'client_name'         => $request->input('client_name'),
             'client_type'         => $request->input('client_type'),
-            'cui'                 => $request->input('cui'),
-            'registration_number' => $request->input('registrationNumber'),
+            'cui'                 => $isClientTypeBusiness ? $request->input('cui') : $request->input('cnp'),
+            'registration_number' => $isClientTypeBusiness ? $request->input('registrationNumber') : null,
             'client_email'        => $request->input('email'),
             'client_phone'        => $request->input('phone'),
             'address'             => $request->input('address'),
@@ -139,10 +144,11 @@ class ClientsFormController extends Controller
             'county'              => $request->input('county'),
             'city'                => $request->input('city'),
             'iban'                => $request->input('iban'),
+            'swift'               => $request->input('swift', null),
             'bank_name'           => $request->input('bank'),
             'currency'            => $request->input('currency'),
             'notes'               => $request->input('notes', null),
-            'client_tva'          => $request->boolean('client_tva'),
+            'client_tva'          => $isClientTypeBusiness ? $request->boolean('client_tva') : true,
 
         ]);
 

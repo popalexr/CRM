@@ -50,6 +50,7 @@ const form = useForm({
     phone: '',
     cui: '',
     registration_number: '',
+    cnp: '',
     address: '',
     city: '',
     county: '',
@@ -162,6 +163,41 @@ const uploadedFileRemoved = () => {
                                         </Select>
                                     </div>
                                 </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" v-if="isBusinessClient">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="cui">{{ formLabels.labels.cui }}</Label>
+                                            <InputError :message="form.errors.cui" />
+                                        </div>
+                                        <Input 
+                                            id="cui" 
+                                            v-model="form.cui" 
+                                            :placeholder="formLabels.placeholders.cui_optional"
+                                        />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="registration_number">{{ formLabels.labels.registration_number }}</Label>
+                                            <InputError :message="form.errors.registration_number" />
+                                        </div>
+                                        <Input 
+                                            id="registration_number" 
+                                            v-model="form.registration_number" 
+                                            :placeholder="formLabels.placeholders.registration_number_optional"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="mt-6 space-y-2" v-else>
+                                    <div class="flex items-center justify-between">
+                                        <Label for="cnp">CNP</Label>
+                                        <InputError :message="form.errors.cnp" />
+                                    </div>
+                                    <Input
+                                        id="cnp"
+                                        v-model="form.cnp"
+                                        placeholder="CNP"
+                                    />
+                                </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
@@ -185,30 +221,6 @@ const uploadedFileRemoved = () => {
                                             v-model="form.phone" 
                                             type="tel" 
                                             :placeholder="formLabels.placeholders.phone_number"
-                                        />
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <Label for="cui">{{ formLabels.labels.cui }}</Label>
-                                            <InputError :message="form.errors.cui" />
-                                        </div>
-                                        <Input 
-                                            id="cui" 
-                                            v-model="form.cui" 
-                                            :placeholder="formLabels.placeholders.cui_optional"
-                                        />
-                                    </div>
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <Label for="registration_number">{{ formLabels.labels.registration_number }}</Label>
-                                            <InputError :message="form.errors.registration_number" />
-                                        </div>
-                                        <Input 
-                                            id="registration_number" 
-                                            v-model="form.registration_number" 
-                                            :placeholder="formLabels.placeholders.registration_number_optional"
                                         />
                                     </div>
                                 </div>
@@ -305,7 +317,7 @@ const uploadedFileRemoved = () => {
                                     </div>
                                 </div>
 
-                                <div class="mt-6 space-y-2">
+                                <div class="mt-6 space-y-2" v-if="isBusinessClient">
                                     <Label for="client_tva">{{ formLabels.labels.client_tva }}</Label>
                                     <Switch id="client_tva" v-model="form.client_tva" />
                                     <InputError :message="form.errors.client_tva" />
