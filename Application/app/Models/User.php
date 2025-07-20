@@ -83,9 +83,17 @@ class User extends Authenticatable
      */
     public function getAllPermissions(): array
     {
-        return $this->permissions ?? [];
+        $permissions = $this->permissions;
+        
+        if (is_string($permissions)) {
+            $decoded = json_decode($permissions, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+        
+        return is_array($permissions) ? $permissions : [];
     }
-     public function getFullAddressAttribute(): string
+
+    public function getFullAddressAttribute(): string
     {
         $parts = [];
         if ($this->address) $parts[] = $this->address;

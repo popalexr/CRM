@@ -94,7 +94,6 @@ class UsersFormController extends Controller
             DB::beginTransaction();
 
             $this->user = User::create($userData);
-            $this->user->save();
 
             if ($validatedRequest['avatar_file_id']) {
                 $this->saveUserAvatar($validatedRequest['avatar_file_id']);
@@ -138,11 +137,12 @@ class UsersFormController extends Controller
             DB::beginTransaction();
 
             $this->user->update($userData);
-            $this->user->save();
 
             if ($validatedRequest['avatar_file_id']) {
                 $this->saveUserAvatar($validatedRequest['avatar_file_id']);
             }
+
+            DB::commit();
 
             return redirect()
                 ->route('users.index')

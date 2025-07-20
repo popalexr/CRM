@@ -6,10 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-// Asigura-te ca ai importat Table components daca inca le folosesti in template
-// chiar si pentru placeholder. Daca nu, comenteaza-le.
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-
 import { computed } from 'vue';
 
 interface UserDetails {
@@ -50,9 +46,6 @@ const handleEditUser = (userId: number) => {
     router.visit(route('users.form', { id: userId }));
 };
 
-// Functii pentru facturi nu mai sunt necesare daca le-ai scos din template
-// const formatInvoiceDate = (dateString: string) => { /* ... */ };
-// const handleViewInvoice = (invoiceId: number) => { /* ... */ };
 </script>
 
 <template>
@@ -71,7 +64,6 @@ const handleEditUser = (userId: number) => {
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Coloana 1: Informații Generale și Avatar -->
                 <Card class="lg:col-span-1">
                     <CardHeader>
                         <CardTitle>Informații Generale</CardTitle>
@@ -104,7 +96,6 @@ const handleEditUser = (userId: number) => {
                     </CardContent>
                 </Card>
 
-                <!-- Coloana 2: Listă de Permisiuni -->
                 <Card class="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Permisiuni</CardTitle>
@@ -123,7 +114,6 @@ const handleEditUser = (userId: number) => {
                     </CardContent>
                 </Card>
 
-                <!-- Coloana 3: Facturi Emise de Utilizator (Placeholder) -->
                 <Card class="col-span-full">
                     <CardHeader>
                         <CardTitle>Facturi Emise</CardTitle>

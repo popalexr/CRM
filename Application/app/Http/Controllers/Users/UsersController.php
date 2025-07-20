@@ -24,12 +24,29 @@ class UsersController extends Controller
             'placeholders' => __('users.placeholders'), 
             'tabs' => __('users.tabs'),
             'buttons' => __('users.buttons'),
-            'messages' => __('users.messages'),
+            'messages' => [
+                ...__('users.messages'),
+                'delete_dialog' => __('users.delete_dialog'),
+            ],
             'config' => $formConfig,
         ];
         
+        $users = User::all()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'avatar' => $user->avatar,
+                'permissions' => $user->getAllPermissions(),
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+                'is_admin' => $user->is_admin,
+            ];
+        });
+
         return Inertia::render('Users/Index', [
-            'users' => User::all(),
+            'users' => $users,
             'formData' => $formData,
         ]);
     }

@@ -21,9 +21,11 @@ class UsersFormRequest extends FormRequest
      */
     public function rules(): array
     {
+        $userId = $this->input('id');
+        
         return [
             'name'              => 'required|string|max:255',
-            'email'             => 'required|email|max:255|unique:users,email',
+            'email'             => 'required|email|max:255|unique:users,email,' . $userId,
             'phone'             => 'nullable|string|max:255',
             'birth_date'        => 'nullable|date',
             'address'           => 'nullable|string|max:255',

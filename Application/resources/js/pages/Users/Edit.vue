@@ -2,14 +2,15 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type User, type Permission, type UserEditProps, type FormDataStructure } from '@/types';
 import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+import { route } from 'ziggy-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus } from 'lucide-vue-next';
-import { computed, onMounted } from 'vue';
+import { Plus } from 'lucide-vue-next';
+import { computed } from 'vue';
 import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
 
@@ -22,11 +23,11 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Users',
-        href: '/users',
+        href: route('users.index'),
     },
     {
         title: 'Edit User',
-        href: '/users/form',
+        href: route('users.form', { id: props.user.id }),
     },
 ];
 
@@ -44,7 +45,7 @@ const form = useForm({
     county: props.user.county || '',
     country: props.user.country || '',
     avatar_file_id: '',
-    permissions: props.user.permissions || [],
+    permissions: [...(props.user.permissions || [])], // Create a copy of the array
 });
 
 const groupedPermissions = computed(() => {
@@ -58,12 +59,8 @@ const groupedPermissions = computed(() => {
     return groups;
 });
 
-const handleBack = () => {
-    router.visit(route('users.index'));
-};
-
 const handleSubmit = () => {
-    form.post(route('users.form.post', { id: props.user.id }), {
+    form.post(route('users.form.post'), {
         onSuccess: () => {
             router.visit(route('users.index'));
         },
@@ -79,7 +76,7 @@ const fileUploadSuccess = (response: any) => {
     if (responseData && responseData.file_id) {
         form.avatar_file_id = responseData.file_id;
     }
-}
+};
 
 const fileUploadError = (payload: { errorMessage: any }) => {
     console.error('File upload error:', payload.errorMessage);
@@ -87,13 +84,19 @@ const fileUploadError = (payload: { errorMessage: any }) => {
 
 const uploadedFileRemoved = () => {
     form.avatar_file_id = '';
-}
+};
 
 const togglePermission = (checked: string | boolean, permissionId: string) => {
-    if (checked && ! form.permissions.includes(permissionId)) { // if the checkbox is checked and permission is not already in the list
-        form.permissions.push(permissionId);
-    } else {
-        form.permissions = form.permissions.filter(id => id !== permissionId);
+    const isChecked = Boolean(checked);
+    const currentPermissions = [...form.permissions]; // Create a copy of current permissions
+    
+    if (isChecked && !currentPermissions.includes(permissionId)) { 
+        // If the checkbox is checked and permission is not already in the list
+        currentPermissions.push(permissionId);
+        form.permissions = currentPermissions;
+    } else if (!isChecked && currentPermissions.includes(permissionId)) {
+        // If the checkbox is unchecked and permission exists, remove it
+        form.permissions = currentPermissions.filter(id => id !== permissionId);
     }
 };
 </script>
@@ -104,13 +107,8 @@ const togglePermission = (checked: string | boolean, permissionId: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-6">
             <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <Button variant="ghost" size="sm" @click="handleBack" class="gap-2">
-                        <ArrowLeft class="h-4 w-4" />
-                    </Button>
-                    <div>
-                        <h1 class="text-2xl font-bold tracking-tight">{{ props.formData.labels.edit_user }}</h1>
-                    </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">{{ props.formData.labels.edit_user }}</h1>
                 </div>
             </div>
 
@@ -235,6 +233,15 @@ const togglePermission = (checked: string | boolean, permissionId: string) => {
                             </CardHeader>
                             <CardContent>
                                 <InputError :message="form.errors.avatar_file_id" />
+                                <!-- Show current avatar if exists -->
+                                <div v-if="props.user.avatar && !form.avatar_file_id" class="mb-4">
+                                    <p class="text-sm text-muted-foreground mb-2">Current Avatar:</p>
+                                    <img 
+                                        :src="props.user.avatar" 
+                                        :alt="props.user.name"
+                                        class="w-20 h-20 rounded-full object-cover border"
+                                    />
+                                </div>
                                 <Dropzone 
                                     :url="route('upload.image')"
                                     @success="fileUploadSuccess"
@@ -269,7 +276,7 @@ const togglePermission = (checked: string | boolean, permissionId: string) => {
                                                 <Checkbox 
                                                     :id="permission.id"
                                                     :model-value="form.permissions.includes(permission.id)"
-                                                    @update:model-value="togglePermission($event, permission.id)"
+                                                    @update:model-value="(value) => togglePermission(value, permission.id)"
                                                 />
                                                 <Label 
                                                     :for="permission.id"
@@ -288,9 +295,13 @@ const togglePermission = (checked: string | boolean, permissionId: string) => {
                 </Tabs>
 
                 <div class="mt-6 flex justify-end">
-                    <Button type="submit" class="gap-2">
+                    <Button 
+                        type="submit" 
+                        class="gap-2" 
+                        :disabled="form.processing"
+                    >
                         <Plus class="h-4 w-4" />
-                        {{ props.formData.buttons.update }}
+                        {{ form.processing ? 'Updating...' : props.formData.buttons.update }}
                     </Button>
                 </div>
             </form>

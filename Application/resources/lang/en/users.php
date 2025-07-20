@@ -112,6 +112,14 @@ return [
         'user_deleted' => 'User deleted successfully',
     ],
 
+    // Delete confirmation dialog
+    'delete_dialog' => [
+        'title' => 'Delete User',
+        'description' => 'Are you sure you want to delete the user \':name\'? This action cannot be undone.',
+        'confirm' => 'Delete',
+        'cancel' => 'Cancel',
+    ],
+
     // Table headers
     'table' => [
         'name' => 'Name',

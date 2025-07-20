@@ -26,11 +26,18 @@ import { hasPermission } from '@/composables/hasPermission';
 const page = usePage<ClientPageProps>();
 const clients = ref(page.props.clients as Array<Client>);
 
+const meta = page.props.meta as {
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+};
+
 const links = ref({
-    current_page: page.props.meta.current_page,
-    per_page: page.props.meta.per_page,
-    total: page.props.meta.total,
-    last_page: page.props.meta.last_page
+    current_page: meta.current_page,
+    per_page: meta.per_page,
+    total: meta.total,
+    last_page: meta.last_page
 });
 
 const formLabels = page.props.formLabels;
