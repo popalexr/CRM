@@ -148,7 +148,7 @@ const handleAddClient = () => {
                                     </Avatar>
                                     <div>
                                         <div class="font-medium">{{ client.client_name }}</div>
-                                        <div class="text-sm text-muted-foreground">{{ formLabels.labels.cui }}: {{ client.cui }}</div>
+                                        <div class="text-sm text-muted-foreground" v-if="client.cui">{{ formLabels.labels.cui }}: {{ client.cui }}</div>
                                     </div>
                                 </div>
                             </TableCell>
