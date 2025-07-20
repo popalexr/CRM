@@ -1,14 +1,14 @@
 <template>
     <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" @click="handleBackdropClick">
-        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden" @click.stop>
+        <div class="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden" @click.stop>
             <!-- Header -->
             <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Selectează Gradient</h2>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Select Gradient</h2>
                 <button 
                     @click="$emit('close')"
                     class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                 >
-                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-black dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
@@ -17,7 +17,7 @@
             <!-- Content -->
             <div class="p-6 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                    Alege o temă de gradient pentru profilul tău. Apasă pe un gradient pentru preview live.
+                    Choose a gradient theme for your profile. Click on a gradient for live preview.
                 </p>
 
                 <!-- Gradient Options Grid -->
@@ -70,19 +70,19 @@
             </div>
 
             <!-- Actions - Fixed at bottom -->
-            <div class="flex justify-end p-6 pt-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <div class="flex justify-end p-6 pt-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-black">
                 <div class="flex space-x-3">
                     <button 
                         @click="$emit('close')"
                         class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
-                        Anulează
+                        Cancel
                     </button>
                     <button 
                         @click="applySelection"
-                        class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+                        class="px-6 py-2 bg-black dark:bg-white text-white dark:text-black text-sm font-medium rounded-lg transition-colors shadow-sm hover:bg-gray-800 dark:hover:bg-gray-200"
                     >
-                        Aplică
+                        Apply
                     </button>
                 </div>
             </div>

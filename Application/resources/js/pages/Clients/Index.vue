@@ -22,16 +22,12 @@ import { Edit, Eye, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 import LaravelPagination from '@/components/LaravelPagination.vue';
 import { hasPermission } from '@/composables/hasPermission';
+import { DEFAULT_PAGINATION_META } from '@/pagination';
 
 const page = usePage<ClientPageProps>();
 const clients = ref(page.props.clients as Array<Client>);
 
-const meta = page.props.meta as {
-    current_page: number;
-    per_page: number;
-    total: number;
-    last_page: number;
-};
+const meta = page.props.meta || DEFAULT_PAGINATION_META;
 
 const links = ref({
     current_page: meta.current_page,
