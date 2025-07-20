@@ -351,7 +351,9 @@ const uploadedFileRemoved = () => {
                                 <CardTitle>{{ formLabels.tabs.contacts.title }}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <ContactsFormManager v-model="form.contactPersons" />
+                                <div class="max-h-[450px] overflow-y-auto pr-2">
+                                    <ContactsFormManager v-model="form.contactPersons" />
+                                </div>
                             </CardContent>
                         </Card>
                     </TabsContent>
