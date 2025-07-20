@@ -8,15 +8,16 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import { router } from '@inertiajs/vue3'
+import type { PaginationMeta } from '@/pagination'
 
 const props = defineProps<{
-    meta: { current_page:number; per_page:number; total:number; last_page:number }
+    meta: PaginationMeta
     routeName: string
     query?: Record<string, any>
 }>();
 
 function go(page: number) {
-    if (page < 1 || page > props.meta.last_page) {
+    if (!props.meta || page < 1 || page > props.meta.last_page) {
         return;
     }    
     router.visit(
@@ -27,6 +28,7 @@ function go(page: number) {
 
 <template>
     <Pagination
+        v-if="meta && meta.total > 0"
         :items-per-page="meta.per_page"
         :total="meta.total"
         :default-page="meta.current_page"

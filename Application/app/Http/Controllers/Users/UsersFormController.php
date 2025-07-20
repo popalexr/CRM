@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Users\UsersFormRequest;
 use App\Models\TemporaryFiles;
 use App\Models\User;
+use App\Traits\HasFormLabels;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -13,6 +14,8 @@ use Inertia\Inertia;
 
 class UsersFormController extends Controller
 {
+    use HasFormLabels;
+    
     private ?User $user;
     private ?int $userId;
 
@@ -41,14 +44,14 @@ class UsersFormController extends Controller
         if (!$this->userId) {
             return Inertia::render('Users/Create', [
                 'availablePermissions' => $this->getAvailablePermissions(),
-                'formData'             => $this->getFormData(),
+                'formData'             => $this->getFormData('users', 'user_forms'),
             ]);
         }
 
         return Inertia::render('Users/Edit', [
             'user'                  => $this->getUserInfo(),
             'availablePermissions'  => $this->getAvailablePermissions(),
-            'formData'              => $this->getFormData(),
+            'formData'              => $this->getFormData('users', 'user_forms'),
         ]);
     }
 
@@ -77,25 +80,21 @@ class UsersFormController extends Controller
     private function handleCreateUser(UsersFormRequest $request)
     {
         $validatedRequest = $request->validated();
-        $userData = [
-            'name'              => $validatedRequest['name'],
-            'email'             => $validatedRequest['email'],
-            'phone'             => $validatedRequest['phone'] ?? null,
-            'birth_date'        => $validatedRequest['birth_date'] ?? null,
-            'address'           => $validatedRequest['address'] ?? null,
-            'city'              => $validatedRequest['city'] ?? null,
-            'county'            => $validatedRequest['county'] ?? null,
-            'country'           => $validatedRequest['country'] ?? null,
-            'permissions'       => json_encode($validatedRequest['permissions'] ?? []),
-            'password'          => bcrypt(Str::random(12)), // Generate a random password
-        ];
+        
+        $userData = $this->mapFormDataToDatabase($validatedRequest, 'create', 'user_forms', [
+            'permissions' => fn($permissions) => json_encode($permissions ?? []),
+            'avatar_file_id' => fn($fileId) => null, // Handle separately
+        ]);
+
+        // Add generated password for new users
+        $userData['password'] = bcrypt(Str::random(12));
 
         try {
             DB::beginTransaction();
 
             $this->user = User::create($userData);
 
-            if ($validatedRequest['avatar_file_id']) {
+            if ($validatedRequest['avatar_file_id'] ?? null) {
                 $this->saveUserAvatar($validatedRequest['avatar_file_id']);
             }
 
@@ -120,25 +119,18 @@ class UsersFormController extends Controller
     private function handleUpdateUser(UsersFormRequest $request)
     {
         $validatedRequest = $request->validated();
-    
-        $userData = [
-            'name'              => $validatedRequest['name'],
-            'email'             => $validatedRequest['email'],
-            'phone'             => $validatedRequest['phone'] ?? null,
-            'birth_date'        => $validatedRequest['birth_date'] ?? null,
-            'address'           => $validatedRequest['address'] ?? null,
-            'city'              => $validatedRequest['city'] ?? null,
-            'county'            => $validatedRequest['county'] ?? null,
-            'country'           => $validatedRequest['country'] ?? null,
-            'permissions'       => json_encode($validatedRequest['permissions'] ?? []),
-        ];
+        
+        $userData = $this->mapFormDataToDatabase($validatedRequest, 'update', 'user_forms', [
+            'permissions' => fn($permissions) => json_encode($permissions ?? []),
+            'avatar_file_id' => fn($fileId) => null, // Handle separately
+        ]);
 
         try {
             DB::beginTransaction();
 
             $this->user->update($userData);
 
-            if ($validatedRequest['avatar_file_id']) {
+            if ($validatedRequest['avatar_file_id'] ?? null) {
                 $this->saveUserAvatar($validatedRequest['avatar_file_id']);
             }
 
@@ -199,21 +191,6 @@ class UsersFormController extends Controller
             'county'      => $this->user->county,
             'country'     => $this->user->country,
             'permissions' => $this->user->getAllPermissions(),
-        ];
-    }
-
-    /**
-     * Get the form data configuration.
-     */
-    private function getFormData(): array
-    {
-        return [
-            'labels' => __('users.labels'),
-            'placeholders' => __('users.placeholders'),
-            'tabs' => __('users.tabs'),
-            'buttons' => __('users.buttons'),
-            'messages' => __('users.messages'),
-            'config' => config('user_forms'),
         ];
     }
 

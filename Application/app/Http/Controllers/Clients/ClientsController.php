@@ -4,26 +4,28 @@ namespace App\Http\Controllers\Clients;
 
 use App\Http\Controllers\Controller;
 use App\Models\Clients;
+use App\Traits\HasFormLabels;
 use Inertia\Inertia;
 
 class ClientsController extends Controller
 {
+    use HasFormLabels;
     /**
      * Display the list of clients.
      */
     public function __invoke()
     {
-        $clients = $this->getClients();
+        $clientsPaginated = $this->getClients();
 
         return Inertia::render('Clients/Index', [
-            'clients' => $clients['data'],
+            'clients' => $clientsPaginated['data'],
             'meta' => [
-                'current_page' => $clients['current_page'],
-                'per_page' => $clients['per_page'],
-                'total' => $clients['total'],
-                'last_page' => $clients['last_page'],
+                'current_page' => $clientsPaginated['current_page'],
+                'per_page' => $clientsPaginated['per_page'],
+                'total' => $clientsPaginated['total'],
+                'last_page' => $clientsPaginated['last_page'],
             ],
-            'formLabels' => $this->getFormLabels(),
+            'formLabels' => $this->getFormLabels('clients'),
         ]);
     }
 
@@ -39,19 +41,5 @@ class ClientsController extends Controller
             ->paginate(10);
 
         return $clients->toArray();
-    }
-
-    private function getFormLabels(): array
-    {
-        return [
-            'labels' => __('clients.labels'),
-            'placeholders' => __('clients.placeholders'),
-            'tabs' => __('clients.tabs'),
-            'buttons' => __('clients.buttons'),
-            'headings' => __('clients.headings'),
-            'messages' => __('clients.messages'),
-            'client_types' => __('clients.client_types'),
-            'status' => __('clients.status'),
-        ];
     }
 }

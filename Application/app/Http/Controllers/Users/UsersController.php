@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Users;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Traits\HasFormLabels;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class UsersController extends Controller
 {
+    use HasFormLabels;
     /**
      * Display a listing of users.
      */
@@ -17,19 +19,9 @@ class UsersController extends Controller
         app()->setLocale('en');
         // default until we make it dynamic from user settings or preferences
         
-        $formConfig = config('user_forms');
-        
-        $formData = [
-            'labels' => __('users.labels'),
-            'placeholders' => __('users.placeholders'), 
-            'tabs' => __('users.tabs'),
-            'buttons' => __('users.buttons'),
-            'messages' => [
-                ...__('users.messages'),
-                'delete_dialog' => __('users.delete_dialog'),
-            ],
-            'config' => $formConfig,
-        ];
+        $formData = $this->getFormData('users', 'user_forms', null, [
+            'messages' => ['delete_dialog' => __('users.delete_dialog')]
+        ]);
         
         $users = User::all()->map(function ($user) {
             return [

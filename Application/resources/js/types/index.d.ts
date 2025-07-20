@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-vue-next';
 import type { Config } from 'ziggy-js';
+import type { PaginationMeta } from '@/pagination';
 
 export interface Auth {
     user: User;
@@ -160,6 +161,7 @@ export type ClientPageProps = AppPageProps<{
     clients?: Client[];
     client?: Client;
     clientContacts?: ClientContact[];
+    meta?: PaginationMeta;
 }>;
 
 export * from './user';

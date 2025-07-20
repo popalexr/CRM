@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
 
     /**
@@ -30,6 +29,7 @@ class User extends Authenticatable
         'country',
         'permissions',
         'is_admin',
+        'profile_gradient_preference',
     ];
 
     /**

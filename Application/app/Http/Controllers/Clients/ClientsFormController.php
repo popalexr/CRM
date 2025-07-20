@@ -7,11 +7,13 @@ use App\Http\Requests\Clients\ClientsFormRequest;
 use App\Models\ClientContacts;
 use App\Models\Clients;
 use App\Models\TemporaryFiles;
+use App\Traits\HasFormLabels;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ClientsFormController extends Controller
 {
+    use HasFormLabels;
     private int $clientId = 0;
     private ?Clients $client = null;
 
@@ -32,7 +34,7 @@ class ClientsFormController extends Controller
         if ($this->clientId < 1)
         {
             return Inertia::render('Clients/Create', [
-                'formLabels' => $this->getFormLabels(),
+                'formLabels' => $this->getFormLabels('clients'),
             ]);
         }
 
@@ -46,7 +48,7 @@ class ClientsFormController extends Controller
         return Inertia::render('Clients/Edit', [
             'client'         => $this->client,
             'clientContacts' => $this->getContactPersons(),
-            'formLabels'     => $this->getFormLabels(),
+            'formLabels'     => $this->getFormLabels('clients'),
         ]);
     }
 
@@ -255,19 +257,5 @@ class ClientsFormController extends Controller
         $this->client->client_logo = '/storage/clients/' . $tmp->file_name;
 
         $this->client->save();
-    }
-
-    private function getFormLabels(): array
-    {
-        return [
-            'labels' => __('clients.labels'),
-            'placeholders' => __('clients.placeholders'),
-            'tabs' => __('clients.tabs'),
-            'buttons' => __('clients.buttons'),
-            'headings' => __('clients.headings'),
-            'messages' => __('clients.messages'),
-            'client_types' => __('clients.client_types'),
-            'status' => __('clients.status'),
-        ];
     }
 }
