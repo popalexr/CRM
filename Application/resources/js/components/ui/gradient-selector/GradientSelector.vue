@@ -92,11 +92,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-
-interface GradientOption {
-    name: string;
-    class: string;
-}
+import type { GradientOption } from '@/constants/gradients';
 
 interface Props {
     isOpen: boolean;

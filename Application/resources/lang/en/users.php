@@ -29,6 +29,11 @@ return [
         'optional' => 'optional',
         'create_user' => 'Create User',
         'edit_user' => 'Edit User',
+        'role' => 'Role',
+        'administrator' => 'Administrator',
+        'registered_at' => 'Registered At',
+        'yes' => 'Yes',
+        'no' => 'No',
     ],
 
     // Form placeholders
@@ -44,6 +49,7 @@ return [
         'password_confirmation' => 'Confirm password',
         'password_edit' => 'Leave blank to keep current password',
         'password_confirmation_edit' => 'Confirm new password',
+        'search_invoices' => 'Search invoices...',
     ],
 
     // Edit mode labels
@@ -79,6 +85,7 @@ return [
         'edit' => 'Edit',
         'delete' => 'Delete',
         'cancel' => 'Cancel',
+        'edit_user' => 'Edit User',
     ],
 
     // Page titles
@@ -86,6 +93,16 @@ return [
         'create' => 'Add User',
         'edit' => 'Edit User',
         'index' => 'Users',
+    ],
+
+    // Page headings
+    'headings' => [
+        'user_details' => 'User Details',
+        'general_info' => 'General Information',
+        'permissions' => 'Permissions',
+        'address' => 'Address',
+        'invoices' => 'Issued Invoices',
+        'actions' => 'Actions',
     ],
 
     // Page descriptions
@@ -110,6 +127,11 @@ return [
         'user_created' => 'User created successfully',
         'user_updated' => 'User updated successfully',
         'user_deleted' => 'User deleted successfully',
+        'no_address_available' => 'Address is not available',
+        'no_permissions' => 'This user has no explicit permissions assigned.',
+        'no_notes_available' => 'No notes available for this user.',
+        'no_invoices_found' => 'No invoices found for this user.',
+        'invoices_functionality' => 'The functionality to display user-issued invoices will be implemented later.',
     ],
 
     // Delete confirmation dialog

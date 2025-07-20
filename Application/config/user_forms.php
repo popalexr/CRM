@@ -148,32 +148,34 @@ return [
     */
     'detail_labels' => [
         'labels' => [
-            'role' => 'Rol',
+            'role' => 'Role',
             'administrator' => 'Administrator',
-            'registered_at' => 'Înregistrat la',
-            'general_info' => 'Informații Generale',
-            'phone' => 'Telefon',
-            'birth_date' => 'Data Nașterii',
-            'yes' => 'Da',
-            'no' => 'Nu'
+            'user' => 'User',
+            'registered_at' => 'Registered At',
+            'general_info' => 'General Information',
+            'phone' => 'Phone',
+            'birth_date' => 'Birth Date',
+            'yes' => 'Yes',
+            'no' => 'No'
         ],
         'placeholders' => [
-            'search_invoices' => 'Căutați facturi...'
+            'search_invoices' => 'Search invoices...'
         ],
         'headings' => [
-            'user_details' => 'Detalii Utilizator',
-            'general_info' => 'Informații Generale',
-            'permissions' => 'Permisiuni',
-            'address' => 'Adresă',
-            'invoices' => 'Facturi Emise',
-            'no_contact_persons' => 'Nu există persoane de contact'
+            'user_details' => 'User Details',
+            'general_info' => 'General Information',
+            'permissions' => 'Permissions',
+            'address' => 'Address',
+            'invoices' => 'Issued Invoices',
+            'actions' => 'Actions',
+            'no_contact_persons' => 'No contact persons'
         ],
         'messages' => [
-            'no_address_available' => 'Adresa nu este disponibilă',
-            'no_permissions' => 'Acest utilizator nu are permisiuni explicite atribuite.',
-            'no_notes_available' => 'Nu există notițe disponibile pentru acest utilizator.',
-            'no_invoices_found' => 'Nu s-au găsit facturi pentru acest utilizator.',
-            'invoices_functionality' => 'Funcționalitatea de afișare a facturilor emise de utilizator va fi implementată ulterior.'
+            'no_address_available' => 'Address is not available',
+            'no_permissions' => 'This user has no explicit permissions assigned.',
+            'no_notes_available' => 'No notes available for this user.',
+            'no_invoices_found' => 'No invoices found for this user.',
+            'invoices_functionality' => 'The functionality to display user-issued invoices will be implemented later.'
         ]
     ],
 ];

@@ -9,63 +9,13 @@ import GradientSelector from '@/components/ui/gradient-selector/GradientSelector
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { computed, ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
-import type { AppPageProps } from '@/types';
 import { nextTick } from 'vue';
-
-interface UserDetails {
-    id: number;
-    name: string;
-    email: string;
-    phone?: string;
-    birth_date?: string;
-    address?: string;
-    city?: string;
-    county?: string;
-    country?: string;
-    avatar?: string;
-    permissions?: Record<string, string[]>; 
-    is_admin?: boolean;
-    full_address?: string;
-    notes?: string;
-    profile_gradient_preference?: number;
-    created_at: string;
-}
-
-interface UserPageProps extends AppPageProps {
-    user: UserDetails;
-    formLabels?: any;
-}
+import { PROFILE_GRADIENTS } from '@/constants/gradients';
+import type { UserPageProps, UserDetails } from '@/types/user';
 
 const page = usePage<UserPageProps>();
 const user = page.props.user as UserDetails;
-const formLabels = page.props.formLabels || {
-    headings: {
-        user_details: 'Detalii Utilizator',
-        general_info: 'Informații Generale',
-        permissions: 'Permisiuni',
-        address: 'Adresă',
-        invoices: 'Facturi Emise'
-    },
-    labels: {
-        phone: 'Telefon',
-        birth_date: 'Data Nașterii',
-        role: 'Rol',
-        administrator: 'Administrator',
-        registered_at: 'Înregistrat la',
-        yes: 'Da',
-        no: 'Nu'
-    },
-    messages: {
-        no_address_available: 'Adresa nu este disponibilă',
-        no_permissions: 'Acest utilizator nu are permisiuni explicite atribuite.',
-        no_notes_available: 'Nu există notițe disponibile pentru acest utilizator.',
-        no_invoices_found: 'Nu s-au găsit facturi pentru acest utilizator.',
-        invoices_functionality: 'Funcționalitatea de afișare a facturilor emise de utilizator va fi implementată ulterior.'
-    },
-    placeholders: {
-        search_invoices: 'Căutați facturi...'
-    }
-};
+const formLabels = page.props.formLabels;
 
 const entityData = computed(() => ({
     id: user.id,
@@ -111,21 +61,10 @@ const isGradientSelectorOpen = ref(false);
 const profileHeaderKey = ref(0); 
 
 const currentGradientClass = computed(() => {
-    const gradientClass = profileGradients[currentProfileGradient.value]?.class || profileGradients[0].class;
+    const gradientClass = PROFILE_GRADIENTS[currentProfileGradient.value]?.class || PROFILE_GRADIENTS[0].class;
     console.log('Computed gradient class:', gradientClass, 'for index:', currentProfileGradient.value);
     return gradientClass;
 });
-
-const profileGradients = [
-    { name: 'Ocean Blue', class: 'bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400' },
-    { name: 'Forest Green', class: 'bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400' },
-    { name: 'Sunset Orange', class: 'bg-gradient-to-br from-purple-400 via-pink-400 to-red-400' },
-    { name: 'Golden Hour', class: 'bg-gradient-to-br from-orange-400 via-yellow-400 to-amber-400' },
-    { name: 'Deep Space', class: 'bg-gradient-to-br from-gray-900 via-purple-900 to-violet-600' },
-    { name: 'Mint Fresh', class: 'bg-gradient-to-br from-green-300 via-teal-300 to-cyan-400' },
-    { name: 'Rose Garden', class: 'bg-gradient-to-br from-pink-300 via-rose-300 to-red-300' },
-    { name: 'Arctic Blue', class: 'bg-gradient-to-br from-blue-200 via-indigo-300 to-purple-400' }
-];
 
 const openGradientSelector = () => {
     isGradientSelectorOpen.value = true;
@@ -170,7 +109,7 @@ const previewGradient = async (index: number) => {
     currentProfileGradient.value = index;
     profileHeaderKey.value++; 
     console.log('Current gradient after change:', currentProfileGradient.value);
-    console.log('Gradient class that should be applied:', profileGradients[index].class);
+    console.log('Gradient class that should be applied:', PROFILE_GRADIENTS[index].class);
     
     await nextTick();
 };
@@ -206,7 +145,7 @@ const previewGradient = async (index: number) => {
                                 <span class="text-sm font-medium text-gray-900 dark:text-white">{{ formLabels.labels.role }}</span>
                                 <span :class="user.is_admin ? 'bg-red-100 text-red-800 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'" 
                                       class="px-3 py-1.5 rounded-lg text-sm font-semibold border shadow-sm">
-                                    {{ user.is_admin ? formLabels.labels.administrator : 'Utilizator' }}
+                                    {{ user.is_admin ? formLabels.labels.administrator : formLabels.labels.user }}
                                 </span>
                             </div>
                         </div>
@@ -263,11 +202,11 @@ const previewGradient = async (index: number) => {
                             <div class="space-y-4">
                                 <div class="flex items-center space-x-2 pb-3 border-b border-gray-100">
                                     <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                    <h4 class="font-semibold text-gray-900 dark:text-white">Acțiuni</h4>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ formLabels.headings.actions }}</h4>
                                 </div>
                                 <div class="space-y-4">
                                     <Button @click="handleEditUser(user.id)" size="sm" class="w-full">
-                                        Editează Utilizator
+                                        {{ formLabels.buttons.edit_user }}
                                     </Button>
                                 </div>
                             </div>
@@ -305,11 +244,10 @@ const previewGradient = async (index: number) => {
             </div>
         </div>
 
-        <!-- Gradient Selector Modal -->
         <GradientSelector
             :is-open="isGradientSelectorOpen"
             :current-gradient="currentProfileGradient"
-            :gradients="profileGradients"
+            :gradients="PROFILE_GRADIENTS"
             :user-initial="user.name.charAt(0).toUpperCase()"
             @close="closeGradientSelector"
             @select="selectGradient"

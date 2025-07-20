@@ -1,5 +1,3 @@
-// User-related interfaces and types
-
 export interface User {
     id: number;
     name: string;
@@ -143,3 +141,35 @@ export interface UserFormValidation {
 
 export type DateFormatHandler = (dateString: string) => string;
 export type PermissionCountHandler = (permissions: string[]) => number;
+
+export interface UserDetails {
+    id: number;
+    name: string;
+    email: string;
+    phone?: string;
+    birth_date?: string;
+    address?: string;
+    city?: string;
+    county?: string;
+    country?: string;
+    avatar?: string;
+    permissions?: Record<string, string[]>; 
+    is_admin?: boolean;
+    full_address?: string;
+    notes?: string;
+    profile_gradient_preference?: number;
+    created_at: string;
+}
+
+export interface UserFormLabels {
+    labels: Record<string, string>;
+    placeholders: Record<string, string>;
+    buttons: Record<string, string>;
+    messages: Record<string, string>;
+    headings: Record<string, string>;
+}
+
+export type UserPageProps = import('./index').AppPageProps & {
+    user: UserDetails;
+    formLabels: UserFormLabels;
+};
