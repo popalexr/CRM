@@ -34,6 +34,7 @@ class UsersFormRequest extends FormRequest
             'country'           => 'nullable|string|max:255',
             'avatar_file_id'    => 'nullable|integer|exists:temporary_files,id',
             'permissions'       => 'array',
+            'notes'             => 'nullable|string',
         ];
     }
 

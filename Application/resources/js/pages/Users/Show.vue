@@ -3,8 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon } from 'lucide-vue-next';
-import { ProfileHeader, NotesSection, DataList, SearchInput } from '@/components/ui';
-import AddressSection from '@/components/ui/address-section/AddressSection.vue';
+import { ProfileHeader, SearchInput, NotesSection } from '@/components/ui';
 import GradientSelector from '@/components/ui/gradient-selector/GradientSelector.vue';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { computed, ref } from 'vue';
@@ -22,7 +21,8 @@ const entityData = computed(() => ({
     name: user.name,
     email: user.email || '',
     phone: user.phone,
-    avatar: user.avatar
+    avatar: user.avatar,
+    address: fullAddress.value
 }));
 
 const fullAddress = computed(() => {
@@ -39,14 +39,6 @@ const formattedDateOfBirth = computed(() => {
     const date = new Date(user.birth_date);
     return date instanceof Date && !isNaN(date.valueOf()) ? date.toLocaleDateString('ro-RO') : '-';
 });
-
-const handleViewMap = () => {
-    if (fullAddress.value && fullAddress.value !== formLabels.messages.no_address_available) {
-        const encodedAddress = encodeURIComponent(fullAddress.value);
-        const url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-        window.open(url, '_blank');
-    }
-};
 
 const handleBack = () => {
     router.visit(route('users.index'));
@@ -201,11 +193,11 @@ const previewGradient = async (index: number) => {
                             
                             <div class="space-y-4">
                                 <div class="flex items-center space-x-2 pb-3 border-b border-gray-100">
-                                    <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                    <div class="w-2 h-2 bg-orange-500 rounded-full"></div>
                                     <h4 class="font-semibold text-gray-900 dark:text-white">{{ formLabels.headings.actions }}</h4>
                                 </div>
                                 <div class="space-y-4">
-                                    <Button @click="handleEditUser(user.id)" size="sm" class="w-full">
+                                    <Button @click="handleEditUser(user.id)" size="lg" class="w-full">
                                         {{ formLabels.buttons.edit_user }}
                                     </Button>
                                 </div>
@@ -213,22 +205,10 @@ const previewGradient = async (index: number) => {
                         </div>
                     </div>
 
-                    <NotesSection 
-                        :content="user.notes"
-                        :default-text="formLabels.messages.no_notes_available"
-                    />
-
-                    <AddressSection 
-                        :title="formLabels.headings.address"
-                        :address="fullAddress"
-                        :show-map="true"
-                        @view-map="handleViewMap"
-                    />
-                </div>
-
-                <div class="space-y-6" style="margin-top: -2.8rem;">
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4 dark:text-white">{{ formLabels.headings.invoices }}</h3>
+                    <div class="bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ formLabels.headings.invoices }}</h3>
+                        </div>
                         
                         <div class="mb-4">
                             <SearchInput 
@@ -236,10 +216,18 @@ const previewGradient = async (index: number) => {
                             />
                         </div>
 
-                        <div class="bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+                        <div class="text-center p-6">
                             <p class="text-sm text-gray-600 dark:text-gray-400">{{ formLabels.messages.invoices_functionality }}</p>
                         </div>
                     </div>
+                </div>
+
+                <div class="space-y-6">
+                    <NotesSection 
+                        :content="user.notes"
+                        :default-text="formLabels.messages.no_notes_available"
+                    />
+
                 </div>
             </div>
         </div>

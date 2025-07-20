@@ -40,6 +40,10 @@
                         <span class="font-medium text-gray-500 dark:text-gray-400 mr-3">Phone:</span>
                         <span class="text-gray-900 dark:text-white">{{ entity.phone }}</span>
                     </div>
+                    <div v-if="entity.address" class="flex items-center">
+                        <span class="font-medium text-gray-500 dark:text-gray-400 mr-3">Address:</span>
+                        <span class="text-gray-900 dark:text-white">{{ entity.address }}</span>
+                    </div>
                 </div>
             </div>
         </CardContent>
@@ -56,6 +60,7 @@ interface Entity {
     email: string;
     phone?: string;
     avatar?: string;
+    address?: string;
 }
 
 interface Props {

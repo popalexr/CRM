@@ -6,6 +6,7 @@ import { route } from 'ziggy-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -46,6 +47,7 @@ const form = useForm({
     country: props.user.country || '',
     avatar_file_id: '',
     permissions: [...(props.user.permissions || [])], // Create a copy of the array
+    notes: props.user.notes || '',
 });
 
 const groupedPermissions = computed(() => {
@@ -118,6 +120,7 @@ const togglePermission = (checked: string | boolean, permissionId: string) => {
                         <TabsTrigger value="details">{{ props.formData.tabs.details.label }}</TabsTrigger>
                         <TabsTrigger value="avatar">{{ props.formData.tabs.avatar.label }}</TabsTrigger>
                         <TabsTrigger value="permissions">{{ props.formData.tabs.permissions.label }}</TabsTrigger>
+                        <TabsTrigger value="notes">{{ props.formData.tabs.notes?.label || 'Notes' }}</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="details">
@@ -289,6 +292,22 @@ const togglePermission = (checked: string | boolean, permissionId: string) => {
                                     </div>
                                     <InputError :message="form.errors.permissions" />
                                 </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="notes">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{{ props.formData.tabs.notes?.title || 'Notes' }}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <InputError :message="form.errors.notes" />
+                                <Textarea 
+                                    v-model="form.notes" 
+                                    :placeholder="props.formData.placeholders.add_notes || 'Add notes...'"
+                                    class="h-32"
+                                />
                             </CardContent>
                         </Card>
                     </TabsContent>

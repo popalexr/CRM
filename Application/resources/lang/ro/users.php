@@ -26,6 +26,7 @@ return [
         'password_confirmation' => 'Confirmă parola',
         'avatar' => 'Avatar utilizator',
         'permissions' => 'Rol și permisiuni',
+        'notes' => 'Notițe',
         'optional' => 'opțional',
         'create_user' => 'Creează utilizator',
         'edit_user' => 'Editează utilizator',
@@ -43,6 +44,7 @@ return [
         'country' => 'Țara',
         'password' => 'Parola utilizatorului',
         'password_confirmation' => 'Confirmă parola',
+        'add_notes' => 'Adaugă notițe...',
     ],
 
     // Tab configurations
@@ -58,6 +60,10 @@ return [
         'permissions' => [
             'label' => 'Permisiuni',
             'title' => 'Rol și permisiuni',
+        ],
+        'notes' => [
+            'label' => 'Notițe',
+            'title' => 'Notițe utilizator',
         ],
     ],
 
@@ -81,6 +87,7 @@ return [
         'user_deleted' => 'Utilizatorul a fost șters cu succes',
         'validation_error' => 'Te rugăm să corectezi erorile de mai jos',
         'permission_denied' => 'Nu ai permisiunea să accesezi această pagină',
+        'no_notes_available' => 'Nu există notițe disponibile pentru acest utilizator.',
     ],
 
 ];

@@ -26,6 +26,7 @@ return [
         'password_confirmation' => 'password',
         'avatar_file_id' => 'file',
         'permissions' => 'checkbox_group',
+        'notes' => 'textarea',
     ],
 
     'validation_rules' => [
@@ -41,6 +42,7 @@ return [
             'password' => 'required|string|min:8|confirmed',
             'avatar_file_id' => 'nullable|string',
             'permissions' => 'nullable|array',
+            'notes' => 'nullable|string',
         ],
         'update' => [
             'name' => 'required|string|max:255',
@@ -54,6 +56,7 @@ return [
             'password' => 'nullable|string|min:8|confirmed',
             'avatar_file_id' => 'nullable|string',
             'permissions' => 'nullable|array',
+            'notes' => 'nullable|string',
         ],
     ],
 
@@ -122,6 +125,7 @@ return [
             'country' => 'country',
             'permissions' => 'permissions', 
             'avatar_file_id' => 'avatar_file_id', 
+            'notes' => 'notes',
         ],
         'update' => [
             'name' => 'name',
@@ -134,6 +138,7 @@ return [
             'country' => 'country',
             'permissions' => 'permissions', 
             'avatar_file_id' => 'avatar_file_id',
+            'notes' => 'notes',
         ],
     ],
 

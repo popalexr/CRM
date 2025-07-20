@@ -30,6 +30,7 @@ class User extends Authenticatable
         'permissions',
         'is_admin',
         'profile_gradient_preference',
+        'notes',
     ];
 
     /**

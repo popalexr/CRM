@@ -26,6 +26,7 @@ return [
         'password_confirmation' => 'Confirm Password',
         'avatar' => 'User Avatar',
         'permissions' => 'Roles & Permissions',
+        'notes' => 'Notes',
         'optional' => 'optional',
         'create_user' => 'Create User',
         'edit_user' => 'Edit User',
@@ -50,6 +51,7 @@ return [
         'password_edit' => 'Leave blank to keep current password',
         'password_confirmation_edit' => 'Confirm new password',
         'search_invoices' => 'Search invoices...',
+        'add_notes' => 'Add notes...',
     ],
 
     // Edit mode labels
@@ -71,6 +73,10 @@ return [
         'permissions' => [
             'label' => 'Permissions',
             'title' => 'Roles & Permissions',
+        ],
+        'notes' => [
+            'label' => 'Notes',
+            'title' => 'User Notes',
         ],
     ],
 

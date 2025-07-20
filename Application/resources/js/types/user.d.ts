@@ -13,6 +13,7 @@ export interface User {
     updated_at: string;
     avatar?: string;
     is_admin?: boolean;
+    notes?: string;
 }
 
 export interface Permission {
