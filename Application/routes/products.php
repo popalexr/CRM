@@ -1,9 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Products\ProductDetailsController;
 use App\Http\Controllers\Products\DeleteProductController;
 
 Route::middleware('auth')->prefix('products')->name('products.')->group(function () {
-    Route::post('/delete', DeleteProductController::class)->name('products.destroy');
+    Route::get('/details', ProductDetailsController::class)->name('details')->can('products-view');
+    Route::post('/delete', DeleteProductController::class)->name('delete')->can('products-delete');
     
 });
