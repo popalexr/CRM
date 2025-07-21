@@ -165,3 +165,4 @@ export type ClientPageProps = AppPageProps<{
 }>;
 
 export * from './user';
+export * from './products';

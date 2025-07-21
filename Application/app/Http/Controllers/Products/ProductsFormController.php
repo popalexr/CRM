@@ -23,12 +23,33 @@ class ProductsFormController extends Controller
         }
     }
     
+    public function index()
+    {
+        $products = Products::paginate(15);
+
+        return Inertia::render('Products/Index', [
+            'products' => $products,
+        ]);
+    }
+    
     public function __invoke()
     {
+        $formConfig = [
+            'form_structure' => config('products.form_structure'),
+            'form_tabs' => config('products.form_tabs'),
+            'form_labels' => config('products.form_labels'),
+            'form_layout' => config('products.form_layout'),
+            'product_types' => config('products.product_types'),
+            'breadcrumbs' => config('products.breadcrumbs'),
+            'file_upload' => config('products.file_upload'),
+        ];
+
         if ($this->productId < 1)
         {
             return Inertia::render('Products/Create', [
+                'formConfig' => $formConfig,
                 'formLabels' => $this->getFormLabels('products'),
+                'productTypes' => config('products.product_types'),
                 'productFieldTypes' => config('products.field_types'),
             ]);
         }
@@ -42,7 +63,9 @@ class ProductsFormController extends Controller
         
         return Inertia::render('Products/Edit', [
             'product'    => $this->product,
+            'formConfig' => $formConfig,
             'formLabels' => $this->getFormLabels('products'),
+            'productTypes' => config('products.product_types'),
             'productFieldTypes' => config('products.field_types'),
         ]);
     }

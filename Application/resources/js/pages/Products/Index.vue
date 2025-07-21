@@ -28,12 +28,12 @@ const props = defineProps<Props>();
 
 // Functie pentru a naviga la detaliile produsului
 const handleShowProduct = (productId: number) => {
-    router.visit(route('products.show', { id: productId }));
+    router.visit(route('products.details', { id: productId }));
 };
 
 // Functie pentru a naviga la adaugarea unui produs nou
 const handleCreateProduct = () => {
-    router.visit(route('products.create'));
+    router.visit(route('products.form'));
 };
 
 // Functie pentru a obtine initialele numelui produsului

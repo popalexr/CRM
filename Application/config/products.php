@@ -70,4 +70,136 @@ return [
         'USD' => 'Dollar (USD)',
         'GBP' => 'Pound (GBP)',
     ],
+
+    'form_tabs' => [
+        'general' => [
+            'key' => 'general',
+            'label' => 'General Information',
+            'title' => 'General',
+            'default' => true,
+        ],
+        'image' => [
+            'key' => 'image',
+            'label' => 'Image',
+            'title' => 'Product Image',
+            'file_upload' => true,
+        ],
+        'description' => [
+            'key' => 'description',
+            'label' => 'Description',
+            'title' => 'Product Description',
+            'type' => 'textarea',
+        ],
+    ],
+
+    'form_structure' => [
+        'create' => [
+            'tabs_enabled' => true,
+            'default_tab' => 'general',
+            'submit_button_position' => 'bottom-right',
+            'back_button_enabled' => true,
+            'back_button_icon' => 'ArrowLeft',
+            'page_title' => 'Add Product',
+            'form_title' => 'Add Product',
+        ],
+        'edit' => [
+            'tabs_enabled' => true,
+            'default_tab' => 'general',
+            'submit_button_position' => 'bottom-right',
+            'back_button_enabled' => true,
+            'back_button_icon' => 'ArrowLeft',
+            'page_title' => 'Edit Product',
+            'form_title' => 'Edit Product',
+        ],
+    ],
+
+    'form_layout' => [
+        'general_tab' => [
+            'rows' => [
+                [
+                    'fields' => ['name', 'type'],
+                    'columns' => 2,
+                ],
+                [
+                    'fields' => ['price', 'currency'],
+                    'columns' => 2,
+                ],
+                [
+                    'fields' => ['unit', 'quantity'],
+                    'columns' => 2,
+                    'conditional' => [
+                        'quantity' => [
+                            'show_when' => 'type',
+                            'equals' => 'product',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+        'description_tab' => [
+            'rows' => [
+                [
+                    'fields' => ['description'],
+                    'columns' => 1,
+                    'textarea_rows' => 10,
+                ],
+            ],
+        ],
+    ],
+
+    'form_labels' => [
+        'labels' => [
+            'name' => 'Name',
+            'type' => 'Type',
+            'price' => 'Price',
+            'currency' => 'Currency',
+            'unit' => 'Unit',
+            'quantity' => 'Quantity',
+            'description' => 'Description',
+        ],
+        'placeholders' => [
+            'name' => 'Product name',
+            'type' => 'Select type',
+            'price' => '0.00',
+            'currency' => 'Currency (e.g. EUR, USD, RON)',
+            'unit' => 'Unit (e.g pcs, kg, m, etc.)',
+            'quantity' => '0',
+            'description' => 'Detailed description of the product...',
+        ],
+        'buttons' => [
+            'create' => 'Create Product',
+            'creating' => 'Creating...',
+            'update' => 'Update Product',
+            'updating' => 'Updating...',
+            'back' => 'Back',
+        ],
+    ],
+
+    'product_types' => [
+        'product' => 'Product',
+        'service' => 'Service',
+    ],
+
+    'breadcrumbs' => [
+        'create' => [
+            [
+                'title' => 'Products',
+                'href' => '/products',
+            ],
+            [
+                'title' => 'Add Product',
+                'href' => '/products/form',
+            ],
+        ],
+        'edit' => [
+            [
+                'title' => 'Products',
+                'href' => '/products',
+            ],
+            [
+                'title' => 'Edit Product',
+                'href' => '/products/edit',
+            ],
+        ],
+    ],
 ];
