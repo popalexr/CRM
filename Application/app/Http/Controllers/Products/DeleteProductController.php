@@ -28,6 +28,9 @@ class DeleteProductController extends Controller
                 ->route('products.index')
                 ->with('error', 'Product not found.');
         }
+        
+        $this->product->deleted_at = now();
+        $this->product->save();
 
         return redirect()
             ->route('products.index')
