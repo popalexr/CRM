@@ -1,31 +1,36 @@
 <?php
 
-namespace App\Http\Controllers\Products; // Namespace-ul corect
+namespace App\Http\Controllers\Products;
 
 use App\Http\Controllers\Controller;
-use App\Models\Products; // <-- Importa modelul Products (plural)
+use App\Models\Products;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon; // Pentru Carbon::now()
-use Illuminate\Support\Facades\Redirect; // Pentru redirect
 
 class DeleteProductController extends Controller
 {
+    private int $productId = 0;
+    private ?Products $product = null;
+
+    public function __construct(private Request $request)
+    {
+        if ($this->request->has('id')) {
+            $this->productId = (int) $this->request->input('id');
+            $this->product = Products::find($this->productId);
+        }
+    }
     /**
      * Handle the incoming request to delete a product.
      */
-    public function __invoke(Request $request)
+    public function __invoke()
     {
-        $productId = $request->input('id');
-
-        if (blank($productId) || !is_numeric($productId)) {
-            return Redirect::route('products.index')->with('error', 'ID produs invalid.');
+        if (!$this->productId || blank($this->product)) {
+            return redirect()
+                ->route('products.index')
+                ->with('error', 'Product not found.');
         }
 
-        $product = Products::find($productId); 
-        if (blank($product)) { 
-            return Redirect::route('products.index')->with('error', 'Produsul nu a fost găsit.');
-        }
-        $product->delete(); 
-        return Redirect::route('products.index')->with('success', 'Produsul a fost șters cu succes.');
+        return redirect()
+            ->route('products.index')
+            ->with('success', 'Product deleted successfully.');
     }
 }
