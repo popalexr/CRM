@@ -66,7 +66,7 @@ const getUserRole = (user: User) => {
 };
 
 const handleView = (userId: number) => {
-    router.visit(route('users.show', userId));
+    router.visit(route('users.details', { id: userId }));
 };
 
 const handleEdit = (userId: number) => {
@@ -87,15 +87,12 @@ const handleDeleteRequest = (user: User) => {
 const handleDeleteConfirm = () => {
     if (!userToDelete.value) return;
     
-    router.delete(route('users.destroy'), {
-        data: { id: userToDelete.value.id },
+    router.post(route('users.delete', {id: userToDelete.value.id}), {}, {
         onSuccess: () => {
-            users.value = users.value.filter(user => user.id !== userToDelete.value!.id);
-            userToDelete.value = null;
+            window.location.reload();
         },
         onError: (errors) => {
-            console.error('Delete user error:', errors);
-            userToDelete.value = null;
+            console.error('Delete client error:', errors);
         }
     });
 };

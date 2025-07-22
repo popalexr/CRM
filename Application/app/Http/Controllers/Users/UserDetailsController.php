@@ -7,20 +7,31 @@ use App\Http\Controllers\Controller;
 use App\Traits\HasFormLabels;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Redirect;
 
 class UserDetailsController extends Controller
 {
     use HasFormLabels;
-    
-    public function __invoke(User $user)
+
+    private int $userId;
+    private ?User $user = null;
+
+    public function __construct(private Request $request)
     {
-        $permissions = $user->is_admin 
-            ? $this->getAllAvailablePermissionsGrouped() 
-            : $this->getUserPermissionsGrouped($user->getAllPermissions());
-        
-        $userData = $user->toArray();
-        $userData['permissions'] = $permissions;
+        if ($this->request->has('id')) {
+            $this->userId = (int) $this->request->input('id');
+            
+            $this->user = User::find($this->userId);
+        }
+    }
+    
+    public function __invoke()
+    {
+        if (!$this->user) {
+            return redirect()->route('users.index')->with('error', 'User not found.');
+        }
+
+        $userData = $this->user->toArray();
+        $userData['permissions'] = $this->getUserPermissions();
         
         return Inertia::render('Users/Show', [
             'user' => $userData,
@@ -78,5 +89,14 @@ class UserDetailsController extends Controller
         }
         
         return $readablePermissions;
+    }
+
+    private function getUserPermissions(): array
+    {
+        if ($this->user->isAdmin()) {
+            return $this->getAllAvailablePermissionsGrouped();
+        }
+
+        return $this->getUserPermissionsGrouped($this->user->getAllPermissions());
     }
 }
