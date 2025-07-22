@@ -1,4 +1,5 @@
 *
 !clients/
 !users/
+!products/
 !.gitignore

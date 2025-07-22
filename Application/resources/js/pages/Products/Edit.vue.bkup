@@ -1,72 +1,64 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Product, type BreadcrumbItem } from '@/types';
-import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+import { type BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-vue-next';
-import { ref, computed, onBeforeMount } from 'vue';
+import { computed } from 'vue';
 import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
-import axios from 'axios';
+import { useProductForm } from '@/composables/useProductForm';
+import type { ProductFormData } from '@/types/products';
 
-const props = defineProps<Props>();
 const page = usePage();
+const product = page.props.product as any;
 
-type Props = {
-    product: Array<Product>;
-    formConfig?: any;
-    formLabels?: any;
-    productTypes?: any;
-};
-
-const config = props.formConfig || {};
-const productTypes = props.productTypes || {};
-
-const breadcrumbs: BreadcrumbItem[] = config.breadcrumbs?.edit || [];
-
-const showQuantityField = ref(props.product.type === 'product');
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Products',
+        href: '/products',
+    },
+    {
+        title: 'Edit Product',
+        href: '/products/form',
+    },
+];
 
 const csrf_token = computed(() => page.props.csrf as string);
 
-const form = useForm({
-    name: props.product.name,
-    type: props.product.type,
-    price: props.product.price,
-    unit: props.product.unit,
-    currency: props.product.currency,
-    quantity: props.product.quantity,
-    vat_id: props.product.vat_id,
-    description: props.product.description,
-    image_file_id: '',
-})
+const productForm = useProductForm(product, 'edit');
+const { form: rawForm, showQuantityField, handleTypeChange, getLabel, getPlaceholder, getButtonText } = productForm;
 
-const vats = ref<Array<{ id: number; name: string; rate: number }>>([]);
+const form = rawForm as any as ProductFormData & {
+    errors: Record<string, string>;
+    processing: boolean;
+    post: (url: string, options?: any) => void;
+};
+
+const productTypes = productForm.getProductTypes();
 
 const handleBack = () => {
     router.visit(route('products.index'));
 };
 
 const typeChanged = (value: any) => {
-    showQuantityField.value = value === 'product';
-    if (value === 'service') {
-        form.quantity = '';
-    }
+    handleTypeChange(value);
 };
 
 const handleSubmit = () => {
-    form.post(route('products.form.post', {id: props.product.id}), {
+    form.post(route('products.form.post', { id: product.id }), {
         onSuccess: () => {
             router.visit(route('products.index'));
         },
-        onError: (errors) => {
+        onError: (errors: any) => {
             console.error('Form submission errors:', errors);
-        },
+        }
     });
 };
 
@@ -85,75 +77,63 @@ const fileUploadError = (payload: { errorMessage: any }) => {
 const uploadedFileRemoved = () => {
     form.image_file_id = '';
 }
-
-onBeforeMount(() => {
-    axios.get(route('api.getVAT')).then(response => {
-        vats.value = response.data.vats || [];
-    }).catch(error => {
-        console.error('Error fetching VATs:', error);
-    });
-});
 </script>
 
 <template>
-    <Head :title="config.form_structure?.edit?.page_title || 'Edit Product'" />
+    <Head title="Edit Product" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <Button variant="ghost" size="sm" @click="handleBack" class="gap-2" v-if="config.form_structure?.edit?.back_button_enabled !== false">
+                    <Button variant="ghost" size="sm" @click="handleBack" class="gap-2">
                         <ArrowLeft class="h-4 w-4" />
                     </Button>
                     <div>
-                        <h1 class="text-2xl font-bold tracking-tight">{{ config.form_structure?.edit?.form_title || 'Add Product' }}</h1>
+                        <h1 class="text-2xl font-bold tracking-tight">Edit Product</h1>
                     </div>
                 </div>
             </div>
 
             <form @submit.prevent="handleSubmit">
-                <Tabs :default-value="config.form_structure?.edit?.default_tab || 'general'">
+                <Tabs default-value="general">
                     <TabsList class="mb-2">
-                        <TabsTrigger 
-                            v-for="tab in config.form_tabs || {}" 
-                            :key="tab.key" 
-                            :value="tab.key"
-                        >
-                            {{ tab.label }}
-                        </TabsTrigger>
+                        <TabsTrigger value="general">General Information</TabsTrigger>
+                        <TabsTrigger value="image">Image</TabsTrigger>
+                        <TabsTrigger value="description">Description</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="general">
                         <Card>
                             <CardHeader>
-                                <CardTitle>{{ config.form_tabs?.general?.title || 'General' }}</CardTitle>
+                                <CardTitle>General Information</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="name">{{ config.form_labels?.labels?.name || 'Name' }}</Label>
+                                            <Label for="name">{{ getLabel('name') }}</Label>
                                             <InputError :message="form.errors.name" />
                                         </div>
                                         <Input 
                                             id="name" 
                                             v-model="form.name as string" 
-                                            :placeholder="config.form_labels?.placeholders?.name || 'Product name'"
+                                            :placeholder="getPlaceholder('name')"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="type">{{ config.form_labels?.labels?.type || 'Type' }}</Label>
+                                            <Label for="type">{{ getLabel('type') }}</Label>
                                             <InputError :message="form.errors.type" />
                                         </div>
                                         <Select v-model="form.type as string" @update:model-value="typeChanged" class="w-full">
                                             <SelectTrigger class="w-100">
-                                                <SelectValue :placeholder="config.form_labels?.placeholders?.type || 'Select type'" />
+                                                <SelectValue :placeholder="getPlaceholder('type')" />
                                             </SelectTrigger>
                                             <SelectContent class="min-w-0 w-full">
                                                 <SelectGroup>
                                                     <SelectItem 
-                                                        v-for="(label, value) in config.product_types || productTypes" 
+                                                        v-for="(label, value) in productTypes" 
                                                         :key="value" 
                                                         :value="value"
                                                     >
@@ -164,75 +144,53 @@ onBeforeMount(() => {
                                         </Select>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="price">{{ config.form_labels?.labels?.price || 'Price' }}</Label>
+                                            <Label for="price">{{ getLabel('price') }}</Label>
                                             <InputError :message="form.errors.price" />
                                         </div>
                                         <Input 
                                             id="price" 
-                                            v-model="form.price as string" 
-                                            :placeholder="config.form_labels?.placeholders?.price || '0.00'"
+                                            v-model="form.price as string | number" 
+                                            :placeholder="getPlaceholder('price')"
                                             type="number"
                                             step="0.01"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="currency">{{ config.form_labels?.labels?.currency || 'Currency' }}</Label>
+                                            <Label for="currency">{{ getLabel('currency') }}</Label>
                                             <InputError :message="form.errors.currency" />
                                         </div>
                                         <Input 
                                             id="currency" 
                                             v-model="form.currency as string" 
-                                            :placeholder="config.form_labels?.placeholders?.currency || 'Currency (e.g. EUR, USD, RON)'"
+                                            :placeholder="getPlaceholder('currency')"
                                         />
-                                    </div>
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <Label for="vat_id">{{ config.form_labels?.labels?.vat || 'VAT' }}</Label>
-                                            <InputError :message="form.errors.vat_id" />
-                                        </div>
-                                        <Select v-model="form.vat_id" class="w-full">
-                                            <SelectTrigger class="w-100">
-                                                <SelectValue :placeholder="config.form_labels?.placeholders?.vat || 'Select VAT'" />
-                                            </SelectTrigger>
-                                            <SelectContent class="w-full">
-                                                <SelectGroup>
-                                                    <SelectItem 
-                                                        v-for="vat in vats || []" 
-                                                        :key="vat.id" 
-                                                        :value="vat.id"
-                                                    >
-                                                        {{ vat.name }} ({{ vat.rate }}%)
-                                                    </SelectItem>
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="unit">{{ config.form_labels?.labels?.unit || 'Unit' }}</Label>
+                                            <Label for="unit">{{ getLabel('unit') }}</Label>
                                             <InputError :message="form.errors.unit" />
                                         </div>
                                         <Input 
                                             id="unit" 
                                             v-model="form.unit as string" 
-                                            :placeholder="config.form_labels?.placeholders?.unit || 'Unit (e.g pcs, kg, m, etc.)'"
+                                            :placeholder="getPlaceholder('unit')"
                                         />
                                     </div>
                                     <div class="space-y-2" v-if="showQuantityField">
                                         <div class="flex items-center justify-between">
-                                            <Label for="quantity">{{ config.form_labels?.labels?.quantity || 'Quantity' }}</Label>
+                                            <Label for="quantity">{{ getLabel('quantity') }}</Label>
                                             <InputError :message="form.errors.quantity" />
                                         </div>
                                         <Input 
                                             id="quantity" 
-                                            v-model="form.quantity as string" 
-                                            :placeholder="config.form_labels?.placeholders?.quantity || '0'"
+                                            v-model="form.quantity as string | number" 
+                                            :placeholder="getPlaceholder('quantity')"
                                             type="number"
                                             step="1"
                                         />
@@ -242,10 +200,10 @@ onBeforeMount(() => {
                         </Card>
                     </TabsContent>
 
-                    <TabsContent value="image" force-mount class="data-[state=inactive]:hidden">
+                    <TabsContent value="image">
                         <Card>
                             <CardHeader>
-                                <CardTitle>{{ config.form_tabs?.image?.title || 'Product Image' }}</CardTitle>
+                                <CardTitle>Product Image</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <InputError :message="form.errors.image_file_id" />
@@ -255,7 +213,7 @@ onBeforeMount(() => {
                                     @error="fileUploadError"
                                     @removed="uploadedFileRemoved"
                                     :headers="{'X-CSRF-TOKEN': csrf_token }"
-                                    :accepted-files="config.file_upload?.accepted_files || 'image/jpeg,image/png,image/jpg,image/bmp'"
+                                    accepted-files="image/jpeg,image/png,image/jpg,image/bmp"
                                 />
                             </CardContent>
                         </Card>
@@ -264,18 +222,19 @@ onBeforeMount(() => {
                     <TabsContent value="description">
                         <Card>
                             <CardHeader>
-                                <CardTitle>{{ config.form_tabs?.description?.title || 'Product Description' }}</CardTitle>
+                                <CardTitle>Description</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between">
+                                        <Label for="description">{{ getLabel('description') }}</Label>
                                         <InputError :message="form.errors.description" />
                                     </div>
                                     <Textarea 
                                         id="description" 
                                         v-model="form.description as string" 
-                                        :placeholder="config.form_labels?.placeholders?.description || 'Detailed description of the product...'"
-                                        :rows="config.form_layout?.description_tab?.rows?.[0]?.textarea_rows || 10"
+                                        :placeholder="getPlaceholder('description')"
+                                        rows="10"
                                     />
                                 </div>
                             </CardContent>
@@ -285,7 +244,7 @@ onBeforeMount(() => {
 
                 <div class="flex justify-end mt-6">
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? (config.form_labels?.buttons?.editing || 'Edit...') : (config.form_labels?.buttons?.edit || 'Edit Product') }}
+                        {{ form.processing ? getButtonText('updating') : getButtonText('update') }}
                     </Button>
                 </div>
             </form>

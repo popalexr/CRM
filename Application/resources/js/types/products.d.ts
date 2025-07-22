@@ -3,6 +3,7 @@ export interface ProductFormData {
     name: string | number;
     type: string | number;
     price: string | number;
+    vat_id?: number | null;
     unit: string | number;
     currency: string | number;
     quantity: string | number;
@@ -16,6 +17,7 @@ export interface Product {
     name?: string;
     type?: string;
     price?: string | number;
+    vat_id?: number | null;
     unit?: string;
     currency?: string;
     quantity?: string | number;

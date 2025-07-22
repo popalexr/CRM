@@ -10,7 +10,7 @@ Route::middleware('auth')->prefix('products')->name('products.')->group(function
     Route::get('/', ProductsController::class)->name('index');
     Route::get('/details', ProductDetailsController::class)->name('details');
     Route::get('/form', ProductsFormController::class)->name('form');
-    Route::get('/edit/{product}', ProductsFormController::class)->name('edit')->can('products-edit');
-    
+
+    Route::post('/form', [ProductsFormController::class, 'post'])->name('form.post');    
     Route::post('/delete', DeleteProductController::class)->name('delete');
 });

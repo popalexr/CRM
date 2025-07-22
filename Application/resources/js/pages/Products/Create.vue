@@ -10,10 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup} from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-vue-next';
-import { ref, computed } from 'vue';
+import { ref, computed, onBeforeMount } from 'vue';
 import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
 import { DEFAULT_PRODUCT_FORM_DATA } from '@/constants/products';
+import axios from 'axios';
 
 const props = defineProps<ProductCreateProps>();
 const page = usePage();
@@ -25,16 +26,17 @@ type ProductCreateProps = {
 };
 
 const config = props.formConfig || {};
-const formLabels = props.formLabels || {};
 const productTypes = props.productTypes || {};
 
 const breadcrumbs: BreadcrumbItem[] = config.breadcrumbs?.create || [];
 
 const showQuantityField = ref(false);
 
-const csrf_token = computed(() => usePage().props.csrf as string);
+const csrf_token = computed(() => page.props.csrf as string);
 
 const form = useForm({ ...DEFAULT_PRODUCT_FORM_DATA });
+
+const vats = ref<Array<{ id: number; name: string; rate: number }>>([]);
 
 const handleBack = () => {
     router.visit(route('products.index'));
@@ -48,6 +50,14 @@ const typeChanged = (value: any) => {
 };
 
 const handleSubmit = () => {
+    form.post(route('products.form.post'), {
+        onSuccess: () => {
+            router.visit(route('products.index'));
+        },
+        onError: (errors) => {
+            console.error('Form submission errors:', errors);
+        },
+    });
 };
 
 const fileUploadSuccess = (response: any) => {
@@ -65,6 +75,14 @@ const fileUploadError = (payload: { errorMessage: any }) => {
 const uploadedFileRemoved = () => {
     form.image_file_id = '';
 }
+
+onBeforeMount(() => {
+    axios.get(route('api.getVAT')).then(response => {
+        vats.value = response.data.vats || [];
+    }).catch(error => {
+        console.error('Error fetching VATs:', error);
+    });
+});
 </script>
 
 <template>
@@ -136,7 +154,7 @@ const uploadedFileRemoved = () => {
                                         </Select>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
                                             <Label for="price">{{ config.form_labels?.labels?.price || 'Price' }}</Label>
@@ -160,6 +178,28 @@ const uploadedFileRemoved = () => {
                                             v-model="form.currency as string" 
                                             :placeholder="config.form_labels?.placeholders?.currency || 'Currency (e.g. EUR, USD, RON)'"
                                         />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <Label for="vat_id">{{ config.form_labels?.labels?.vat || 'VAT' }}</Label>
+                                            <InputError :message="form.errors.vat_id" />
+                                        </div>
+                                        <Select v-model="form.vat_id" class="w-full">
+                                            <SelectTrigger class="w-100">
+                                                <SelectValue :placeholder="config.form_labels?.placeholders?.vat || 'Select VAT'" />
+                                            </SelectTrigger>
+                                            <SelectContent class="w-full">
+                                                <SelectGroup>
+                                                    <SelectItem 
+                                                        v-for="vat in vats || []" 
+                                                        :key="vat.id" 
+                                                        :value="vat.id"
+                                                    >
+                                                        {{ vat.name }} ({{ vat.rate }}%)
+                                                    </SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -192,7 +232,7 @@ const uploadedFileRemoved = () => {
                         </Card>
                     </TabsContent>
 
-                    <TabsContent value="image">
+                    <TabsContent value="image" force-mount class="data-[state=inactive]:hidden">
                         <Card>
                             <CardHeader>
                                 <CardTitle>{{ config.form_tabs?.image?.title || 'Product Image' }}</CardTitle>
