@@ -1,25 +1,20 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-    Select, 
-    SelectContent, 
-    SelectItem, 
-    SelectTrigger, 
-    SelectValue,
-    SelectGroup
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-vue-next';
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
+import { useProductForm } from '@/composables/useProductForm';
+import type { ProductFormData } from '@/types/products';
 
 const page = usePage();
 const formLabels = page.props.formLabels;
@@ -36,31 +31,25 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const showQuantityField = ref(product.type === 'product');
-
 const csrf_token = computed(() => usePage().props.csrf as string);
 
-const form = useForm({
-    id: product.id,
-    name: product.name,
-    type: product.type,
-    price: product.price,
-    unit: product.unit,
-    currency: product.currency,
-    quantity: product.quantity || '',
-    image_file_id: '',
-    description: product.description || '',
-});
+const productForm = useProductForm(product, 'edit');
+const { form: rawForm, showQuantityField, handleTypeChange, getLabel, getPlaceholder, getButtonText } = productForm;
+
+const form = rawForm as any as ProductFormData & {
+    errors: Record<string, string>;
+    processing: boolean;
+    post: (url: string, options?: any) => void;
+};
+
+const productTypes = productForm.getProductTypes();
 
 const handleBack = () => {
     router.visit(route('products.index'));
 };
 
 const typeChanged = (value: any) => {
-    showQuantityField.value = value === 'product';
-    if (value === 'service') {
-        form.quantity = '';
-    }
+    handleTypeChange(value);
 };
 
 const handleSubmit = () => {
@@ -68,7 +57,7 @@ const handleSubmit = () => {
         onSuccess: () => {
             router.visit(route('products.index'));
         },
-        onError: (errors) => {
+        onError: (errors: any) => {
             console.error('Form submission errors:', errors);
         }
     });
@@ -124,28 +113,33 @@ const uploadedFileRemoved = () => {
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="name">Name</Label>
+                                            <Label for="name">{{ getLabel('name') }}</Label>
                                             <InputError :message="form.errors.name" />
                                         </div>
                                         <Input 
                                             id="name" 
-                                            v-model="form.name" 
-                                            placeholder="Product name"
+                                            v-model="form.name as string" 
+                                            :placeholder="getPlaceholder('name')"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="type">Type</Label>
+                                            <Label for="type">{{ getLabel('type') }}</Label>
                                             <InputError :message="form.errors.type" />
                                         </div>
-                                        <Select v-model="form.type" @update:model-value="typeChanged" class="w-full">
+                                        <Select v-model="form.type as string" @update:model-value="typeChanged" class="w-full">
                                             <SelectTrigger class="w-100">
-                                                <SelectValue placeholder="Select type" />
+                                                <SelectValue :placeholder="getPlaceholder('type')" />
                                             </SelectTrigger>
                                             <SelectContent class="min-w-0 w-full">
                                                 <SelectGroup>
-                                                    <SelectItem value="product">Product</SelectItem>
-                                                    <SelectItem value="service">Service</SelectItem>
+                                                    <SelectItem 
+                                                        v-for="(label, value) in productTypes" 
+                                                        :key="value" 
+                                                        :value="value"
+                                                    >
+                                                        {{ label }}
+                                                    </SelectItem>
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
@@ -154,50 +148,50 @@ const uploadedFileRemoved = () => {
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="price">Price</Label>
+                                            <Label for="price">{{ getLabel('price') }}</Label>
                                             <InputError :message="form.errors.price" />
                                         </div>
                                         <Input 
                                             id="price" 
-                                            v-model="form.price" 
-                                            placeholder="0.00"
+                                            v-model="form.price as string | number" 
+                                            :placeholder="getPlaceholder('price')"
                                             type="number"
                                             step="0.01"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="currency">Currency</Label>
+                                            <Label for="currency">{{ getLabel('currency') }}</Label>
                                             <InputError :message="form.errors.currency" />
                                         </div>
                                         <Input 
                                             id="currency" 
-                                            v-model="form.currency" 
-                                            placeholder="RON"
+                                            v-model="form.currency as string" 
+                                            :placeholder="getPlaceholder('currency')"
                                         />
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="unit">Unit</Label>
+                                            <Label for="unit">{{ getLabel('unit') }}</Label>
                                             <InputError :message="form.errors.unit" />
                                         </div>
                                         <Input 
                                             id="unit" 
-                                            v-model="form.unit" 
-                                            placeholder="pcs, kg, m, etc."
+                                            v-model="form.unit as string" 
+                                            :placeholder="getPlaceholder('unit')"
                                         />
                                     </div>
                                     <div class="space-y-2" v-if="showQuantityField">
                                         <div class="flex items-center justify-between">
-                                            <Label for="quantity">Quantity</Label>
+                                            <Label for="quantity">{{ getLabel('quantity') }}</Label>
                                             <InputError :message="form.errors.quantity" />
                                         </div>
                                         <Input 
                                             id="quantity" 
-                                            v-model="form.quantity" 
-                                            placeholder="0"
+                                            v-model="form.quantity as string | number" 
+                                            :placeholder="getPlaceholder('quantity')"
                                             type="number"
                                             step="1"
                                         />
@@ -234,13 +228,13 @@ const uploadedFileRemoved = () => {
                             <CardContent>
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <Label for="description">Product Description</Label>
+                                        <Label for="description">{{ getLabel('description') }}</Label>
                                         <InputError :message="form.errors.description" />
                                     </div>
                                     <Textarea 
                                         id="description" 
-                                        v-model="form.description" 
-                                        placeholder="Detailed description of the product..."
+                                        v-model="form.description as string" 
+                                        :placeholder="getPlaceholder('description')"
                                         rows="10"
                                     />
                                 </div>
@@ -251,7 +245,7 @@ const uploadedFileRemoved = () => {
 
                 <div class="flex justify-end mt-6">
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Updating...' : 'Update Product' }}
+                        {{ form.processing ? getButtonText('updating') : getButtonText('update') }}
                     </Button>
                 </div>
             </form>

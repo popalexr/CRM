@@ -1,32 +1,40 @@
-export interface ProductCreateProps {
-    formConfig?: any;
-    productTypes?: Record<string, string>;
-    formLabels?: any;
-}
-
 export interface ProductFormData {
-    name: string;
-    type: string;
-    price: string;
-    unit: string;
-    currency: string;
-    quantity: string;
-    image_file_id: string;
-    description: string;
+    id?: number | null;
+    name: string | number;
+    type: string | number;
+    price: string | number;
+    unit: string | number;
+    currency: string | number;
+    quantity: string | number;
+    image_file_id: string | number;
+    description: string | number;
     [key: string]: any;
 }
 
-export declare const DEFAULT_PRODUCT_TYPES: Record<string, never>;
-export declare const DEFAULT_FORM_TABS: Record<string, never>;
-export declare const DEFAULT_BREADCRUMBS: never[];
+export interface Product {
+    id?: number;
+    name?: string;
+    type?: string;
+    price?: string | number;
+    unit?: string;
+    currency?: string;
+    quantity?: string | number;
+    description?: string;
+}
 
-export declare const DEFAULT_PRODUCT_FORM_DATA: {
-    readonly name: '';
-    readonly type: '';
-    readonly price: '';
-    readonly unit: '';
-    readonly currency: '';
-    readonly quantity: '';
-    readonly image_file_id: '';
-    readonly description: '';
-};
+export interface ProductFormConfig {
+    form_fields?: {
+        create?: Record<string, any>;
+        edit?: Record<string, any>;
+    };
+    form_labels?: {
+        labels?: Record<string, string>;
+        placeholders?: Record<string, string>;
+        buttons?: Record<string, string>;
+    };
+    product_types?: Record<string, string>;
+    form_structure?: {
+        create?: any;
+        edit?: any;
+    };
+}

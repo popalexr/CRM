@@ -202,4 +202,29 @@ return [
             ],
         ],
     ],
+
+    'form_fields' => [
+        'create' => [
+            'id' => null,
+            'name' => '',
+            'type' => '',
+            'price' => '',
+            'unit' => '',
+            'currency' => '',
+            'quantity' => '',
+            'image_file_id' => '',
+            'description' => '',
+        ],
+        'edit' => [
+            'id' => 'product.id',
+            'name' => 'product.name',
+            'type' => 'product.type',
+            'price' => 'product.price',
+            'unit' => 'product.unit',
+            'currency' => 'product.currency',
+            'quantity' => 'product.quantity || ""',
+            'image_file_id' => '',
+            'description' => 'product.description || ""',
+        ],
+    ],
 ];

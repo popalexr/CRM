@@ -39,6 +39,7 @@ class ProductsFormController extends Controller
             'form_tabs' => config('products.form_tabs'),
             'form_labels' => config('products.form_labels'),
             'form_layout' => config('products.form_layout'),
+            'form_fields' => config('products.form_fields'),
             'product_types' => config('products.product_types'),
             'breadcrumbs' => config('products.breadcrumbs'),
             'file_upload' => config('products.file_upload'),

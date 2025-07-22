@@ -9,5 +9,5 @@ Route::middleware('auth')->prefix('products')->name('products.')->group(function
     Route::get('/details', ProductDetailsController::class)->name('details')->can('products-view');
     Route::post('/delete', DeleteProductController::class)->name('delete')->can('products-delete');
     Route::get('/form', ProductsFormController::class)->name('form');
-    
+    Route::get('/edit/{product}', ProductsFormController::class)->name('edit')->can('products-edit');
 });

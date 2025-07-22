@@ -13,11 +13,16 @@ import { ArrowLeft } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
-import { type ProductCreateProps } from '@/types';
 import { DEFAULT_PRODUCT_FORM_DATA } from '@/constants/products';
 
 const props = defineProps<ProductCreateProps>();
 const page = usePage();
+
+type ProductCreateProps = {
+    formConfig?: any;
+    formLabels?: any;
+    productTypes?: any;
+};
 
 const config = props.formConfig || {};
 const formLabels = props.formLabels || {};

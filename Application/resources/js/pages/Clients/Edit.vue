@@ -59,7 +59,7 @@ const form = useForm({
     phone: client.client_phone,
     cui: client.cui,
     registration_number: client.registration_number,
-    cnp: client.cui, // CNP is used for individual clients, and for business clients there is used CUI (both stored in the same column in DB)
+    cnp: client.cui, 
     address: client.address,
     city: client.city,
     county: client.county,
