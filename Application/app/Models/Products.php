@@ -16,6 +16,7 @@ class Products extends Model
         'currency',
         'quantity',
         'unit',
+        'vat_id',
         'description',
     ];
 
