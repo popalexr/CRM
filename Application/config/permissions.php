@@ -16,4 +16,10 @@ return [
     'Settings' => [
         'settings'        => 'Edit Settings',
     ],
+
+    'Products' => [
+        'products-view'    => 'View Products',
+        'products-form'    => 'Products form',
+        'products-delete'  => 'Delete Products',
+    ],
 ];
