@@ -1,26 +1,28 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-
+import { ArrowLeftIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 
-// Definirea tipului ProductDetails conform modelului si migrarii
+// Importăm componentele personalizate
+import ProfileHeader from '@/components/ProfileHeader.vue';
+import NotesSection from '@/components/NotesSection.vue';
+import SearchInput from '@/components/SearchInput.vue';
+
+// Definirea tipului ProductDetails
 interface ProductDetails {
     id: number;
     name: string;
-    image?: string; // URL-ul imaginii
-    type: 'product' | 'service'; // Tipul produsului
+    image?: string;
+    type: 'product' | 'service';
     price: number;
     currency: string;
-    quantity?: number; // Optional, doar pentru produse fizice
-    unit: string; // Unitate de masura
+    quantity?: number;
+    unit: string;
     description?: string;
     created_at: string;
-    // invoices?: Array<any>; // Pentru facturi (TBD)
+    // vat?: { name: string; rate: number }; // Exemplu dacă ai avea relația VAT
 }
 
 interface Props {
@@ -29,92 +31,122 @@ interface Props {
 
 const props = defineProps<Props>();
 
-// Determina daca e un produs fizic (pentru a afisa cantitatea)
-const isPhysicalProduct = computed(() => props.product.type === 'product');
+// Date pentru componenta ProfileHeader
+const entityData = computed(() => ({
+    id: props.product.id,
+    name: props.product.name,
+    // Folosim tipul produsului ca subtitlu
+    email: props.product.type === 'product' ? 'Produs Fizic' : 'Serviciu',
+    phone: undefined, // Produsele nu au număr de telefon
+    avatar: props.product.image
+}));
 
-// Functie pentru a naviga la editarea produsului (daca ai o pagina de editare)
+// Functie pentru a naviga la editarea produsului
 const handleEditProduct = (productId: number) => {
-    router.visit(route('products.form', { id: productId })); // Presupunem ruta products.form
+    router.visit(route('products.form', { id: productId }));
 };
 
 // Functie pentru a naviga la lista de produse
-const handleBackToList = () => {
+const handleBack = () => {
     router.visit(route('products.index'));
 };
-
-// Functie pentru a formata data
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ro-RO');
-};
-
-// Functie pentru a obtine initialele numelui produsului pentru AvatarFallback
-const getInitials = (name: string) => {
-    return name.charAt(0).toUpperCase();
-};
-
 </script>
 
 <template>
-    <Head :title="`Detalii produs: ${product.name}`" />
+    <Head :title="`Detalii: ${product.name}`" />
 
     <AppLayout>
         <div class="container mx-auto px-4 py-6">
-            <!-- Antet pagina -->
+            <!-- Antet pagină -->
             <div class="flex items-center justify-between mb-6">
-                <h1 class="text-2xl font-bold">Detalii Produs: {{ product.name }}</h1>
-                <div class="flex space-x-2">
-                    <Button variant="outline" @click="handleBackToList">Înapoi la lista produse</Button>
-                    <Button @click="handleEditProduct(product.id)">Editează Produs</Button>
+                <div class="flex items-center gap-4">
+                    <Button variant="ghost" size="sm" @click="handleBack" class="p-2">
+                        <ArrowLeftIcon class="w-4 h-4" />
+                    </Button>
+                    <h1 class="text-xl font-semibold dark:text-white">Detalii Produs / Serviciu</h1>
                 </div>
+                <Button @click="handleEditProduct(product.id)">Editează</Button>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Coloana 1: Informații Generale și Imagine Produs -->
-                <Card class="lg:col-span-1">
-                    <CardHeader>
-                        <CardTitle>Informații Generale</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="flex flex-col items-center mb-6">
-                            <Avatar class="w-24 h-24 rounded-lg mb-4">
-                                <!-- Imagine Produs (foloseste campul 'image' din BD) -->
-                                <AvatarImage
-                                    v-if="product.image"
-                                    :src="product.image"
-                                    :alt="product.name"
-                                />
-                                <AvatarFallback class="text-3xl font-medium">
-                                    {{ getInitials(product.name) }}
-                                </AvatarFallback>
-                            </Avatar>
-                            <h2 class="text-xl font-semibold text-center">{{ product.name }}</h2>
-                            <p class="text-muted-foreground text-sm">({{ product.type === 'product' ? 'Produs' : 'Serviciu' }})</p>
+                <!-- Coloana principală (stânga) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Header Profil Produs -->
+                    <ProfileHeader 
+                        :entity="entityData"
+                    />
+
+                    <!-- Card cu detalii structurate -->
+                    <div class="bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Specificații</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Secțiunea Comercială -->
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-2 pb-3 border-b border-gray-100 dark:border-gray-800">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white">Detalii Comerciale</h4>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="flex flex-col space-y-1">
+                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Preț</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ product.price }} {{ product.currency }}</span>
+                                    </div>
+                                    <!-- Aici poți adăuga TVA dacă ai relația în model -->
+                                    <!-- 
+                                    <div v-if="product.vat" class="flex flex-col space-y-1">
+                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">TVA</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ product.vat.name }} ({{ product.vat.rate }}%)</span>
+                                    </div>
+                                    -->
+                                </div>
+                            </div>
+                            
+                            <!-- Secțiunea Logistică -->
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-2 pb-3 border-b border-gray-100 dark:border-gray-800">
+                                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white">Detalii Logistice</h4>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="flex flex-col space-y-1">
+                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Unitate de Măsură</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ product.unit }}</span>
+                                    </div>
+                                    <div v-if="product.type === 'product'" class="flex flex-col space-y-1">
+                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Cantitate în Stoc</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ product.quantity ?? 0 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secțiunea de Descriere/Note -->
+                    <NotesSection 
+                        :content="product.description"
+                        default-text="Acest produs nu are o descriere."
+                        title="Descriere Produs"
+                    />
+                </div>
+
+                <!-- Coloana secundară (dreapta) -->
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 dark:text-white">Facturi Asociate</h3>
+                        
+                        <div class="mb-4">
+                            <SearchInput 
+                                placeholder="Caută facturi..."
+                            />
                         </div>
 
-                        <Separator class="my-4" />
-
-                        <div class="space-y-2 text-sm">
-                            <p><strong>Preț:</strong> {{ product.price }} {{ product.currency }}</p>
-                            <p><strong>Unit. Măsură:</strong> {{ product.unit }}</p>
-                            <p v-if="isPhysicalProduct"><strong>Cantitate:</strong> {{ product.quantity }}</p>
-                            <p v-if="product.description"><strong>Descriere:</strong> {{ product.description }}</p>
-                            <p><strong>Creat la:</strong> {{ formatDate(product.created_at) }}</p>
+                        <div class="bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Nu au fost găsite facturi pentru acest produs.</p>
                         </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Coloana 2 (sau 1 pe mobil): Facturi unde s-a folosit (TBD) -->
-                <Card class="col-span-full lg:col-span-2"> <!-- Ocupa restul spatiului sau toata latimea pe mobil -->
-                    <CardHeader>
-                        <CardTitle>Facturi unde s-a folosit</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-muted-foreground text-sm">
-                            Funcționalitatea de afișare a facturilor unde s-a folosit acest produs/serviciu va fi implementată ulterior.
-                            <!-- Aici va veni un Table cu listarea facturilor (ex: invoice_id, quantity_used, etc.) -->
-                        </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
         </div>
     </AppLayout>
