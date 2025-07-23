@@ -19,14 +19,16 @@ import axios from 'axios';
 const props = defineProps<ProductCreateProps>();
 const page = usePage();
 
+
 type ProductCreateProps = {
     formConfig?: any;
-    formLabels?: any;
+    formLabels: any;
     productTypes?: any;
 };
 
 const config = props.formConfig || {};
 const productTypes = props.productTypes || {};
+const formLabels = props.formLabels || {};
 
 const breadcrumbs: BreadcrumbItem[] = config.breadcrumbs?.create || [];
 
@@ -86,7 +88,7 @@ onBeforeMount(() => {
 </script>
 
 <template>
-    <Head :title="config.form_structure?.create?.page_title || 'Add Product'" />
+    <Head :title="formLabels.headings?.add_product || 'Add Product'" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-6">
@@ -96,7 +98,7 @@ onBeforeMount(() => {
                         <ArrowLeft class="h-4 w-4" />
                     </Button>
                     <div>
-                        <h1 class="text-2xl font-bold tracking-tight">{{ config.form_structure?.create?.form_title || 'Add Product' }}</h1>
+                        <h1 class="text-2xl font-bold tracking-tight">{{ formLabels.headings?.add_product || 'Add Product' }}</h1>
                     </div>
                 </div>
             </div>
@@ -109,36 +111,36 @@ onBeforeMount(() => {
                             :key="tab.key" 
                             :value="tab.key"
                         >
-                            {{ tab.label }}
+                            {{ formLabels.tabs?.[tab.key]?.label || tab.label }}
                         </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="general">
                         <Card>
                             <CardHeader>
-                                <CardTitle>{{ config.form_tabs?.general?.title || 'General' }}</CardTitle>
+                                <CardTitle>{{ formLabels.tabs?.general?.title || 'General' }}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="name">{{ config.form_labels?.labels?.name || 'Name' }}</Label>
+                                            <Label for="name">{{ formLabels.labels?.name || 'Name' }}</Label>
                                             <InputError :message="form.errors.name" />
                                         </div>
                                         <Input 
                                             id="name" 
                                             v-model="form.name as string" 
-                                            :placeholder="config.form_labels?.placeholders?.name || 'Product name'"
+                                            :placeholder="formLabels.placeholders?.name || 'Product name'"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="type">{{ config.form_labels?.labels?.type || 'Type' }}</Label>
+                                            <Label for="type">{{ formLabels.labels?.type || 'Type' }}</Label>
                                             <InputError :message="form.errors.type" />
                                         </div>
                                         <Select v-model="form.type as string" @update:model-value="typeChanged" class="w-full">
                                             <SelectTrigger class="w-100">
-                                                <SelectValue :placeholder="config.form_labels?.placeholders?.type || 'Select type'" />
+                                                <SelectValue :placeholder="formLabels.placeholders?.type || 'Select type'" />
                                             </SelectTrigger>
                                             <SelectContent class="min-w-0 w-full">
                                                 <SelectGroup>
@@ -157,36 +159,36 @@ onBeforeMount(() => {
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="price">{{ config.form_labels?.labels?.price || 'Price' }}</Label>
+                                            <Label for="price">{{ formLabels.labels?.price || 'Price' }}</Label>
                                             <InputError :message="form.errors.price" />
                                         </div>
                                         <Input 
                                             id="price" 
                                             v-model="form.price as string" 
-                                            :placeholder="config.form_labels?.placeholders?.price || '0.00'"
+                                            :placeholder="formLabels.placeholders?.price || '0.00'"
                                             type="number"
                                             step="0.01"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="currency">{{ config.form_labels?.labels?.currency || 'Currency' }}</Label>
+                                            <Label for="currency">{{ formLabels.labels?.currency || 'Currency' }}</Label>
                                             <InputError :message="form.errors.currency" />
                                         </div>
                                         <Input 
                                             id="currency" 
                                             v-model="form.currency as string" 
-                                            :placeholder="config.form_labels?.placeholders?.currency || 'Currency (e.g. EUR, USD, RON)'"
+                                            :placeholder="formLabels.placeholders?.currency || 'Currency (e.g. EUR, USD, RON)'"
                                         />
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="vat_id">{{ config.form_labels?.labels?.vat || 'VAT' }}</Label>
+                                            <Label for="vat_id">{{ formLabels.labels?.vat || 'VAT' }}</Label>
                                             <InputError :message="form.errors.vat_id" />
                                         </div>
                                         <Select v-model="form.vat_id" class="w-full">
                                              <SelectTrigger class="w-60">
-                                                <SelectValue :placeholder="config.form_labels?.placeholders?.vat || 'Select VAT'" />
+                                                <SelectValue :placeholder="formLabels.placeholders?.vat || 'Select VAT'" />
                                             </SelectTrigger>
                                             <SelectContent class="w-full">
                                                 <SelectGroup>
@@ -205,24 +207,24 @@ onBeforeMount(() => {
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <Label for="unit">{{ config.form_labels?.labels?.unit || 'Unit' }}</Label>
+                                            <Label for="unit">{{ formLabels.labels?.unit || 'Unit' }}</Label>
                                             <InputError :message="form.errors.unit" />
                                         </div>
                                         <Input 
                                             id="unit" 
                                             v-model="form.unit as string" 
-                                            :placeholder="config.form_labels?.placeholders?.unit || 'Unit (e.g pcs, kg, m, etc.)'"
+                                            :placeholder="formLabels.placeholders?.unit || 'Unit (e.g pcs, kg, m, etc.)'"
                                         />
                                     </div>
                                     <div class="space-y-2" v-if="showQuantityField">
                                         <div class="flex items-center justify-between">
-                                            <Label for="quantity">{{ config.form_labels?.labels?.quantity || 'Quantity' }}</Label>
+                                            <Label for="quantity">{{ formLabels.labels?.quantity || 'Quantity' }}</Label>
                                             <InputError :message="form.errors.quantity" />
                                         </div>
                                         <Input 
                                             id="quantity" 
                                             v-model="form.quantity as string" 
-                                            :placeholder="config.form_labels?.placeholders?.quantity || '0'"
+                                            :placeholder="formLabels.placeholders?.quantity || '0'"
                                             type="number"
                                             step="1"
                                         />
@@ -235,7 +237,7 @@ onBeforeMount(() => {
                     <TabsContent value="image" force-mount class="data-[state=inactive]:hidden">
                         <Card>
                             <CardHeader>
-                                <CardTitle>{{ config.form_tabs?.image?.title || 'Product Image' }}</CardTitle>
+                                <CardTitle>{{ formLabels.tabs?.image?.title || 'Product Image' }}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <InputError :message="form.errors.image_file_id" />
@@ -254,7 +256,7 @@ onBeforeMount(() => {
                     <TabsContent value="description">
                         <Card>
                             <CardHeader>
-                                <CardTitle>{{ config.form_tabs?.description?.title || 'Product Description' }}</CardTitle>
+                                <CardTitle>{{ formLabels.tabs?.description?.title || 'Product Description' }}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div class="space-y-2">
@@ -264,7 +266,7 @@ onBeforeMount(() => {
                                     <Textarea 
                                         id="description" 
                                         v-model="form.description as string" 
-                                        :placeholder="config.form_labels?.placeholders?.description || 'Detailed description of the product...'"
+                                        :placeholder="formLabels.placeholders?.description || 'Detailed description of the product...'"
                                         :rows="config.form_layout?.description_tab?.rows?.[0]?.textarea_rows || 10"
                                     />
                                 </div>
@@ -275,7 +277,7 @@ onBeforeMount(() => {
 
                 <div class="flex justify-end mt-6">
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? (config.form_labels?.buttons?.creating || 'Creating...') : (config.form_labels?.buttons?.create || 'Create Product') }}
+                        {{ form.processing ? (formLabels.buttons?.creating || 'Creating...') : (formLabels.buttons?.create || 'Create Product') }}
                     </Button>
                 </div>
             </form>

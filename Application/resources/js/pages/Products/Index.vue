@@ -24,9 +24,11 @@ interface Product {
 
 interface Props {
     products: Product[];
+    formLabels: any;
 }
 
 const props = defineProps<Props>();
+const formLabels = props.formLabels || {};
 
 const showDeleteDialog = ref(false);
 const productToDelete = ref<Product | null>(null);
@@ -46,7 +48,6 @@ const handleDeleteConfirm = () => {
             handleDeleteCancel();
         },
         onError: (errors) => {
-            console.error('Eroare la ștergerea produsului:', errors);
             handleDeleteCancel();
         }
     });
@@ -75,13 +76,13 @@ const formatPrice = (price: number, currency: string) => {
 </script>
 
 <template>
-    <Head title="Produse și Servicii" />
+    <Head :title="formLabels.headings?.products || 'Products'" />
 
     <AppLayout>
         <div class="container mx-auto px-4 py-6">
             <div class="flex items-center justify-between mb-6">
-                <h1 class="text-2xl font-bold">Produse și Servicii</h1>
-                <Button @click="handleCreateProduct">Adaugă Produs/Serviciu</Button>
+                <h1 class="text-2xl font-bold">{{ formLabels.headings?.products || 'Products' }}</h1>
+                <Button @click="handleCreateProduct">{{ formLabels.buttons?.add_new || formLabels.buttons?.create || 'Add Product' }}</Button>
             </div>
 
             <div v-if="products.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -102,7 +103,7 @@ const formatPrice = (price: number, currency: string) => {
                                     <CardTitle class="text-lg">{{ product.name }}</CardTitle>
                                     <div class="flex items-center space-x-2 mt-1">
                                         <Badge :variant="product.type === 'product' ? 'default' : 'secondary'">
-                                            {{ product.type === 'product' ? 'Produs' : 'Serviciu' }}
+                                            {{ formLabels.types?.[product.type] || (product.type.charAt(0).toUpperCase() + product.type.slice(1)) }}
                                         </Badge>
                                     </div>
                                 </div>
@@ -110,10 +111,10 @@ const formatPrice = (price: number, currency: string) => {
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-2 text-sm">
-                                <p><strong>Preț:</strong> {{ formatPrice(product.price, product.currency) }}</p>
-                                <p><strong>Unitate:</strong> {{ product.unit }}</p>
+                                <p><strong>{{ formLabels.labels?.price || 'Price' }}:</strong> {{ formatPrice(product.price, product.currency) }}</p>
+                                <p><strong>{{ formLabels.labels?.unit || 'Unit' }}:</strong> {{ product.unit }}</p>
                                 <p v-if="product.type === 'product' && product.quantity !== undefined">
-                                    <strong>Cantitate:</strong> {{ product.quantity }}
+                                    <strong>{{ formLabels.labels?.quantity || 'Quantity' }}:</strong> {{ product.quantity }}
                                 </p>
                                 <p v-if="product.description" class="text-muted-foreground line-clamp-2">
                                     {{ product.description }}
@@ -136,21 +137,21 @@ const formatPrice = (price: number, currency: string) => {
 
             <div v-else class="text-center py-12">
                 <div class="max-w-md mx-auto">
-                    <h3 class="text-lg font-semibold mb-2">Nu există produse sau servicii</h3>
+                    <h3 class="text-lg font-semibold mb-2">{{ formLabels.headings?.no_products_found || 'No products found' }}</h3>
                     <p class="text-muted-foreground mb-4">
-                        Începe prin a adăuga primul tău produs sau serviciu.
+                        {{ formLabels.headings?.get_started || 'Start by adding your first product or service.' }}
                     </p>
-                    <Button @click="handleCreateProduct">Adaugă Produs/Serviciu</Button>
+                    <Button @click="handleCreateProduct">{{ formLabels.buttons?.add_new || formLabels.buttons?.create || 'Add Product' }}</Button>
                 </div>
             </div>
         </div>
 
         <ConfirmDialog
             v-model:open="showDeleteDialog"
-            title="Ștergere Produs/Serviciu"
-            :description="`Sunteți sigur că doriți să ștergeți '${productToDelete?.name}'?`"
-            confirm-text="Da, șterge"
-            cancel-text="Anulează"
+            :title="formLabels.buttons?.delete || 'Delete'"
+            :description="`${formLabels.messages?.product_deleted || 'Are you sure you want to delete'} '${productToDelete?.name}'?`"
+            :confirm-text="formLabels.buttons?.delete || 'Delete'"
+            :cancel-text="formLabels.buttons?.back || 'Back'"
             variant="destructive"
             @confirm="handleDeleteConfirm"
             @cancel="handleDeleteCancel"
