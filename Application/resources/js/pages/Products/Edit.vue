@@ -19,7 +19,7 @@ const props = defineProps<Props>();
 const page = usePage();
 
 type Props = {
-    product: Array<Product>;
+    product: Product;
     formConfig?: any;
     formLabels?: any;
     productTypes?: any;
@@ -164,7 +164,7 @@ onBeforeMount(() => {
                                         </Select>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
                                             <Label for="price">{{ config.form_labels?.labels?.price || 'Price' }}</Label>
@@ -194,11 +194,11 @@ onBeforeMount(() => {
                                             <Label for="vat_id">{{ config.form_labels?.labels?.vat || 'VAT' }}</Label>
                                             <InputError :message="form.errors.vat_id" />
                                         </div>
-                                        <Select v-model="form.vat_id" class="w-full">
-                                            <SelectTrigger class="w-100">
+                                        <Select v-model="form.vat_id" class="w-60">
+                                            <SelectTrigger class="w-60">
                                                 <SelectValue :placeholder="config.form_labels?.placeholders?.vat || 'Select VAT'" />
                                             </SelectTrigger>
-                                            <SelectContent class="w-full">
+                                            <SelectContent class="w-60">
                                                 <SelectGroup>
                                                     <SelectItem 
                                                         v-for="vat in vats || []" 
@@ -235,6 +235,7 @@ onBeforeMount(() => {
                                             :placeholder="config.form_labels?.placeholders?.quantity || '0'"
                                             type="number"
                                             step="1"
+                                            class="w-103"
                                         />
                                     </div>
                                 </div>

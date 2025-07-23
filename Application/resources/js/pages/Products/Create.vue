@@ -185,7 +185,7 @@ onBeforeMount(() => {
                                             <InputError :message="form.errors.vat_id" />
                                         </div>
                                         <Select v-model="form.vat_id" class="w-full">
-                                            <SelectTrigger class="w-100">
+                                             <SelectTrigger class="w-60">
                                                 <SelectValue :placeholder="config.form_labels?.placeholders?.vat || 'Select VAT'" />
                                             </SelectTrigger>
                                             <SelectContent class="w-full">
