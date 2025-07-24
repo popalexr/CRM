@@ -14,3 +14,4 @@ require __DIR__.'/products.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/upload.php';
 require __DIR__.'/api.php';
+require __DIR__.'/invoices.php';
