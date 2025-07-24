@@ -13,11 +13,18 @@ import {
   TableRow,
   TableCell
 } from '@/components/ui/table'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { MoreHorizontal, Eye, Trash2 } from 'lucide-vue-next'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
-// Tipurile venite din backend
 interface Invoice {
   id: number
-  original_invoice_id?: number | null // pentru facturi storno
+  original_invoice_id?: number | null
   client: {
     name: string
     image?: string | null
@@ -35,13 +42,39 @@ interface Invoice {
 
 const props = defineProps<{ invoices: Invoice[] }>()
 
+const showDeleteDialog = ref(false)
+const invoiceToDelete = ref<Invoice | null>(null)
+
+const handleDeleteRequest = (invoice: Invoice) => {
+  invoiceToDelete.value = invoice
+  showDeleteDialog.value = true
+}
+
+const handleDeleteConfirm = () => {
+  if (!invoiceToDelete.value) return
+
+  router.post(route('invoices.delete', { invoice: invoiceToDelete.value.id }), {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      handleDeleteCancel()
+    },
+    onError: () => {
+      handleDeleteCancel()
+    }
+  })
+}
+
+const handleDeleteCancel = () => {
+  invoiceToDelete.value = null
+  showDeleteDialog.value = false
+}
+
 const getInitial = (name: string) => name.charAt(0).toUpperCase()
 
 const isOverdue = (dateString: string) => {
   return new Date(dateString) < new Date()
 }
 
-// Funcție pentru returnarea variantei de culoare în funcție de status
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
     case 'draft':
@@ -68,7 +101,6 @@ const getStatusBadgeVariant = (status: string) => {
     <div class="p-6 space-y-6">
       <h1 class="text-2xl font-bold">Facturi</h1>
 
-      <!-- Când NU există facturi -->
       <div v-if="invoices.length === 0" class="text-center py-12">
         <div class="max-w-md mx-auto space-y-4">
           <h3 class="text-lg font-semibold">Nu există facturi</h3>
@@ -81,8 +113,7 @@ const getStatusBadgeVariant = (status: string) => {
         </div>
       </div>
 
-      <!-- Când EXISTĂ facturi -->
-      <div v-else class="overflow-x-auto">
+      <div v-else class="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -97,7 +128,6 @@ const getStatusBadgeVariant = (status: string) => {
           </TableHeader>
           <TableBody>
             <TableRow v-for="invoice in invoices" :key="invoice.id">
-              <!-- Factura -->
               <TableCell>
                 <span v-if="invoice.original_invoice_id">
                   #{{ invoice.id }} → #{{ invoice.original_invoice_id }}
@@ -105,7 +135,6 @@ const getStatusBadgeVariant = (status: string) => {
                 <span v-else>#{{ invoice.id }}</span>
               </TableCell>
 
-              <!-- Client -->
               <TableCell class="flex items-center gap-2">
                 <Avatar class="h-8 w-8">
                   <AvatarImage v-if="invoice.client.image" :src="invoice.client.image" />
@@ -114,7 +143,6 @@ const getStatusBadgeVariant = (status: string) => {
                 <span>{{ invoice.client.name }}</span>
               </TableCell>
 
-              <!-- User -->
               <TableCell class="flex items-center gap-2">
                 <Avatar class="h-8 w-8">
                   <AvatarImage v-if="invoice.user.image" :src="invoice.user.image" />
@@ -123,7 +151,6 @@ const getStatusBadgeVariant = (status: string) => {
                 <span>{{ invoice.user.name }}</span>
               </TableCell>
 
-              <!-- Valoare -->
               <TableCell>
                 <span v-if="invoice.total !== null">
                   {{ invoice.total }} {{ invoice.currency }}
@@ -131,14 +158,12 @@ const getStatusBadgeVariant = (status: string) => {
                 <span v-else class="text-gray-400 italic">Calculating...</span>
               </TableCell>
 
-              <!-- Status -->
               <TableCell>
                 <Badge :variant="getStatusBadgeVariant(invoice.status)">
                   {{ invoice.status }}
                 </Badge>
               </TableCell>
 
-              <!-- Termen plată -->
               <TableCell>
                 <Badge v-if="isOverdue(invoice.payment_deadline)" variant="destructive">
                   {{ invoice.payment_deadline }}
@@ -148,14 +173,46 @@ const getStatusBadgeVariant = (status: string) => {
                 </span>
               </TableCell>
 
-              <!-- Acțiuni -->
               <TableCell class="text-right">
-                <Button size="sm" variant="outline">Vezi</Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
+                    <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
+                      <MoreHorizontal class="h-4 w-4" />
+                      <span class="sr-only">Deschide meniu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem @click="router.visit(route('invoices.details', { id: invoice.id }))">
+                      <Eye class="mr-2 h-4 w-4" />
+                      Vezi
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      v-if="invoice.status === 'draft' || invoice.status === 'paid'"
+                      @click="handleDeleteRequest(invoice)"
+                      class="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 class="mr-2 h-4 w-4" />
+                      Șterge
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
       </div>
     </div>
+
+    <ConfirmDialog
+      v-if="invoiceToDelete"
+      v-model:open="showDeleteDialog"
+      title="Ștergere Factură"
+      :description="`Sunteți sigur că doriți să ștergeți factura #${invoiceToDelete.id}? Această acțiune este ireversibilă.`"
+      confirm-text="Da, șterge"
+      cancel-text="Anulează"
+      variant="destructive"
+      @confirm="handleDeleteConfirm"
+      @cancel="handleDeleteCancel"
+    />
   </AppLayout>
 </template>
