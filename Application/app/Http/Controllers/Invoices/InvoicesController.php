@@ -3,31 +3,35 @@
 namespace App\Http\Controllers\Invoices;
 
 use App\Http\Controllers\Controller;
+use App\Models\Clients;
 use App\Models\Invoices;
+use App\Models\User;
 use Inertia\Inertia;
 
 class InvoicesController extends Controller
 {
+    const PER_PAGE = 10;
+
     public function __invoke()
     {
-        $invoices = Invoices::with(['client', 'user'])
-            ->whereNull('deleted_at')
-            ->get()
-            ->map(function ($invoice) {
-                return [
-                    'id' => $invoice->id,
-                    'client' => $invoice->client?->name,
-                    'user' => $invoice->user?->name,
-                    'value' => $invoice->value,
-                    'currency' => $invoice->currency,
-                    'status' => $invoice->status,
-                    'payment_deadline' => $invoice->payment_deadline,
-                    'created_at' => $invoice->created_at->toDateTimeString(),
-                ];
-            });
-
         return Inertia::render('Invoices/Index', [
-            'invoices' => $invoices,
+            'invoices' => $this->getInvoices(),
         ]);
+    }
+
+    private function getInvoices(): array
+    {
+        $invoices = Invoices::whereNull('deleted_at')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $invoices->map(function ($invoice) {
+            $invoice['client'] = Clients::find($invoice['client_id'])->toArray();
+            $invoice['user'] = User::find($invoice['created_by'])->toArray();
+
+            return $invoice;
+        });
+
+        return $invoices->toArray();
     }
 }

@@ -135,20 +135,24 @@ const getStatusBadgeVariant = (status: string) => {
                 <span v-else>#{{ invoice.id }}</span>
               </TableCell>
 
-              <TableCell class="flex items-center gap-2">
-                <Avatar class="h-8 w-8">
-                  <AvatarImage v-if="invoice.client.image" :src="invoice.client.image" />
-                  <AvatarFallback>{{ getInitial(invoice.client.name) }}</AvatarFallback>
-                </Avatar>
-                <span>{{ invoice.client.name }}</span>
+              <TableCell>
+                <div class="flex items-center gap-2">
+                  <Avatar class="h-8 w-8">
+                    <AvatarImage v-if="invoice.client.client_logo" :src="invoice.client.client_logo" />
+                    <AvatarFallback>{{ getInitial(invoice.client.client_name) }}</AvatarFallback>
+                  </Avatar>
+                  <span>{{ invoice.client.name }}</span>
+                </div>
               </TableCell>
 
-              <TableCell class="flex items-center gap-2">
-                <Avatar class="h-8 w-8">
-                  <AvatarImage v-if="invoice.user.image" :src="invoice.user.image" />
-                  <AvatarFallback>{{ getInitial(invoice.user.name) }}</AvatarFallback>
-                </Avatar>
-                <span>{{ invoice.user.name }}</span>
+              <TableCell>
+                <div class="flex items-center gap-2">
+                  <Avatar class="h-8 w-8">
+                    <AvatarImage v-if="invoice.user.avatar" :src="invoice.user.avatar" />
+                    <AvatarFallback>{{ getInitial(invoice.user.name) }}</AvatarFallback>
+                  </Avatar>
+                  <span>{{ invoice.user.name }}</span>
+                </div>
               </TableCell>
 
               <TableCell>

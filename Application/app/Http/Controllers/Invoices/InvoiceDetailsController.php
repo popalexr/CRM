@@ -3,33 +3,38 @@
 namespace App\Http\Controllers\Invoices;
 
 use App\Http\Controllers\Controller;
+use App\Models\Invoices;
+use App\Models\ProductsToInvoice;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Inertia\Inertia;
 
 class InvoiceDetailsController extends Controller
 {
-    public function __invoke(Request $request, $id)
+    private int $id;
+    private ?Invoices $invoice;
+    
+    public function __construct(private Request $request)
     {
-        if ((int)$id <= 0) {
-            abort(404, 'Invoice not found.');
+        $this->id = (int) $request->input('id', 0);
+
+        $this->invoice = Invoices::find($this->id);
+    }
+
+    public function __invoke()
+    {
+        if (! $this->id || blank($this->invoice)) {
+            return redirect()->route('invoices.index')->with(['error' => 'Invoice not found.']);
         }
 
-        $invoice = DB::table('invoices')->where('id', $id)->first();
-        if (!$invoice) {
-            abort(404, 'Invoice not found.');
-        }
+        $invoiceData = $this->invoice->toArray();
 
-        $invoiceData = (array) $invoice;
+        $products = ProductsToInvoice::where('invoice_id', $this->id)
+            ->orderBy('id', 'asc')
+            ->get()
+            ->toArray();
 
-        $storno = DB::table('storno_invoices')->where('invoice_id', $id)->first();
-        $stornoData = $storno ? (array) $storno : null;
-
-        $products = DB::table('products_to_invoices')->where('invoice_id', $id)->get();
-
-        return response()->json([
+        return Inertia::render('Invoices/Show', [
             'invoice' => $invoiceData,
-            'storno' => $stornoData,
             'products' => $products,
         ]);
     }
