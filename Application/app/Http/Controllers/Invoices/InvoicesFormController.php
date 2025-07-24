@@ -47,7 +47,6 @@ class InvoicesFormController extends Controller
             return redirect()->route('invoices.index')->with(['success' => 'Invoice created successfully.']);
         }
 
-        // Handle update invoice
     }
 
     private function handleCreateInvoice(InvoicesFormRequest $formRequest)
@@ -57,6 +56,15 @@ class InvoicesFormController extends Controller
 
             $this->createInvoice($formRequest);
             $this->addProductsToInvoice($formRequest);
+
+            $products = ProductsToInvoice::where('invoice_id', $this->invoice->id)->get();
+            $total = 0;
+            foreach ($products as $product) {
+                $lineTotal = ($product->price ?? 0) * ($product->quantity ?? 1);
+                $total += $lineTotal + ($product->vat ?? 0);
+            }
+            $this->invoice->total = $total;
+            $this->invoice->save();
 
             DB::commit();
         }
