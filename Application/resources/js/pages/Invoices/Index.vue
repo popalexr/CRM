@@ -14,7 +14,6 @@ import {
   TableCell
 } from '@/components/ui/table'
 
-
 // Tipurile venite din backend
 interface Invoice {
   id: number
@@ -41,6 +40,26 @@ const getInitial = (name: string) => name.charAt(0).toUpperCase()
 const isOverdue = (dateString: string) => {
   return new Date(dateString) < new Date()
 }
+
+// Funcție pentru returnarea variantei de culoare în funcție de status
+const getStatusBadgeVariant = (status: string) => {
+  switch (status) {
+    case 'draft':
+      return 'yellow'
+    case 'submitted':
+      return 'orange'
+    case 'paid':
+      return 'green'
+    case 'not_paid':
+      return 'destructive'
+    case 'anulled':
+      return 'muted'
+    case 'corrected':
+      return 'outline'
+    default:
+      return 'default'
+  }
+}
 </script>
 
 <template>
@@ -49,90 +68,94 @@ const isOverdue = (dateString: string) => {
     <div class="p-6 space-y-6">
       <h1 class="text-2xl font-bold">Facturi</h1>
 
-            <!-- Când NU există facturi -->
-<div v-if="invoices.length === 0" class="text-center py-12">
-  <div class="max-w-md mx-auto space-y-4">
-    <h3 class="text-lg font-semibold">Nu există facturi</h3>
-    <p class="text-muted-foreground">
-      Creează prima ta factură pentru a începe.
-    </p>
-    <Button @click="router.visit(route('invoices.form'))">
-      Adaugă factură
-    </Button>
-  </div>
-</div>
+      <!-- Când NU există facturi -->
+      <div v-if="invoices.length === 0" class="text-center py-12">
+        <div class="max-w-md mx-auto space-y-4">
+          <h3 class="text-lg font-semibold">Nu există facturi</h3>
+          <p class="text-muted-foreground">
+            Creează prima ta factură pentru a începe.
+          </p>
+          <Button @click="router.visit(route('invoices.form'))">
+            Adaugă factură
+          </Button>
+        </div>
+      </div>
 
-<!-- Când EXISTĂ facturi -->
-<div v-else class="overflow-x-auto">
-  <Table>
-    <TableHeader>
-      <TableRow>
-        <TableHead>Factura</TableHead>
-        <TableHead>Client</TableHead>
-        <TableHead>User</TableHead>
-        <TableHead>Valoare</TableHead>
-        <TableHead>Status</TableHead>
-        <TableHead>Termen plată</TableHead>
-        <TableHead class="text-right">Acțiuni</TableHead>
-      </TableRow>
-    </TableHeader>
-    <TableBody>
-      <TableRow v-for="invoice in invoices" :key="invoice.id">
-        <!-- Factura -->
-        <TableCell>
-          <span v-if="invoice.original_invoice_id">
-            #{{ invoice.id }} → #{{ invoice.original_invoice_id }}
-          </span>
-          <span v-else>#{{ invoice.id }}</span>
-        </TableCell>
+      <!-- Când EXISTĂ facturi -->
+      <div v-else class="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Factura</TableHead>
+              <TableHead>Client</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Valoare</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Termen plată</TableHead>
+              <TableHead class="text-right">Acțiuni</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="invoice in invoices" :key="invoice.id">
+              <!-- Factura -->
+              <TableCell>
+                <span v-if="invoice.original_invoice_id">
+                  #{{ invoice.id }} → #{{ invoice.original_invoice_id }}
+                </span>
+                <span v-else>#{{ invoice.id }}</span>
+              </TableCell>
 
-        <!-- Client -->
-        <TableCell class="flex items-center gap-2">
-          <Avatar class="h-8 w-8">
-            <AvatarImage v-if="invoice.client.image" :src="invoice.client.image" />
-            <AvatarFallback>{{ getInitial(invoice.client.name) }}</AvatarFallback>
-          </Avatar>
-          <span>{{ invoice.client.name }}</span>
-        </TableCell>
+              <!-- Client -->
+              <TableCell class="flex items-center gap-2">
+                <Avatar class="h-8 w-8">
+                  <AvatarImage v-if="invoice.client.image" :src="invoice.client.image" />
+                  <AvatarFallback>{{ getInitial(invoice.client.name) }}</AvatarFallback>
+                </Avatar>
+                <span>{{ invoice.client.name }}</span>
+              </TableCell>
 
-        <!-- User -->
-        <TableCell class="flex items-center gap-2">
-          <Avatar class="h-8 w-8">
-            <AvatarImage v-if="invoice.user.image" :src="invoice.user.image" />
-            <AvatarFallback>{{ getInitial(invoice.user.name) }}</AvatarFallback>
-          </Avatar>
-          <span>{{ invoice.user.name }}</span>
-        </TableCell>
+              <!-- User -->
+              <TableCell class="flex items-center gap-2">
+                <Avatar class="h-8 w-8">
+                  <AvatarImage v-if="invoice.user.image" :src="invoice.user.image" />
+                  <AvatarFallback>{{ getInitial(invoice.user.name) }}</AvatarFallback>
+                </Avatar>
+                <span>{{ invoice.user.name }}</span>
+              </TableCell>
 
-        <!-- Valoare -->
-        <TableCell>
-          <span v-if="invoice.total !== null">
-            {{ invoice.total }} {{ invoice.currency }}
-          </span>
-          <span v-else class="text-gray-400 italic">Calculating...</span>
-        </TableCell>
+              <!-- Valoare -->
+              <TableCell>
+                <span v-if="invoice.total !== null">
+                  {{ invoice.total }} {{ invoice.currency }}
+                </span>
+                <span v-else class="text-gray-400 italic">Calculating...</span>
+              </TableCell>
 
-        <!-- Status -->
-        <TableCell>
-          {{ invoice.status }}
-        </TableCell>
+              <!-- Status -->
+              <TableCell>
+                <Badge :variant="getStatusBadgeVariant(invoice.status)">
+                  {{ invoice.status }}
+                </Badge>
+              </TableCell>
 
-        <!-- Termen plată -->
-        <TableCell>
-          <span :class="{ 'text-red-500 font-semibold': isOverdue(invoice.payment_deadline) }">
-            {{ invoice.payment_deadline }}
-          </span>
-        </TableCell>
+              <!-- Termen plată -->
+              <TableCell>
+                <Badge v-if="isOverdue(invoice.payment_deadline)" variant="destructive">
+                  {{ invoice.payment_deadline }}
+                </Badge>
+                <span v-else>
+                  {{ invoice.payment_deadline }}
+                </span>
+              </TableCell>
 
-        <!-- Acțiuni -->
-        <TableCell class="text-right">
-          <Button size="sm" variant="outline">Vezi</Button>
-        </TableCell>
-      </TableRow>
-    </TableBody>
-  </Table>
-</div>
-    </div> <!-- închide .p-6 -->
-  </AppLayout> <!-- închide AppLayout -->
+              <!-- Acțiuni -->
+              <TableCell class="text-right">
+                <Button size="sm" variant="outline">Vezi</Button>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  </AppLayout>
 </template>
-
