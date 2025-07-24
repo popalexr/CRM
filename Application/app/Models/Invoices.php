@@ -14,6 +14,7 @@ class Invoices extends Model
         'currency',
         'total',
         'vat_payer',
+        'payment_deadline',
         'status',
         'deleted_at',
     ];
