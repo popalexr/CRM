@@ -13,6 +13,6 @@ Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function
     Route::get('/form', InvoicesFormController::class)->name('form');
 
     Route::post('/form', [InvoicesFormController::class, 'post'])->name('form.post');
-    Route::post('/delete', DeleteInvoiceController::class)->name('delete');
+    Route::post('/delete/{invoice}', DeleteInvoiceController::class)->name('delete');
 });
 
