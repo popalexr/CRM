@@ -57,15 +57,6 @@ class InvoicesFormController extends Controller
             $this->createInvoice($formRequest);
             $this->addProductsToInvoice($formRequest);
 
-            $products = ProductsToInvoice::where('invoice_id', $this->invoice->id)->get();
-            $total = 0;
-            foreach ($products as $product) {
-                $lineTotal = ($product->price ?? 0) * ($product->quantity ?? 1);
-                $total += $lineTotal + ($product->vat ?? 0);
-            }
-            $this->invoice->total = $total;
-            $this->invoice->save();
-
             DB::commit();
         }
         catch (\Exception $e) {
@@ -94,22 +85,17 @@ class InvoicesFormController extends Controller
         $products = $formRequest->input('products', []);
 
         foreach ($products as $product) {
-            $price = isset($product['price']) && is_numeric($product['price']) ? (float)$product['price'] : 0.00;
-            $quantity = isset($product['quantity']) && is_numeric($product['quantity']) ? (float)$product['quantity'] : 1.00;
-            $vat = isset($product['vat']) && is_numeric($product['vat']) ? (float)$product['vat'] : 0.00;
-            $vat_amount = round($price * $quantity * $vat / 100, 2);
             $productElement = [
                 'invoice_id' => $this->invoice->id,
                 'product_name' => $product['name'],
                 'product_type' => $product['type'],
-                'price' => $price,
+                'price' => $product['price'],
                 'currency' => $product['currency'],
                 'converted_price' => 0.00,
                 'converted_currency' => '',
-                'quantity' => $quantity,
+                'quantity' => $product['quantity'],
                 'unit' => $product['unit'],
-                'vat' => $vat,
-                'vat_amount' => $vat_amount,
+                'vat' => $product['vat'],
                 'total_no_vat' =>  0.00,
                 'total' => 0.00,
             ];
