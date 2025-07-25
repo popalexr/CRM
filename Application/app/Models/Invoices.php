@@ -17,5 +17,10 @@ class Invoices extends Model
         'payment_deadline',
         'status',
         'deleted_at',
+        'payments',
+    ];
+
+    protected $casts = [
+        'payments' => 'array',
     ];
 }

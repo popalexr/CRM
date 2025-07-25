@@ -94,17 +94,22 @@ class InvoicesFormController extends Controller
         $products = $formRequest->input('products', []);
 
         foreach ($products as $product) {
+            $price = isset($product['price']) && is_numeric($product['price']) ? (float)$product['price'] : 0.00;
+            $quantity = isset($product['quantity']) && is_numeric($product['quantity']) ? (float)$product['quantity'] : 1.00;
+            $vat = isset($product['vat']) && is_numeric($product['vat']) ? (float)$product['vat'] : 0.00;
+            $vat_amount = round($price * $quantity * $vat / 100, 2);
             $productElement = [
                 'invoice_id' => $this->invoice->id,
                 'product_name' => $product['name'],
                 'product_type' => $product['type'],
-                'price' => $product['price'],
+                'price' => $price,
                 'currency' => $product['currency'],
                 'converted_price' => 0.00,
                 'converted_currency' => '',
-                'quantity' => $product['quantity'],
+                'quantity' => $quantity,
                 'unit' => $product['unit'],
-                'vat' => $product['vat'] ?? 0.00,
+                'vat' => $vat,
+                'vat_amount' => $vat_amount,
                 'total_no_vat' =>  0.00,
                 'total' => 0.00,
             ];

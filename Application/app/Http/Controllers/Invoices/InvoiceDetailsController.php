@@ -26,7 +26,18 @@ class InvoiceDetailsController extends Controller
             return redirect()->route('invoices.index')->with(['error' => 'Invoice not found.']);
         }
 
+
+
         $invoiceData = $this->invoice->toArray();
+        // Adaugă due_date pentru compatibilitate cu frontend-ul
+        $invoiceData['due_date'] = $this->invoice->payment_deadline;
+
+        // Adaugă detalii client
+        $client = $this->invoice->client_id ? \App\Models\Clients::find($this->invoice->client_id) : null;
+        $invoiceData['client_address'] = $client?->address ?? '';
+        $invoiceData['client_city'] = $client?->city ?? '';
+        $invoiceData['client_country'] = $client?->country ?? '';
+        $invoiceData['client_vat_code'] = $client?->vat_number ?? '';
 
         $products = ProductsToInvoice::where('invoice_id', $this->id)
             ->orderBy('id', 'asc')
