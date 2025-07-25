@@ -20,10 +20,10 @@ import TableHead from '@/components/ui/table/TableHead.vue';
 import TableHeader from '@/components/ui/table/TableHeader.vue';
 import TableRow from '@/components/ui/table/TableRow.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type ClientPageProps } from '@/types';
-import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+import { type BreadcrumbItem } from '@/types';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { ArrowLeft, Plus, TriangleAlert } from 'lucide-vue-next';
+import { ArrowLeft, Plus } from 'lucide-vue-next';
 import { onBeforeMount, ref } from 'vue';
 
 
@@ -76,7 +76,7 @@ const addProductToList = (product: any) => {
         price: parseFloat(product.price),
         currency: product.currency,
         vat: parseFloat(vats.value.find(v => v.id === product.vat_id)?.rate) || null,
-        quantity: 1,
+        quantity: null,
         type: product.type,
         unit: product.unit
     };
@@ -184,7 +184,7 @@ onBeforeMount(() => {
                                             <p>{{ product.name }}</p>
                                         </TableHead>
                                         <TableHead>
-                                            <p>{{  product.price }}</p>
+                                            <p>{{  product.price }} {{ product.currency  }}</p>
                                         </TableHead>
                                         <TableHead>
                                             <p v-if="product.vat !== null">{{ product.vat }}%</p>
@@ -205,14 +205,14 @@ onBeforeMount(() => {
                                             </SelectContent>
                                         </Select>
                                         </TableHead>
-                                        <TableHead v-if="product.type === 'product'">
-                                            <Input v-model="product.quantity" type="number" placeholder="Quantity" />
-                                        </TableHead>
-                                        <TableHead v-else>
-                                            <p>Service</p>
+                                        <TableHead>
+                                            <Input v-model="product.quantity" type="number" :placeholder="product.unit" />
                                         </TableHead>
                                         <TableHead class="text-right">
-                                            <p v-if="product.vat !== null">{{ ((product.price + parseFloat(product.price) * parseFloat(product.vat) / 100.0) * product.quantity).toFixed(2) }}</p>
+                                            <p v-if="product.vat !== null">
+                                                {{ ((product.price + parseFloat(product.price) * parseFloat(product.vat) / 100.0) * product.quantity).toFixed(2) }}
+                                                {{ product.currency }}
+                                            </p>
                                             <p v-else>-</p>
                                         </TableHead>
                                     </TableRow>
