@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Invoices;
 
+use App\Events\CreatedInvoice;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoices\InvoicesFormRequest;
 use App\Models\Clients;
@@ -56,6 +57,8 @@ class InvoicesFormController extends Controller
 
             $this->createInvoice($formRequest);
             $this->addProductsToInvoice($formRequest);
+
+            event(new CreatedInvoice($this->invoice->id));
 
             DB::commit();
         }

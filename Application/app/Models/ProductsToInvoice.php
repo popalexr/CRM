@@ -19,7 +19,6 @@ class ProductsToInvoice extends Model
         'quantity',
         'unit',
         'vat',
-        'vat_amount',
         'total_no_vat',
         'total'
     ];
