@@ -96,20 +96,22 @@ const getStatusBadgeVariant = (status: string) => {
 </script>
 
 <template>
-  <Head title="Facturi" />
+  <Head title="Invoices" />
   <AppLayout>
     <div class="p-6 space-y-6">
-      <h1 class="text-2xl font-bold">Facturi</h1>
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold">Invoices</h1>
+        <Button @click="router.visit(route('invoices.form'))" variant="default">
+          + Add Invoice
+        </Button>
+      </div>
 
       <div v-if="invoices.length === 0" class="text-center py-12">
         <div class="max-w-md mx-auto space-y-4">
-          <h3 class="text-lg font-semibold">Nu există facturi</h3>
+          <h3 class="text-lg font-semibold">No invoices</h3>
           <p class="text-muted-foreground">
-            Creează prima ta factură pentru a începe.
+            Create your first invoice to get started.
           </p>
-          <Button @click="router.visit(route('invoices.form'))">
-            Adaugă factură
-          </Button>
         </div>
       </div>
 
@@ -117,13 +119,13 @@ const getStatusBadgeVariant = (status: string) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Factura</TableHead>
+              <TableHead>Invoice</TableHead>
               <TableHead>Client</TableHead>
               <TableHead>User</TableHead>
-              <TableHead>Valoare</TableHead>
+              <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Termen plată</TableHead>
-              <TableHead class="text-right">Acțiuni</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead class="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -157,7 +159,7 @@ const getStatusBadgeVariant = (status: string) => {
 
               <TableCell>
                 <span v-if="invoice.total !== null">
-                  {{ invoice.total }} {{ invoice.currency }}
+                  {{ Number(invoice.total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ invoice.currency }}
                 </span>
                 <span v-else class="text-gray-400 italic">Calculating...</span>
               </TableCell>
@@ -188,7 +190,7 @@ const getStatusBadgeVariant = (status: string) => {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem @click="router.visit(route('invoices.details', { id: invoice.id }))">
                       <Eye class="mr-2 h-4 w-4" />
-                      Vezi
+                      View
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       v-if="invoice.status === 'draft' || invoice.status === 'paid'"
@@ -196,7 +198,7 @@ const getStatusBadgeVariant = (status: string) => {
                       class="text-red-600 focus:text-red-600"
                     >
                       <Trash2 class="mr-2 h-4 w-4" />
-                      Șterge
+                      Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -210,10 +212,10 @@ const getStatusBadgeVariant = (status: string) => {
     <ConfirmDialog
       v-if="invoiceToDelete"
       v-model:open="showDeleteDialog"
-      title="Ștergere Factură"
-      :description="`Sunteți sigur că doriți să ștergeți factura #${invoiceToDelete.id}? Această acțiune este ireversibilă.`"
-      confirm-text="Da, șterge"
-      cancel-text="Anulează"
+      title="Delete Invoice"
+      :description="`Are you sure you want to delete invoice #${invoiceToDelete.id}? This action cannot be undone.`"
+      confirm-text="Yes, delete"
+      cancel-text="Cancel"
       variant="destructive"
       @confirm="handleDeleteConfirm"
       @cancel="handleDeleteCancel"

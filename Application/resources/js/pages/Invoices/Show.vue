@@ -270,15 +270,15 @@ const goToInvoicesIndex = () => {
               <div class="grid grid-cols-2 gap-4 mb-6 bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">Total Amount</div>
-                  <div class="text-lg font-semibold text-red-600 dark:text-red-400">${{ invoice.total?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
+                  <div class="text-lg font-semibold text-red-600 dark:text-red-400">{{ invoice.total?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
                 </div>
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">Open Amount</div>
-                  <div class="text-lg font-semibold dark:text-white">${{ openAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
+                  <div class="text-lg font-semibold dark:text-white">{{ openAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
                 </div>
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">VAT. Amount</div>
-                  <div class="text-lg font-semibold dark:text-white">${{ (products?.reduce((sum, p) => sum + (p.vat_amount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
+                  <div class="text-lg font-semibold dark:text-white">{{ (products?.reduce((sum, p) => sum + (p.vat_amount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
                 </div>
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">Due Date</div>
@@ -307,7 +307,7 @@ const goToInvoicesIndex = () => {
                       <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <div class="text-base font-semibold text-gray-900 dark:text-white">${{ payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
+                      <div class="text-base font-semibold text-gray-900 dark:text-white">{{ payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
                       <div class="text-xs text-gray-500 dark:text-gray-400">Paid on <span class="font-medium">{{ payment.paid_on }}</span></div>
                     </div>
                     <div class="text-xs text-gray-400">#{{ idx + 1 }}</div>
@@ -382,10 +382,10 @@ const goToInvoicesIndex = () => {
                       <tr v-for="(product, idx) in products" :key="product.id">
                         <td class="px-2 py-1">{{ product.product_name }}</td>
                         <td class="px-2 py-1 text-right">{{ product.quantity }}</td>
-                        <td class="px-2 py-1 text-right">${{ product.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
-                        <td class="px-2 py-1 text-right">${{ (product.vat_amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
-                        <td class="px-2 py-1 text-right">${{ (product.discount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
-                        <td class="px-2 py-1 text-right">${{ (product.price * product.quantity - (product.discount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
+                        <td class="px-2 py-1 text-right">{{ product.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
+                        <td class="px-2 py-1 text-right">{{ (product.vat_amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
+                        <td class="px-2 py-1 text-right">{{ (product.discount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
+                        <td class="px-2 py-1 text-right">{{ (product.price * product.quantity - (product.discount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
                       </tr>
                       <tr v-if="!products || products.length === 0">
                         <td colspan="6" class="px-2 py-1 text-center text-gray-400">No items.</td>
@@ -396,19 +396,19 @@ const goToInvoicesIndex = () => {
                 <div class="flex flex-col gap-1 mt-6 text-sm">
                   <div class="flex justify-between">
                     <span>Total HT:</span>
-                    <span class="font-semibold">${{ (products?.reduce((sum, p) => sum + (p.price * p.quantity - (p.discount || 0)), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</span>
+                    <span class="font-semibold">{{ (products?.reduce((sum, p) => sum + (p.price * p.quantity - (p.discount || 0)), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span>Discount:</span>
-                    <span class="font-semibold">${{ (products?.reduce((sum, p) => sum + (p.discount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</span>
+                    <span class="font-semibold">{{ (products?.reduce((sum, p) => sum + (p.discount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span>Total VAT:</span>
-                    <span class="font-semibold">${{ (products?.reduce((sum, p) => sum + (p.vat_amount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</span>
+                    <span class="font-semibold">{{ (products?.reduce((sum, p) => sum + (p.vat_amount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
                   </div>
                   <div class="flex justify-between text-lg mt-2">
                     <span>Total Due:</span>
-                    <span class="font-bold text-red-600 dark:text-red-400">${{ invoice.total?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</span>
+                    <span class="font-bold text-red-600 dark:text-red-400">{{ invoice.total?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
                   </div>
                 </div>
               </div>
