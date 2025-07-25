@@ -16,6 +16,6 @@ Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function
     Route::post('/{invoice}/payments', [\App\Http\Controllers\Invoices\InvoicePaymentsController::class, 'store'])->name('payments.store');
 
     Route::post('/form', [InvoicesFormController::class, 'post'])->name('form.post');
-    Route::post('/delete/{invoice}', DeleteInvoiceController::class)->name('delete');
+    Route::post('/delete', DeleteInvoiceController::class)->name('delete');
 });
 

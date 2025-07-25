@@ -53,14 +53,18 @@ const handleDeleteRequest = (invoice: Invoice) => {
 const handleDeleteConfirm = () => {
   if (!invoiceToDelete.value) return
 
-  router.post(route('invoices.delete', { invoice: invoiceToDelete.value.id }), {}, {
-    preserveScroll: true,
-    onSuccess: () => {
-      handleDeleteCancel()
-    },
-    onError: () => {
-      handleDeleteCancel()
-    }
+  // router.post(route('invoices.delete', { id: invoiceToDelete.value.id }), {}, {
+  //   preserveScroll: true,
+  //   onSuccess: () => {
+  //     handleDeleteCancel()
+  //   },
+  //   onError: () => {
+  //     handleDeleteCancel()
+  //   }
+  // })
+
+  router.visit(route('invoices.delete', { id: invoiceToDelete.value.id }), {
+    method: 'post',
   })
 }
 

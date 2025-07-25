@@ -3,28 +3,41 @@
 namespace App\Http\Controllers\Invoices;
 
 use App\Http\Controllers\Controller;
-use App\Models\Invoice; 
+use App\Models\Invoices;
+use Illuminate\Http\Request;
 
 class DeleteInvoiceController extends Controller
 {
-    /**
-     * Handle the incoming request to delete an invoice.
-     * Folosim Route Model Binding pentru a primi direct modelul Invoice.
-     */
-    public function __invoke(Invoice $invoice)
+    const STATUS_WHITELIST = ['draft', 'paid'];
+
+    private int $id;
+    private ?Invoices $invoice = null;
+    
+    public function __construct(private Request $request)
     {
-       
-        if (!in_array($invoice->status, ['draft', 'paid'])) {
+        $this->id = (int) $request->input('id', 0);
+
+        $this->invoice = Invoices::find($this->id);
+    }
+
+    public function __invoke()
+    {
+        if (! $this->id || blank($this->invoice)) {
+            return redirect()->route('invoices.index')->with(['error' => 'Invoice not found.']);
+        }
+
+        if (!in_array($this->invoice->status, self::STATUS_WHITELIST)) {
             return redirect()
                 ->route('invoices.index') 
-                ->with('error', 'Doar facturile cu statusul "draft" sau "paid" pot fi șterse.');
+                ->with('error', 'You cannot delete this invoice.');
         }
 
     
-        $invoice->delete();
+        $this->invoice->deleted_at = now();
+        $this->invoice->save();
 
         return redirect()
             ->route('invoices.index')
-            ->with('success', 'Factura a fost ștearsă cu succes.');
+            ->with('success', 'Invoice deleted successfully.');
     }
 }
