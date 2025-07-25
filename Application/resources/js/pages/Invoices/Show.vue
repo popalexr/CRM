@@ -382,10 +382,10 @@ const goToInvoicesIndex = () => {
                       <tr v-for="(product, idx) in products" :key="product.id">
                         <td class="px-2 py-1">{{ product.product_name }}</td>
                         <td class="px-2 py-1 text-right">{{ product.quantity }}</td>
-                        <td class="px-2 py-1 text-right">{{ product.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
-                        <td class="px-2 py-1 text-right">{{ (product.vat_amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
+                        <td class="px-2 py-1 text-right">{{ product.converted_price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
+                        <td class="px-2 py-1 text-right">{{ (product.total - product.total_no_vat).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
                         <td class="px-2 py-1 text-right">{{ (product.discount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
-                        <td class="px-2 py-1 text-right">{{ (product.price * product.quantity - (product.discount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
+                        <td class="px-2 py-1 text-right">{{ (product.total - (product.discount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
                       </tr>
                       <tr v-if="!products || products.length === 0">
                         <td colspan="6" class="px-2 py-1 text-center text-gray-400">No items.</td>
@@ -396,7 +396,7 @@ const goToInvoicesIndex = () => {
                 <div class="flex flex-col gap-1 mt-6 text-sm">
                   <div class="flex justify-between">
                     <span>Total HT:</span>
-                    <span class="font-semibold">{{ (products?.reduce((sum, p) => sum + (p.price * p.quantity - (p.discount || 0)), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
+                    <span class="font-semibold">{{ (products?.reduce((sum, p) => parseFloat(sum) + parseFloat(p.total_no_vat), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span>Discount:</span>
@@ -404,7 +404,7 @@ const goToInvoicesIndex = () => {
                   </div>
                   <div class="flex justify-between">
                     <span>Total VAT:</span>
-                    <span class="font-semibold">{{ (products?.reduce((sum, p) => sum + (p.vat_amount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
+                    <span class="font-semibold">{{ (products?.reduce((sum, p) => parseFloat(sum) + (p.total - p.total_no_vat), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
                   </div>
                   <div class="flex justify-between text-lg mt-2">
                     <span>Total Due:</span>
