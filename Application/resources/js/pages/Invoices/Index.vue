@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -50,6 +50,10 @@ const handleDeleteRequest = (invoice: Invoice) => {
   showDeleteDialog.value = true
 }
 
+const handleView = (id: number) => {
+  router.visit(route('invoices.details', { id: id }))
+}
+
 const handleDeleteConfirm = () => {
   if (!invoiceToDelete.value) return
 
@@ -82,21 +86,50 @@ const isOverdue = (dateString: string) => {
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
     case 'draft':
-      return 'yellow'
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-200';
     case 'submitted':
-      return 'orange'
+      return 'bg-orange-500 text-white dark:bg-orange-600';
     case 'paid':
-      return 'green'
+      return 'bg-green-500 text-white dark:bg-green-600';
     case 'not_paid':
-      return 'destructive'
+      return 'bg-red-500 text-white dark:bg-red-600';
     case 'anulled':
-      return 'muted'
-    case 'corrected':
-      return 'outline'
+      return 'bg-gray-200 text-gray-700 dark:bg-gray-300';
+    case 'storno':
+      return 'bg-gray-600 text-white dark:bg-gray-700';
     default:
-      return 'default'
+      return 'bg-slate-200 text-slate-700 dark:bg-slate-300';
   }
 }
+
+const parseStatus = (status: string) => {
+  switch (status) {
+    case 'draft':
+      return 'Draft';
+    case 'submitted':
+      return 'Submitted';
+    case 'paid':
+      return 'Paid';
+    case 'not_paid':
+      return 'Not Paid';
+    case 'storno':
+      return 'Storno';
+    case 'anulled':
+      return 'Anulled';
+    default:
+      return status.charAt(0).toUpperCase() + status.slice(1);
+  }
+};
+
+const parseDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
 </script>
 
 <template>
@@ -133,7 +166,7 @@ const getStatusBadgeVariant = (status: string) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="invoice in invoices" :key="invoice.id">
+            <TableRow v-for="invoice in invoices" :key="invoice.id" @click="handleView(invoice.id)" class="cursor-pointer">
               <TableCell>
                 <span v-if="invoice.original_invoice_id">
                   #{{ invoice.id }} → #{{ invoice.original_invoice_id }}
@@ -147,7 +180,7 @@ const getStatusBadgeVariant = (status: string) => {
                     <AvatarImage v-if="invoice.client.client_logo" :src="invoice.client.client_logo" />
                     <AvatarFallback>{{ getInitial(invoice.client.client_name) }}</AvatarFallback>
                   </Avatar>
-                  <span>{{ invoice.client.name }}</span>
+                  <Link :href="route('clients.details', { id: invoice.client_id })">{{ invoice.client.client_name }}</Link>
                 </div>
               </TableCell>
 
@@ -157,7 +190,7 @@ const getStatusBadgeVariant = (status: string) => {
                     <AvatarImage v-if="invoice.user.avatar" :src="invoice.user.avatar" />
                     <AvatarFallback>{{ getInitial(invoice.user.name) }}</AvatarFallback>
                   </Avatar>
-                  <span>{{ invoice.user.name }}</span>
+                  <Link :href="route('users.details', {id: invoice.created_by})">{{ invoice.user.name }}</Link>
                 </div>
               </TableCell>
 
@@ -169,21 +202,21 @@ const getStatusBadgeVariant = (status: string) => {
               </TableCell>
 
               <TableCell>
-                <Badge :variant="getStatusBadgeVariant(invoice.status)">
-                  {{ invoice.status }}
+                <Badge :class="getStatusBadgeVariant(invoice.status)">
+                  {{ parseStatus(invoice.status) }}
                 </Badge>
               </TableCell>
 
               <TableCell>
                 <Badge v-if="isOverdue(invoice.payment_deadline)" variant="destructive">
-                  {{ invoice.payment_deadline }}
+                  {{ parseDate(invoice.payment_deadline) }}
                 </Badge>
                 <span v-else>
-                  {{ invoice.payment_deadline }}
+                  {{ parseDate(invoice.payment_deadline) }}
                 </span>
               </TableCell>
 
-              <TableCell class="text-right">
+              <TableCell class="text-right" @click.stop>
                 <DropdownMenu>
                   <DropdownMenuTrigger as-child>
                     <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
@@ -196,6 +229,7 @@ const getStatusBadgeVariant = (status: string) => {
                       <Edit class="mr-2 h-4 w-4" />
                       Edit
                     </DropdownMenuItem>
+                    <DropdownMenuItem @click="handleView(invoice.id)">
                       <Eye class="mr-2 h-4 w-4" />
                       View
                     </DropdownMenuItem>
