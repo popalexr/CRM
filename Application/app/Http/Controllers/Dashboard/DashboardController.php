@@ -73,7 +73,8 @@ class DashboardController extends Controller
             'topClients' => [],
             'overdueInvoices' => [],
             'revenueData' => [],
-            'currentFilter' => [],
+            'currentFilter' => $request->input('filter', 'last_30_days'),
+            'dashboardLang' => __('dashboard'),
         ]);
     }
 

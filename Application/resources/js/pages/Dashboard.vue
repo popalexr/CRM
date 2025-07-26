@@ -8,51 +8,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users, Package, FileText, Plus, AlertTriangle, TrendingUp } from 'lucide-vue-next';
 import { Bar } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+import type { StatCard, InfoListItem, DashboardProps, PeriodOption, BreadcrumbItem } from '@/types';
+import { getPeriodOptions } from '../periodOptions';
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
-interface StatCard {
-    title: string;
-    value: string;
-    icon: string;
-}
-interface InfoListItem {
-    name: string;
-    value: string;
-}
-interface Props {
-    stats: StatCard[];
-    topClients: InfoListItem[];
-    overdueInvoices: InfoListItem[];
-    revenueData: {
-        labels: string[];
-        data: number[];
-    };
-    currentFilter: string;
-}
-
-const props = defineProps<Props>();
-
+const props = defineProps<DashboardProps>();
+const t = (key: string) => props.dashboardLang[key] || key;
 const selectedPeriod = ref(props.currentFilter);
-const periodOptions = [
-    { value: 'last_30_days', label: 'Ultimele 30 de zile' },
-    { value: 'this_month', label: 'Luna aceasta' },
-    { value: 'this_quarter', label: 'Acest trimestru' },
-    { value: 'this_year', label: 'Acest an' },
-];
+const periodOptions: PeriodOption[] = getPeriodOptions(t);
+
+watch(() => props.currentFilter, (newVal) => {
+    selectedPeriod.value = newVal;
+});
 
 watch(selectedPeriod, (newValue) => {
-    router.get(route('home'), { filter: newValue }, {
-        preserveState: true,
-        preserveScroll: true,
-    });
+    if (newValue !== props.currentFilter) {
+        router.get(route('home'), { filter: newValue }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    }
 });
 
 const icons: { [key: string]: any } = { Users, Package, FileText };
 const chartData = {
     labels: props.revenueData.labels,
     datasets: [{
-        label: 'Venituri Lunare',
+        label: t('monthly_revenue'),
         backgroundColor: '#3b82f6',
         data: props.revenueData.data,
         borderRadius: 4,
@@ -64,22 +47,29 @@ const chartOptions = {
     plugins: { legend: { display: false } },
     scales: { y: { beginAtZero: true } },
 };
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: t('dashboard'),
+        href: route('home'),
+    },
+];
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="t('dashboard')" />
 
     <AppLayout>
-        <div class="container mx-auto px-4 py-6 space-y-6">
+        <div class="container mx-auto max-w-6xl px-4 py-6 space-y-6 gap-x-4">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold">Dashboard</h1>
-                    <p class="text-muted-foreground">O privire de ansamblu asupra afacerii tale.</p>
+                    <h1 class="text-2xl font-bold">{{ t('dashboard') }}</h1>
+                    <p class="text-muted-foreground">{{ t('overview') }}</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <Select v-model="selectedPeriod">
                         <SelectTrigger class="w-[180px]">
-                            <SelectValue placeholder="Selectează perioada" />
+                            <SelectValue :placeholder="t('select_period')" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem v-for="option in periodOptions" :key="option.value" :value="option.value">
@@ -87,16 +77,11 @@ const chartOptions = {
                             </SelectItem>
                         </SelectContent>
                     </Select>
-                    <!-- 
-                    <Button as-child>
-                        <Link :href="route('invoices.form')"><Plus class="w-4 h-4 mr-2" /> Factură Nouă</Link>
-                    </Button>
-                    -->
                     <Button as-child variant="secondary">
-                        <Link :href="route('clients.form')"><Plus class="w-4 h-4 mr-2" /> Adaugă Client</Link>
+                        <Link :href="route('clients.form')"><Plus class="w-4 h-4 mr-2" /> {{ t('add_client') }}</Link>
                     </Button>
                     <Button as-child variant="outline">
-                        <Link :href="route('products.form')"><Plus class="w-4 h-4 mr-2" /> Adaugă Produs</Link>
+                        <Link :href="route('products.form')"><Plus class="w-4 h-4 mr-2" /> {{ t('add_product') }}</Link>
                     </Button>
                 </div>
             </div>
@@ -116,7 +101,7 @@ const chartOptions = {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card class="lg:col-span-2">
                     <CardHeader>
-                        <CardTitle>Evoluție Venituri (ultimele 6 luni)</CardTitle>
+                        <CardTitle>{{ t('revenue_evolution') }}</CardTitle>
                     </CardHeader>
                     <CardContent class="h-[350px]">
                         <Bar :data="chartData" :options="chartOptions" />
@@ -125,7 +110,7 @@ const chartOptions = {
 
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Top Clienți</CardTitle>
+                        <CardTitle class="text-sm font-medium">{{ t('top_clients') }}</CardTitle>
                         <TrendingUp class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent class="space-y-4 pt-4">
@@ -135,7 +120,7 @@ const chartOptions = {
                                 <p class="text-sm text-muted-foreground">{{ client.value }}</p>
                             </div>
                         </div>
-                        <p v-else class="text-sm text-center text-muted-foreground py-4">Nu există date pentru perioada selectată.</p>
+                        <p v-else class="text-sm text-center text-muted-foreground py-4">{{ t('no_clients') }}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -143,7 +128,7 @@ const chartOptions = {
             <div class="grid grid-cols-1">
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Alerte: Facturi Scadente</CardTitle>
+                        <CardTitle class="text-sm font-medium">{{ t('alerts') }}</CardTitle>
                         <AlertTriangle class="h-4 w-4 text-destructive" />
                     </CardHeader>
                     <CardContent class="space-y-4 pt-4">
@@ -153,7 +138,7 @@ const chartOptions = {
                                 <p class="text-sm text-red-600">{{ invoice.value }}</p>
                             </div>
                         </div>
-                        <p v-else class="text-sm text-center text-muted-foreground py-4">Nicio factură scadentă. Felicitări!</p>
+                        <p v-else class="text-sm text-center text-muted-foreground py-4">{{ t('no_overdue') }}</p>
                     </CardContent>
                 </Card>
             </div>
