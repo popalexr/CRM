@@ -2,19 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\BnrCurrency;
 use Illuminate\Support\Facades\Http;
 
-/**
- * CurrencyConverter class.
- * This class is responsible for converting the value to a specific currency.
- */
 class CurrencyConverter
 {
-    /**
-     * The API URL. {currency} will be replaced with the currency code.
-     */
-    private static $api_url = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/{currency}.json';
-    
     /**
      * Convert the value to a specific currency.
      *
@@ -26,42 +18,47 @@ class CurrencyConverter
      */
     public static function convert(float $value, string $currency, string $to_currency): float
     {
-        $cache_name = $currency . '-' . $to_currency;
-
-        // Check if the currency is saved in cache
-        if (cache()->has($cache_name)) {
-            $currency_value = cache()->get($cache_name);
-        } else {
-            // If not, get the currency value from the API and save it in cache
-            $currency_value = self::getCurrencyValue($currency, $to_currency);
-            cache()->put($cache_name, $currency_value, now()->addMinutes(360)); // Cache the currency value for 6 hours
+        if ($currency === $to_currency) {
+            return $value;
         }
 
-        return $value * $currency_value;
+        // If both currencies are not RON, convert to RON first, then to the target currency
+        if ($currency !== 'RON' && $to_currency !== 'RON') {
+            $exchange = self::getExchangeRate($currency);
+
+            $value = $value * $exchange['rate'] / $exchange['multiplier'];
+            $currency = 'RON';
+        }
+
+        // Converting from RON to the target currency
+        if ($currency === 'RON') {
+            $exchange = self::getExchangeRate($to_currency);
+
+            return $value * $exchange['multiplier'] / $exchange['rate'];
+        }
+
+        // Converting from one currency to RON
+        $exchange = self::getExchangeRate($currency);
+
+        return $value * $exchange['rate'] / $exchange['multiplier'];
     }
 
-    /**
-     * Get the currency value from the API.
-     *
-     * @param string $currency
-     * 
-     * @return float - The currency value with a precision of 2 decimal places.
-     */
-    public static function getCurrencyValue(string $currency, string $to_currency): float
+    private static function getExchangeRate(string $currency): array
     {
-        $url = str_replace('{currency}', $currency, self::$api_url);
-        $response = Http::get($url);
+        $currentDate = date('Y-m-d');
 
-        if ($response->failed()) {
-            return 0;
+        $currency = BnrCurrency::where('published_at', '<=', $currentDate)
+            ->where('currency_code', $currency)
+            ->orderBy('published_at', 'desc')
+            ->first();
+        
+        if (!$currency) {
+            throw new \Exception("Currency {$currency} not found for date {$currentDate}");
         }
 
-        $response = $response->json();
-
-        if(!isset($response[$currency][$to_currency])) { // Check if the currency is supported. If not, return 0.
-            return 0;
-        }
-
-        return round($response[$currency][$to_currency], 2);
+        return [
+            'rate'       => $currency->exchange_rate,
+            'multiplier' => $currency->multiplier,
+        ];
     }
 }
