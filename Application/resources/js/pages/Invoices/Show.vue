@@ -209,13 +209,13 @@ const goToInvoicesIndex = () => {
         </div>
       </div>
       <!-- Tabs -->
-      <Tabs default-value="invoice" class="mb-4 pl-3 bg-white dark:bg-black">
-        <TabsList class="mb-5 gap-2 bg-gray-100 text-gray-900 dark:bg-neutral-900 dark:text-white border-none">
+      <Tabs default-value="invoice" class="mb-4 pl-3 bg-white dark:bg-[rgba(0,0,0,0)]">
+        <TabsList class="mb-5 gap-2 bg-gray-100 text-gray-900 dark:bg-[rgba(0,0,0,0)] dark:text-white border-none">
           <TabsTrigger
             v-for="tab in tabs"
             :key="tab.value"
             :value="tab.value"
-            class="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-neutral-800 dark:data-[state=active]:text-white"
+            class="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-[rgba(0,0,0,0)] dark:data-[state=active]:text-white"
           >
             {{ tab.label }}
           </TabsTrigger>
@@ -267,7 +267,7 @@ const goToInvoicesIndex = () => {
                   </template>
                 </template>
               </div>
-              <div class="grid grid-cols-2 gap-4 mb-6 bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
+              <div class="grid grid-cols-2 gap-4 mb-6 bg-white dark:bg-[rgba(0,0,0,0)] rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">Total Amount</div>
                   <div class="text-lg font-semibold text-red-600 dark:text-red-400">{{ invoice.total?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
@@ -314,7 +314,7 @@ const goToInvoicesIndex = () => {
                   </div>
                 </template>
                 <template v-else>
-                  <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-neutral-900/40 px-4 py-6 text-center text-xs text-gray-400">
+                  <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[rgba(0,0,0,0)]/40 px-4 py-6 text-center text-xs text-gray-400">
                     <svg class="mx-auto mb-2 w-8 h-8 text-gray-300 dark:text-gray-700" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 8v4l2 2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9"/></svg>
                     No payments yet.
                   </div>
@@ -322,29 +322,29 @@ const goToInvoicesIndex = () => {
               </div>
 
               <!-- Payment Modal -->
-              <div v-if="showPaymentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                <div class="w-full max-w-xs rounded-2xl p-6 flex flex-col gap-5 shadow-2xl border border-gray-100 dark:border-neutral-900 bg-white dark:bg-black">
+              <div v-if="showPaymentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0)]/80 backdrop-blur-sm">
+                <div class="w-full max-w-xs rounded-2xl p-6 flex flex-col gap-5 shadow-2xl border border-gray-100 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)]">
                   <div class="font-semibold text-lg mb-2 text-gray-900 dark:text-white flex items-center gap-2">
                     <svg class="w-6 h-6 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     Add Payment
                   </div>
                   <div class="flex flex-col gap-3">
                     <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Amount</label>
-                    <input v-model="newPayment.amount" type="number" min="0" step="0.01" placeholder="0.00" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-black focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
+                    <input v-model="newPayment.amount" type="number" min="0" step="0.01" placeholder="0.00" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
                   </div>
                   <div class="flex flex-col gap-3">
                     <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Paid On</label>
-                    <input v-model="newPayment.paid_on" type="date" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-black focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
+                    <input v-model="newPayment.paid_on" type="date" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
                   </div>
                   <div class="flex gap-2 mt-2">
-                    <Button variant="outline" size="sm" class="flex-1 bg-gray-50 dark:bg-black border-gray-200 dark:border-neutral-900 hover:bg-gray-100 dark:hover:bg-neutral-900 text-gray-700 dark:text-gray-200" @click="showPaymentModal = false">Cancel</Button>
-                    <Button variant="default" size="sm" class="flex-1 bg-black dark:bg-white text-white dark:text-black font-semibold shadow hover:bg-gray-800 dark:hover:bg-gray-200 dark:hover:bg-gray-100" @click="addPayment">Add</Button>
+                    <Button variant="outline" size="sm" class="flex-1 bg-gray-50 dark:bg-[rgba(0,0,0,0)] border-gray-200 dark:border-neutral-900 hover:bg-gray-100 dark:hover:bg-[rgba(0,0,0,0)]/80 text-gray-700 dark:text-gray-200" @click="showPaymentModal = false">Cancel</Button>
+                    <Button variant="default" size="sm" class="flex-1 bg-[rgba(0,0,0,0)] dark:bg-white text-white dark:text-black font-semibold shadow hover:bg-gray-800 dark:hover:bg-gray-200 dark:hover:bg-gray-100" @click="addPayment">Add</Button>
                   </div>
                 </div>
               </div>
             </div>
             <div class="flex-1 min-w-[240px] max-w-1xl mx-auto px-4 mt-13">
-              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm bg-white dark:bg-black">
+              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm bg-white dark:bg-[rgba(0,0,0,0)]">
                 <div class="mb-6 flex items-center justify-between">
                   <div>
                     <div class="text-2xl font-bold mb-1">Invoice</div>
@@ -367,7 +367,7 @@ const goToInvoicesIndex = () => {
                 </div>
                 <div class="mb-4">
                   <div class="text-xs font-semibold mb-2">Order Details</div>
-                  <table class="min-w-full text-xs border rounded-xl overflow-hidden bg-white dark:bg-neutral-900">
+                  <table class="min-w-full text-xs border rounded-xl overflow-hidden bg-white dark:bg-[#262626]">
                     <thead>
                       <tr class="bg-gray-100 dark:bg-neutral-800">
                         <th class="px-2 py-1 text-left">Item</th>

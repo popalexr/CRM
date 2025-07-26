@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-vue-next';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { Pencil } from 'lucide-vue-next';
 
 interface Product {
     id: number;
@@ -62,6 +63,10 @@ const handleShowProduct = (productId: number) => {
     router.visit(route('products.details', { id: productId }));
 };
 
+const handleEditProduct = (productId: number) => {
+    router.visit(route('products.form', { id: productId }));
+};
+
 const handleCreateProduct = () => {
     router.visit(route('products.form'));
 };
@@ -79,7 +84,7 @@ const formatPrice = (price: number, currency: string) => {
     <Head :title="formLabels.headings?.products || 'Products'" />
 
     <AppLayout>
-        <div class="container mx-auto px-4 py-6">
+        <div class="container mx-auto px-4 py-6 max-w-6xl another-class">
             <div class="flex items-center justify-between mb-6">
                 <h1 class="text-2xl font-bold">{{ formLabels.headings?.products || 'Products' }}</h1>
                 <Button @click="handleCreateProduct">{{ formLabels.buttons?.add_new || formLabels.buttons?.create || 'Add Product' }}</Button>
@@ -124,13 +129,24 @@ const formatPrice = (price: number, currency: string) => {
                     </div>
 
                     <CardFooter class="pt-4 flex justify-end border-t mt-auto">
-                        <Button 
-                            variant="destructive" 
-                            size="icon"
-                            @click.stop="handleDeleteRequest(product)"
-                        >
-                            <Trash2 class="w-4 h-4" />
-                        </Button>
+                        <div class="flex gap-2">
+                            <Button 
+                                variant="outline" 
+                                size="icon"
+                                @click.stop="handleEditProduct(product.id)"
+                                title="Edit"
+                            >
+                                <Pencil class="w-4 h-4" />
+                            </Button>
+                            <Button 
+                                variant="destructive" 
+                                size="icon"
+                                @click.stop="handleDeleteRequest(product)"
+                                title="Delete"
+                            >
+                                <Trash2 class="w-4 h-4" />
+                            </Button>
+                        </div>
                     </CardFooter>
                 </Card>
             </div>

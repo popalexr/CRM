@@ -31,8 +31,19 @@ class ProductDetailsController extends Controller
             return Redirect::route('products.index')->with('error', 'Product not found.');
         }
 
+        $invoices = [];
+        if ($this->product) {
+            $productName = $this->product->name;
+            $productsToInvoice = \App\Models\ProductsToInvoice::where('product_name', $productName)->get();
+            $invoiceIds = $productsToInvoice->pluck('invoice_id')->unique();
+            $invoices = \App\Models\Invoices::whereIn('id', $invoiceIds)
+                ->whereNull('deleted_at')
+                ->get();
+        }
+
         return Inertia::render('Products/Show', [ 
             'product' => $this->product, 
+            'associated_invoices' => $invoices,
         ]);
     }
 }
