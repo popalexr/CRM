@@ -31,9 +31,18 @@ class InvoicesFormController extends Controller
             return redirect()->route('invoices.index')->with(['error' => 'Invoice not found.']);
         }
 
+        if ($this->invoice && $this->invoice->status !== 'draft') {
+            return redirect()->route('invoices.index')->with(['error' => 'You can only edit draft invoices.']);
+        }
+
         if (!$this->id) {
             return Inertia::render('Invoices/Create');
         }
+
+        return Inertia::render('Invoices/Edit', [
+            'invoice' => $this->getInvoiceInfo(),
+            'products' => $this->getInvoiceProducts(),
+        ]);
     }
 
     public function post(InvoicesFormRequest $formRequest)
@@ -47,6 +56,56 @@ class InvoicesFormController extends Controller
             return redirect()->route('invoices.index')->with(['success' => 'Invoice created successfully.']);
         }
 
+        $this->handleUpdateInvoice($formRequest);
+        return redirect()->route('invoices.index')->with(['success' => 'Invoice updated successfully.']);
+    }
+
+    private function getInvoiceProducts(): array
+    {
+        if (blank($this->invoice)) {
+            return [];
+        }
+
+        return ProductsToInvoice::where('invoice_id', $this->invoice->id)
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->product_name,
+                    'type' => $product->product_type,
+                    'price' => $product->price,
+                    'currency' => $product->currency,
+                    'converted_price' => $product->converted_price,
+                    'converted_currency' => $product->converted_currency,
+                    'quantity' => $product->quantity,
+                    'unit' => $product->unit,
+                    'vat' => $product->vat,
+                    'total_no_vat' => $product->total_no_vat,
+                    'total' => $product->total,
+                ];
+            })->toArray();
+    }
+
+    private function getInvoiceInfo(): array
+    {
+        $client = Clients::find($this->invoice->client_id);
+        
+        if (blank($client)) {
+            return [];
+        }
+
+        return [
+            'id' => $this->invoice->id,
+            'client_id' => $this->invoice->client_id,
+            'client_name' => $client->client_name,
+            'created_by' => $this->invoice->created_by,
+            'currency' => $this->invoice->currency,
+            'total' => $this->invoice->total,
+            'total_no_vat' => $this->invoice->total_no_vat,
+            'vat_amount' => $this->invoice->vat_amount,
+            'vat_payer' => $this->invoice->vat_payer,
+            'payment_deadline' => $this->invoice->payment_deadline,
+        ];
     }
 
     private function handleCreateInvoice(InvoicesFormRequest $formRequest)
@@ -62,6 +121,24 @@ class InvoicesFormController extends Controller
         catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with(['error' => 'Failed to create invoice.']);
+        }
+    }
+
+    private function handleUpdateInvoice(InvoicesFormRequest $formRequest)
+    {
+        try {
+            DB::beginTransaction();
+
+            $this->editInvoice($formRequest);
+
+            $this->deleteProductsFromInvoice();
+            $this->addProductsToInvoice($formRequest);
+
+            DB::commit();
+        }
+        catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with(['error' => 'Failed to update invoice.']);
         }
     }
 
@@ -81,6 +158,27 @@ class InvoicesFormController extends Controller
         ];
 
         $this->invoice = Invoices::create($invoiceData);
+    }
+
+    private function editInvoice(InvoicesFormRequest $formRequest)
+    {
+        $this->invoice->client_id = $formRequest->input('client_id');
+        $this->invoice->currency = $formRequest->input('currency');
+        $this->invoice->payment_deadline = $formRequest->input('payment_deadline');
+        $this->invoice->total = $formRequest->input('total');
+        $this->invoice->total_no_vat = $formRequest->input('total_no_vat');
+        $this->invoice->vat_amount = $formRequest->input('vat_amount');
+
+        $this->invoice->save();
+    }
+
+    private function deleteProductsFromInvoice()
+    {
+        if (blank($this->invoice)) {
+            return;
+        }
+
+        ProductsToInvoice::where('invoice_id', $this->invoice->id)->delete();
     }
 
     private function addProductsToInvoice(InvoicesFormRequest $formRequest)

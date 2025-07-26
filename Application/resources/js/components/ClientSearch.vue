@@ -46,6 +46,7 @@ const props = defineProps<{
   placeholder?: string
 
   modelValue?: string | number | null
+  defaultValue?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -54,7 +55,7 @@ const emit = defineEmits<{
   (e: 'value-changed', value: string | number): void
 }>()
 
-const selectedName = ref<string>(props.modelValue ? String(props.modelValue) : '')
+const selectedName = ref<string>(props.defaultValue ? String(props.defaultValue) : '')
 const suggestions = ref<Client[]>([])
 const focused = ref(false)
 const inputRef = ref<any>(null)

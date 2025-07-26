@@ -19,7 +19,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Eye, Trash2 } from 'lucide-vue-next'
+import { MoreHorizontal, Eye, Trash2, Edit } from 'lucide-vue-next'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 interface Invoice {
@@ -192,7 +192,10 @@ const getStatusBadgeVariant = (status: string) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem @click="router.visit(route('invoices.details', { id: invoice.id }))">
+                    <DropdownMenuItem @click="router.visit(route('invoices.form', { id: invoice.id }))" v-if="invoice.status === 'draft'">
+                      <Edit class="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
                       <Eye class="mr-2 h-4 w-4" />
                       View
                     </DropdownMenuItem>
