@@ -28,7 +28,9 @@
                             </Avatar>
                             <div class="flex-1 text-left">
                                 <h4 class="font-medium text-sm text-gray-900 dark:text-white">{{ item.title }}</h4>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ formatSubtitle(item.subtitle) }}</p>
+                                <div class="flex flex-col gap-0.5">
+                                    <span v-if="item.contact_email" class="text-xs text-gray-500 dark:text-gray-400">{{ item.contact_email }}</span>
+                                </div>
                             </div>
                         </AccordionTrigger>
                         <AccordionContent class="pt-2 pb-2">

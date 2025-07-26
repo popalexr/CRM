@@ -64,11 +64,11 @@ export interface Client {
 
 export interface ClientContact {
     id?: number;
-    client_id: number;
-    contact_name: string;
-    contact_email?: string;
-    contact_phone?: string;
-    contact_position?: string;
+    client_id?: number;
+    name: string;
+    email?: string;
+    phone?: string;
+    position?: string;
     created_at?: string;
     updated_at?: string;
     deleted_at?: string;
@@ -146,7 +146,7 @@ export interface ClientFormLabels {
     tabs: {
         general: { label: string; title: string };
         logo: { label: string; title: string };
-        contacts: { label: string; title: string };
+        contacts: { label: string; title: string};
         notes: { label: string; title: string };
     };
     buttons: Record<string, string>;

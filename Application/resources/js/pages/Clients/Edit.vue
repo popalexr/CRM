@@ -43,10 +43,10 @@ const csrf_token = computed(() => page.props.csrf as string);
 
 const client = page.props.client as Client;
 const clientContacts = (page.props.clientContacts || []).map(contact => ({
-    name: contact.contact_name,
-    position: contact.contact_position || '',
-    email: contact.contact_email || '',
-    phone: contact.contact_phone || ''
+    name: contact.name || '',
+    position: contact.position || '',
+    email: contact.email || '',
+    phone: contact.phone || ''
 }));
 
 const isBusinessClient = ref(client.client_type === 'business');

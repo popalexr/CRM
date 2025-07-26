@@ -14,4 +14,5 @@ Route::middleware('auth')->prefix('clients')->name('clients.')->group(function (
 
     Route::post('/form', [ClientsFormController::class, 'post'])->name('form.post')->can('clients-form');
     Route::post('/delete', [ClientDeleteController::class, '__invoke'])->name('delete')->can('clients-delete');
+    Route::get('/invoices', \App\Http\Controllers\Clients\ClientsInvoicesController::class)->name('invoices');
 });
