@@ -12,12 +12,12 @@ import {
     TableRow 
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-    DropdownMenu, 
-    DropdownMenuContent, 
-    DropdownMenuItem, 
-    DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { Edit, Eye, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 import LaravelPagination from '@/components/LaravelPagination.vue';
@@ -45,7 +45,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const getFullAddress = (client: any) => {
+const getFullAddress = (client: Client) => {
     if (!client.address)
         client.address = '-';
 
@@ -162,31 +162,31 @@ const handleAddClient = () => {
                             </TableCell>
 
                             <TableCell class="text-right" @click.stop>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger as-child>
-                                        <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
-                                            <MoreHorizontal class="h-4 w-4" />
-                                            <span class="sr-only">Open menu</span>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem @click="handleView(client.id)" v-if="hasPermission('clients-view')">
-                                            <Eye class="mr-2 h-4 w-4" />
-                                            {{ formLabels.buttons.view }}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem @click="handleEdit(client.id)" v-if="hasPermission('clients-form')">
-                                            <Edit class="mr-2 h-4 w-4" />
-                                            {{ formLabels.buttons.edit }}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem  v-if="hasPermission('clients-delete')"
-                                            @click="handleDelete(client.id)"
-                                            class="text-red-600 focus:text-red-600"
-                                        >
-                                            <Trash2 class="mr-2 h-4 w-4" />
-                                            {{ formLabels.buttons.delete }}
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                              <ContextMenu>
+                                <ContextMenuTrigger as-child>
+                                  <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
+                                    <MoreHorizontal class="h-4 w-4" />
+                                    <span class="sr-only">Open menu</span>
+                                  </Button>
+                                </ContextMenuTrigger>
+                                <ContextMenuContent class="w-40">
+                                  <ContextMenuItem @click="handleView(client.id)" v-if="hasPermission('clients-view')">
+                                    <Eye class="mr-2 h-4 w-4" />
+                                    {{ formLabels.buttons.view }}
+                                  </ContextMenuItem>
+                                  <ContextMenuItem @click="handleEdit(client.id)" v-if="hasPermission('clients-form')">
+                                    <Edit class="mr-2 h-4 w-4" />
+                                    {{ formLabels.buttons.edit }}
+                                  </ContextMenuItem>
+                                  <ContextMenuItem v-if="hasPermission('clients-delete')"
+                                    @click="handleDelete(client.id)"
+                                    class="text-red-600 focus:text-red-600"
+                                  >
+                                    <Trash2 class="mr-2 h-4 w-4" />
+                                    {{ formLabels.buttons.delete }}
+                                  </ContextMenuItem>
+                                </ContextMenuContent>
+                              </ContextMenu>
                             </TableCell>
                         </TableRow>
                     </TableBody>

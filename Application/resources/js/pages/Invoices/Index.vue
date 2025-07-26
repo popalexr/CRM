@@ -5,21 +5,10 @@ import { ref } from 'vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell
-} from '@/components/ui/table'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Eye, Trash2, Edit } from 'lucide-vue-next'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table'
+import { ContextMenu, ContextMenuCheckboxItem, ContextMenuContent, ContextMenuItem, ContextMenuLabel, ContextMenuRadioGroup, ContextMenuRadioItem, ContextMenuSeparator,
+  ContextMenuShortcut, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger, } from '@/components/ui/context-menu'
+import { Eye, Trash2, Edit } from 'lucide-vue-next'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 interface Invoice {
@@ -28,10 +17,12 @@ interface Invoice {
   client: {
     name: string
     image?: string | null
+    id?: number 
   }
   user: {
     name: string
     image?: string | null
+    id?: number 
   }
   total?: number | null
   currency: string
@@ -77,7 +68,10 @@ const handleDeleteCancel = () => {
   showDeleteDialog.value = false
 }
 
-const getInitial = (name: string) => name.charAt(0).toUpperCase()
+const getInitial = (name?: string | null) => {
+  if (!name || typeof name !== 'string') return ''
+  return name.charAt(0).toUpperCase()
+}
 
 const isOverdue = (dateString: string) => {
   return new Date(dateString) < new Date()
@@ -177,20 +171,20 @@ const parseDate = (dateString: string) => {
               <TableCell>
                 <div class="flex items-center gap-2">
                   <Avatar class="h-8 w-8">
-                    <AvatarImage v-if="invoice.client.client_logo" :src="invoice.client.client_logo" />
-                    <AvatarFallback>{{ getInitial(invoice.client.client_name) }}</AvatarFallback>
+                    <AvatarImage v-if="invoice.client.image" :src="invoice.client.image" />
+                    <AvatarFallback>{{ getInitial(invoice.client.name) }}</AvatarFallback>
                   </Avatar>
-                  <Link :href="route('clients.details', { id: invoice.client_id })">{{ invoice.client.client_name }}</Link>
+                  <Link :href="route('clients.details', { id: invoice.client.id })">{{ invoice.client.name }}</Link>
                 </div>
               </TableCell>
 
               <TableCell>
                 <div class="flex items-center gap-2">
                   <Avatar class="h-8 w-8">
-                    <AvatarImage v-if="invoice.user.avatar" :src="invoice.user.avatar" />
+                    <AvatarImage v-if="invoice.user.image" :src="invoice.user.image" />
                     <AvatarFallback>{{ getInitial(invoice.user.name) }}</AvatarFallback>
                   </Avatar>
-                  <Link :href="route('users.details', {id: invoice.created_by})">{{ invoice.user.name }}</Link>
+                  <Link :href="route('users.details', {id: invoice.user.id})">{{ invoice.user.name }}</Link>
                 </div>
               </TableCell>
 
@@ -217,32 +211,29 @@ const parseDate = (dateString: string) => {
               </TableCell>
 
               <TableCell class="text-right" @click.stop>
-                <DropdownMenu>
-                  <DropdownMenuTrigger as-child>
+                <ContextMenu>
+                  <ContextMenuTrigger as-child>
                     <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
-                      <MoreHorizontal class="h-4 w-4" />
                       <span class="sr-only">Deschide meniu</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem @click="router.visit(route('invoices.form', { id: invoice.id }))" v-if="invoice.status === 'draft'">
-                      <Edit class="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem @click="handleView(invoice.id)">
-                      <Eye class="mr-2 h-4 w-4" />
-                      View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
+                  </ContextMenuTrigger>
+                  <ContextMenuContent class="w-48">
+                    <ContextMenuItem v-if="invoice.status === 'draft'" @click="router.visit(route('invoices.form', { id: invoice.id }))">
+                      <Edit class="mr-2 h-4 w-4" /> Edit
+                    </ContextMenuItem>
+                    <ContextMenuItem @click="handleView(invoice.id)">
+                      <Eye class="mr-2 h-4 w-4" /> View
+                    </ContextMenuItem>
+                    <ContextMenuItem
                       v-if="invoice.status === 'draft' || invoice.status === 'paid'"
                       @click="handleDeleteRequest(invoice)"
                       class="text-red-600 focus:text-red-600"
                     >
-                      <Trash2 class="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <Trash2 class="mr-2 h-4 w-4" /> Delete
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
               </TableCell>
             </TableRow>
           </TableBody>

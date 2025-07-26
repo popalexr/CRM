@@ -14,12 +14,12 @@ import {
     TableRow 
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-    DropdownMenu, 
-    DropdownMenuContent, 
-    DropdownMenuItem, 
-    DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { Edit, Eye, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
@@ -168,31 +168,31 @@ const handleAddUser = () => {
                                 </span>
                             </TableCell>
                             <TableCell class="text-right" @click.stop>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger as-child>
-                                        <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
-                                            <MoreHorizontal class="h-4 w-4" />
-                                            <span class="sr-only">Open menu</span>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem @click="handleView(user.id)" v-if="hasPermission('users-view')">
-                                            <Eye class="mr-2 h-4 w-4" />
-                                            {{ formButtons.view || 'View' }}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem @click="handleEdit(user.id)" v-if="hasPermission('users-form')">
-                                            <Edit class="mr-2 h-4 w-4" />
-                                            {{ formButtons.edit || 'Edit' }}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem  v-if="hasPermission('users-delete')"
-                                            @click="handleDeleteRequest(user)"
-                                            class="text-red-600 focus:text-red-600"
-                                        >
-                                            <Trash2 class="mr-2 h-4 w-4" />
-                                            {{ formButtons.delete || 'Delete' }}
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                              <ContextMenu>
+                                <ContextMenuTrigger as-child>
+                                  <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
+                                    <MoreHorizontal class="h-4 w-4" />
+                                    <span class="sr-only">Open menu</span>
+                                  </Button>
+                                </ContextMenuTrigger>
+                                <ContextMenuContent class="w-40">
+                                  <ContextMenuItem @click="handleView(user.id)" v-if="hasPermission('users-view')">
+                                    <Eye class="mr-2 h-4 w-4" />
+                                    {{ formButtons.view || 'View' }}
+                                  </ContextMenuItem>
+                                  <ContextMenuItem @click="handleEdit(user.id)" v-if="hasPermission('users-form')">
+                                    <Edit class="mr-2 h-4 w-4" />
+                                    {{ formButtons.edit || 'Edit' }}
+                                  </ContextMenuItem>
+                                  <ContextMenuItem v-if="hasPermission('users-delete')"
+                                    @click="handleDeleteRequest(user)"
+                                    class="text-red-600 focus:text-red-600"
+                                  >
+                                    <Trash2 class="mr-2 h-4 w-4" />
+                                    {{ formButtons.delete || 'Delete' }}
+                                  </ContextMenuItem>
+                                </ContextMenuContent>
+                              </ContextMenu>
                             </TableCell>
                         </TableRow>
                     </TableBody>
