@@ -14,7 +14,7 @@ import { computed } from 'vue';
 import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
 
-interface Props extends UserCreateProps {
+interface Props extends /* @vue-ignore */ UserCreateProps {
     formData: FormDataStructure;
 }
 

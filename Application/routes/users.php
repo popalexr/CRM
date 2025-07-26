@@ -6,10 +6,12 @@ use App\Http\Controllers\Users\UsersFormController;
 use App\Http\Controllers\Users\DeleteUserController;
 use App\Http\Controllers\Users\UserDetailsController;
 use App\Http\Controllers\Users\UserPreferencesController;
+use App\Http\Controllers\Users\UserInvoicesController;
 Route::middleware('auth')->prefix('users')->name('users.')->group(function () {
     Route::get('/', UsersController::class)->name('index');
     Route::get('/form', UsersFormController::class)->name('form');
     Route::get('/details', UserDetailsController::class)->name('details'); 
+    Route::get('/invoices', UserInvoicesController::class)->name('invoices');
 
     Route::post('/save-preference', UserPreferencesController::class)->name('save-preference');
     Route::post('/form', [UsersFormController::class, 'post'])->name('form.post');

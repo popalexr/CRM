@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
@@ -6,15 +7,18 @@ import { ArrowLeftIcon } from 'lucide-vue-next';
 import { ProfileHeader, SearchInput, NotesSection } from '@/components/ui';
 import GradientSelector from '@/components/ui/gradient-selector/GradientSelector.vue';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, watch, nextTick } from 'vue';
 import { Badge } from '@/components/ui/badge';
-import { nextTick } from 'vue';
 import { PROFILE_GRADIENTS } from '@/constants/gradients';
 import type { UserPageProps, UserDetails } from '@/types/user';
+
 
 const page = usePage<UserPageProps>();
 const user = page.props.user as UserDetails;
 const formLabels = page.props.formLabels;
+const authUser = page.props.auth?.user;
+
+const isSelf = computed(() => authUser && user && authUser.id === user.id);
 
 const entityData = computed(() => ({
     id: user.id,
@@ -39,6 +43,64 @@ const formattedDateOfBirth = computed(() => {
     const date = new Date(user.birth_date);
     return date instanceof Date && !isNaN(date.valueOf()) ? date.toLocaleDateString('ro-RO') : '-';
 });
+
+const invoices = ref<any[]>([]);
+const loadingInvoices = ref(true);
+const searchQuery = ref('');
+
+const fetchInvoices = async () => {
+    loadingInvoices.value = true;
+    try {
+        const res = await fetch(`/users/invoices?id=${user.id}`);
+        const data = await res.json();
+        invoices.value = data.invoices || [];
+    } catch (e) {
+        invoices.value = [];
+    } finally {
+        loadingInvoices.value = false;
+    }
+};
+
+onMounted(fetchInvoices);
+
+const filteredInvoices = computed(() => {
+    if (!searchQuery.value) return invoices.value;
+    return invoices.value.filter(inv => {
+        const client = inv.client?.client_name || inv.client?.name || '';
+        return (
+            String(inv.id).includes(searchQuery.value) ||
+            client.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+            (inv.status && inv.status.toLowerCase().includes(searchQuery.value.toLowerCase()))
+        );
+    });
+});
+
+const goToInvoice = (id: number) => {
+    router.visit(route('invoices.details', { id }));
+};
+
+const isOverdue = (dateString: string) => {
+    return new Date(dateString) < new Date();
+};
+
+const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+        case 'draft':
+            return 'outline';
+        case 'submitted':
+            return 'secondary';
+        case 'paid':
+            return 'default';
+        case 'not_paid':
+            return 'destructive';
+        case 'anulled':
+            return 'secondary';
+        case 'corrected':
+            return 'default';
+        default:
+            return 'default';
+    }
+};
 
 const handleBack = () => {
     router.visit(route('users.index'));
@@ -122,13 +184,14 @@ const previewGradient = async (index: number) => {
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 space-y-6">
-                    <ProfileHeader 
-                        :key="profileHeaderKey"
-                        :entity="entityData"
-                        :gradient="currentGradientClass"
-                        :show-gradient-button="true"
-                        @open-gradient-selector="openGradientSelector"
-                    />
+
+<ProfileHeader 
+    :key="profileHeaderKey"
+    :entity="entityData"
+    :gradient="currentGradientClass"
+    :show-gradient-button="isSelf"
+    @open-gradient-selector="openGradientSelector"
+/>
 
                     <div class="bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm hover:shadow-md transition-shadow duration-200">
                         <div class="flex items-center justify-between mb-8">
@@ -209,15 +272,64 @@ const previewGradient = async (index: number) => {
                         <div class="flex items-center justify-between mb-8">
                             <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ formLabels.headings.invoices }}</h3>
                         </div>
-                        
                         <div class="mb-4">
-                            <SearchInput 
-                                :placeholder="formLabels.placeholders.search_invoices"
-                            />
+                            <SearchInput :placeholder="formLabels.placeholders.search_invoices" v-model="searchQuery" />
                         </div>
-
-                        <div class="text-center p-6">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ formLabels.messages.invoices_functionality }}</p>
+                        <div v-if="loadingInvoices" class="text-center p-6">
+                            <span class="text-gray-500 dark:text-gray-400">Loading...</span>
+                        </div>
+                        <div v-else-if="filteredInvoices.length === 0" class="text-center p-6">
+                            <span class="text-gray-500 dark:text-gray-400">{{ formLabels.messages.no_invoices_found }}</span>
+                        </div>
+                        <div v-else class="overflow-x-auto rounded-md border">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-neutral-900">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Invoice</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
+                                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-black divide-y divide-gray-100 dark:divide-gray-800">
+                                    <tr v-for="invoice in filteredInvoices" :key="invoice.id">
+                                        <td class="px-4 py-2">
+                                            <span v-if="invoice.original_invoice_id">
+                                                #{{ invoice.id }} → #{{ invoice.original_invoice_id }}
+                                            </span>
+                                            <span v-else>#{{ invoice.id }}</span>
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <div class="flex items-center gap-2">
+                                                <span>{{ invoice.client?.client_name || invoice.client?.name || '-' }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <span v-if="invoice.total !== null">
+                                                {{ Number(invoice.total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ invoice.currency }}
+                                            </span>
+                                            <span v-else class="text-gray-400 italic">Calculating...</span>
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <Badge :variant="getStatusBadgeVariant(invoice.status)">
+                                                {{ invoice.status }}
+                                            </Badge>
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <span :class="isOverdue(invoice.payment_deadline) ? 'text-red-600 font-semibold' : ''">
+                                                {{ invoice.payment_deadline }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-2 text-right">
+                                            <Button size="sm" variant="outline" @click="goToInvoice(invoice.id)">
+                                                View
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -232,15 +344,15 @@ const previewGradient = async (index: number) => {
             </div>
         </div>
 
-        <GradientSelector
-            :is-open="isGradientSelectorOpen"
-            :current-gradient="currentProfileGradient"
-            :gradients="PROFILE_GRADIENTS"
-            :user-initial="user.name.charAt(0).toUpperCase()"
-            @close="closeGradientSelector"
-            @select="selectGradient"
-            @preview="previewGradient"
-            @apply-and-close="closeGradientSelectorWithoutReset"
-        />
+<GradientSelector
+    :is-open="isSelf && isGradientSelectorOpen"
+    :current-gradient="currentProfileGradient"
+    :gradients="PROFILE_GRADIENTS"
+    :user-initial="user.name.charAt(0).toUpperCase()"
+    @close="closeGradientSelector"
+    @select="selectGradient"
+    @preview="previewGradient"
+    @apply-and-close="closeGradientSelectorWithoutReset"
+/>
     </AppLayout>
 </template>

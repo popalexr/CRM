@@ -132,7 +132,7 @@ const handleAddUser = () => {
                         <TableRow>
                             <TableHead>{{ formLabels.name || 'Name' }}</TableHead>
                             <TableHead>{{ formLabels.email || 'Email Address' }}</TableHead>
-                            <TableHead>Rol</TableHead>
+                            <TableHead>Role</TableHead>
                             <TableHead class="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
