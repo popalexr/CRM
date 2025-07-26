@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import { ProfileHeader, NotesSection, DataList, SearchInput } from '@/components/ui';
 import { computed, ref } from 'vue';
-import { Client, ClientContact, type ClientPageProps } from '@/types';
+import { Client, ClientContact, type ClientPageProps } from '@/types/index';
 
 const page = usePage<ClientPageProps>();
 const client = page.props.client as Client;
@@ -282,7 +282,6 @@ const handleBack = () => {
                     </div>
                 </div>
 
-                <!-- Right column: Contact persons -->
                 <div class="space-y-6" style="margin-top: -2.8rem;">
                     <div>
                         <h3 class="text-lg font-semibold mb-4 dark:text-white">{{ formLabels.headings.contact_persons }}</h3>

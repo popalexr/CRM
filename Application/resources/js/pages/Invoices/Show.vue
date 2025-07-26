@@ -7,10 +7,6 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MoreVerticalIcon, SendIcon, FileTextIcon, EditIcon, XCircleIcon, CheckCircleIcon } from 'lucide-vue-next';
-import InvoiceSummary from '@/components/ui/invoices/InvoiceSummary.vue';
-import InvoicePayments from '@/components/ui/invoices/InvoicePayments.vue';
-import InvoiceCreditNote from '@/components/ui/invoices/InvoiceCreditNote.vue';
-import InvoiceDocument from '@/components/ui/invoices/InvoiceDocument.vue';
 
 interface InvoiceDetails {
   id: number;
@@ -30,10 +26,14 @@ interface InvoiceDetails {
   client_address?: string;
   client_city?: string;
   client_country?: string;
+  client_county?: string;
   client_vat_code?: string;
+  client_email?: string;
+  client_phone?: string;
+  client_bank?: string;
+  client_iban?: string;
+  created_at?: string;
 }
-
-
 
 const props = defineProps<{ invoice: InvoiceDetails, products: Array<any> }>();
 const showPopover = ref(false);
@@ -83,18 +83,20 @@ const addPayment = () => {
     {
       preserveScroll: true,
       onSuccess: (page) => {
-        // Try to update payments from response if available
         const props: any = page.props;
         if (props?.invoice?.payments) {
           payments.value = [...props.invoice.payments];
+          const open = props.invoice.total - (props.invoice.payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0);
+          if (open <= 0) {
+            props.invoice.status = 'paid';
+          }
         } else {
-          // fallback: reload page
           window.location.reload();
         }
         showPaymentModal.value = false;
       },
       onError: (errors) => {
-        alert('Failed to save payment: ' + (errors?.message || '')); 
+        alert('Failed to save payment: ' + (errors?.message || ''));
       }
     }
   );
@@ -121,8 +123,39 @@ const handleSend = () => {
   });
 };
 
-const handleExportPDF = () => {
-  window.open(`/invoices/${props.invoice.id}/pdf`, '_blank');
+const printInvoicePreview = () => {
+
+  const invoicePreview = document.querySelector('.max-w-2xl .rounded-xl.border.border-gray-200');
+  if (!invoicePreview) {
+    alert('Nu s-a găsit preview-ul facturii pentru printare!');
+    return;
+  }
+  const printWindow = window.open('', '', 'width=900,height=1200');
+  if (!printWindow) {
+    alert('Pop-up blocked! Permite pop-up-uri pentru a printa.');
+    return;
+  }
+  const styleTags = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map(el => el.outerHTML).join('\n');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Invoice #${props.invoice.id}</title>
+        ${styleTags}
+        <style>
+          body { background: white !important; color: #222; margin:0; padding:0; }
+          @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        </style>
+      </head>
+      <body>
+        <div style="margin:40px auto; max-width:900px;">${invoicePreview.outerHTML}</div>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+  }, 400);
 };
 
 
@@ -133,9 +166,31 @@ const handleMarkAsPaid = () => {
     alert('Invoice is already fully paid.');
     return;
   }
-  payments.value.push({ amount: open, paid_on: today });
-  props.invoice.status = 'paid';
-  props.invoice.sent = true;
+  inertiaRouter.post(
+    `/invoices/${props.invoice.id}/payments`,
+    {
+      amount: open,
+      paid_on: today
+    },
+    {
+      preserveScroll: true,
+      onSuccess: (page) => {
+        const props: any = page.props;
+        if (props?.invoice?.payments) {
+          payments.value = [...props.invoice.payments];
+          const open = props.invoice.total - (props.invoice.payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0);
+          if (open <= 0) {
+            props.invoice.status = 'paid';
+          }
+        } else {
+          window.location.reload();
+        }
+      },
+      onError: (errors) => {
+        alert('Failed to save payment: ' + (errors?.message || ''));
+      }
+    }
+  );
 };
 
 const handleEdit = () => {
@@ -145,10 +200,13 @@ const handleEdit = () => {
 const handleVoid = () => {
 };
 
+
 const handleChangeStatus = () => {
 };
 
-
+const handleChangeStyle = () => {
+  alert('Change Style: This will allow you to switch between 3 invoice designs. (To be implemented)');
+};
 
 const handleBack = () => {
   if (window.history.length > 1) {
@@ -177,7 +235,7 @@ const goToInvoicesIndex = () => {
             <SendIcon class="w-4 h-4 mr-2" />
             Send
           </Button>
-          <Button variant="outline" @click="handleExportPDF">
+          <Button variant="outline" @click="printInvoicePreview">
             <FileTextIcon class="w-4 h-4 mr-2" />
             PDF
           </Button>
@@ -208,7 +266,6 @@ const goToInvoicesIndex = () => {
           </DropdownMenu>
         </div>
       </div>
-      <!-- Tabs -->
       <Tabs default-value="invoice" class="mb-4 pl-3 bg-white dark:bg-[rgba(0,0,0,0)]">
         <TabsList class="mb-5 gap-2 bg-gray-100 text-gray-900 dark:bg-[rgba(0,0,0,0)] dark:text-white border-none">
           <TabsTrigger
@@ -225,27 +282,47 @@ const goToInvoicesIndex = () => {
             <div class="flex-1 min-w-[340px] max-w-[420px] flex flex-col gap-4 pl-1">              
               <div class="flex items-center gap-4 mb-4">
                 <template v-if="invoice.due_date">
-                  <template v-if="invoice.payments && invoice.payments.length > 0 && invoice.payments[0].paid_on">
-                    <!-- Paid: check if paid on time or late -->
-                    <template v-if="new Date(invoice.payments[0].paid_on) <= new Date(invoice.due_date)">
-                      <span class="flex items-center bg-green-50 text-green-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-green-900/30 dark:text-green-400">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        On time
-                      </span>
-                      <span class="text-xs text-green-600 font-medium dark:text-green-400">Paid on {{ invoice.payments[0].paid_on }}</span>
+                  <template v-if="payments.length > 0">
+                    <template v-if="openAmount <= 0">
+                      <template v-if="payments.every(p => new Date(p.paid_on) <= new Date(invoice.due_date))">
+                        <span class="flex items-center bg-green-50 text-green-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-green-900/30 dark:text-green-400">
+                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          On time
+                        </span>
+                        <span class="text-xs text-green-600 font-medium dark:text-green-400">Paid on {{ payments[payments.length-1].paid_on }}</span>
+                      </template>
+                      <template v-else>
+                        <span class="flex items-center bg-red-50 text-red-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-red-900/30 dark:text-red-400">
+                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          Overdue
+                        </span>
+                        <span class="text-xs text-red-500 font-medium dark:text-red-400">
+                          Paid {{ Math.ceil((new Date(payments[payments.length-1].paid_on).getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)) }} days late
+                        </span>
+                      </template>
                     </template>
                     <template v-else>
-                      <span class="flex items-center bg-red-50 text-red-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-red-900/30 dark:text-red-400">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Overdue
-                      </span>
-                      <span class="text-xs text-red-500 font-medium dark:text-red-400">
-                        Paid {{ Math.ceil((new Date(invoice.payments[0].paid_on).getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)) }} days late
-                      </span>
+                      <template v-if="new Date() > new Date(invoice.due_date)">
+                        <span class="flex items-center bg-red-50 text-red-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-red-900/30 dark:text-red-400">
+                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          Overdue
+                        </span>
+                        <span class="text-xs text-red-500 font-medium dark:text-red-400">
+                          {{ Math.ceil((new Date().getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)) }} days overdue, partial payment
+                        </span>
+                      </template>
+                      <template v-else>
+                        <span class="flex items-center bg-yellow-50 text-yellow-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-yellow-900/30 dark:text-yellow-400">
+                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                          Partial payment
+                        </span>
+                        <span class="text-xs text-yellow-600 font-medium dark:text-yellow-400">
+                          {{ Math.ceil((new Date(invoice.due_date).getTime() - new Date().getTime()) / (1000*60*60*24)) }} days until due
+                        </span>
+                      </template>
                     </template>
                   </template>
                   <template v-else>
-                    <!-- Not paid: check if overdue or not -->
                     <template v-if="new Date() > new Date(invoice.due_date)">
                       <span class="flex items-center bg-red-50 text-red-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-red-900/30 dark:text-red-400">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -278,7 +355,7 @@ const goToInvoicesIndex = () => {
                 </div>
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">VAT. Amount</div>
-                  <div class="text-lg font-semibold dark:text-white">{{ (products?.reduce((sum, p) => sum + (p.vat_amount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
+                  <div class="text-lg font-semibold dark:text-white">{{ (products?.reduce((sum, p) => sum + ((p.total || 0) - (p.total_no_vat || 0)), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
                 </div>
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">Due Date</div>
@@ -286,7 +363,21 @@ const goToInvoicesIndex = () => {
                 </div>
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">Paid On</div>
-                  <div class="text-base font-medium dark:text-white">{{ invoice.payments && invoice.payments.length > 0 ? (invoice.payments[0].paid_on || '-') : '-' }}</div>
+                  <div class="text-base font-medium dark:text-white">
+                    <template v-if="payments.length > 0 && openAmount <= 0">
+                      {{
+                        (() => {
+                          const today = new Date().toISOString().slice(0, 10);
+                          const validPayments = payments.filter(p => p.paid_on && p.paid_on <= today);
+                          if (validPayments.length === 0) return '-';
+                          return validPayments[validPayments.length-1].paid_on;
+                        })()
+                      }}
+                    </template>
+                    <template v-else>
+                      -
+                    </template>
+                  </div>
                 </div>
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">Customer av delay</div>
@@ -296,13 +387,21 @@ const goToInvoicesIndex = () => {
                   </div>
                 </div>
               </div>
-              <div class="flex items-center justify-between mt-6 mb-2">
-                <div class="font-semibold text-lg">Payments</div>
-                <Button variant="outline" size="sm" class="text-black border-black hover:bg-gray-100 dark:text-white dark:border-gray-500 dark:hover:bg-gray-800" @click="openPaymentModal">+ Add</Button>
-              </div>
-              <div class="flex flex-col gap-3 mb-6">
+                <div class="flex items-center justify-between mt-6 mb-2">
+                  <div class="font-semibold text-lg">Payments</div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    class="text-black border-black hover:bg-gray-100 dark:text-white dark:border-gray-500 dark:hover:bg-gray-800"
+                    :disabled="openAmount <= 0"
+                    @click="openAmount > 0 && openPaymentModal()"
+                  >
+                    + Add
+                  </Button>
+                </div>
+              <div class="flex flex-col gap-3 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
                 <template v-if="payments.length > 0">
-                  <div v-for="(payment, idx) in payments" :key="idx" class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 via-white to-gray-100 dark:from-neutral-900 dark:via-black dark:to-neutral-800 shadow-sm px-4 py-3 flex items-center gap-4">
+                  <div v-for="(payment, idx) in payments" :key="idx" class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#262626] shadow-sm px-4 py-3 flex items-center gap-4">
                     <div class="flex items-center justify-center w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30">
                       <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </div>
@@ -321,7 +420,6 @@ const goToInvoicesIndex = () => {
                 </template>
               </div>
 
-              <!-- Payment Modal -->
               <div v-if="showPaymentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0)]/80 backdrop-blur-sm">
                 <div class="w-full max-w-xs rounded-2xl p-6 flex flex-col gap-5 shadow-2xl border border-gray-100 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)]">
                   <div class="font-semibold text-lg mb-2 text-gray-900 dark:text-white flex items-center gap-2">
@@ -343,72 +441,120 @@ const goToInvoicesIndex = () => {
                 </div>
               </div>
             </div>
-            <div class="flex-1 min-w-[240px] max-w-1xl mx-auto px-4 mt-13">
-              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm bg-white dark:bg-[rgba(0,0,0,0)]">
-                <div class="mb-6 flex items-center justify-between">
-                  <div>
-                    <div class="text-2xl font-bold mb-1">Invoice</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">Invoice No: <span class="font-semibold text-gray-900 dark:text-white">{{ invoice.number }} # {{ invoice.id }}</span></div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">Due Date: <span class="font-semibold text-gray-900 dark:text-white">{{ invoice.due_date }}</span></div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">Ref: <span class="font-semibold text-gray-900 dark:text-white">   EN092309</span></div>
+            <div class="flex-1 min-w-[240px] max-w-2xl mx-auto px-4 mt-13">
+              <div style="margin-top: -2.9rem;" lass="flex justify-end mb-4">
+                <Button variant="outline" class="flex items-center gap-2 ml-auto" style="margin-bottom: 12px;" @click="handleChangeStyle">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="w-4 h-4 mr-1"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+                  Change Style
+                </Button>
+              </div>
+              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm bg-white dark:bg-[rgba(0,0,0,0)] max-h-155 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                <div class="flex justify-between items-start mb-6">
+                  <div class="flex flex-col items-start justify-center gap-6 flex-1 min-w-[180px] text-left">
+                    <div>
+                      <div class="text-3xl font-bold mb-2">INVOICE</div>
+                      <div class="text-xs text-gray-500 mb-1">No: <span class="font-semibold text-gray-900">{{ invoice.number }} / {{ invoice.id }}</span></div>
+                      <div class="text-xs text-gray-500 mb-1">Data:  <span class="font-semibold text-gray-900">{{ invoice.created_at ? invoice.created_at.slice(0, 10) : '-' }}</span></div>
+                      <div class="text-xs text-gray-500 mb-1">Due Date:  <span class="font-semibold text-gray-900">{{ invoice.due_date }}</span></div>
+                    </div>
+                    <div style="margin-top: 0.9rem;" class="flex flex-col items-center text-center max-w-xs">
+                      <div class="font-semibold text-gray-900">{{ invoice.client_name || '-' }}</div>
+                      <div class="text-xs text-gray-500">Address: {{ invoice.client_address || '-' }}</div>
+                      <div class="text-xs text-gray-500">
+                        <template v-if="invoice.client_city || invoice.client_county || invoice.client_country">
+                          <template v-if="invoice.client_city">{{ invoice.client_city }}</template>
+                          <template v-if="invoice.client_city && invoice.client_county">, </template>
+                          <template v-if="invoice.client_county">{{ invoice.client_county }}</template>
+                          <template v-if="(invoice.client_city || invoice.client_county) && invoice.client_country">, </template>
+                          <template v-if="invoice.client_country">{{ invoice.client_country }}</template>
+                        </template>
+                        <template v-else>-</template>
+                      </div>
+                      <div class="text-xs text-gray-500">CUI/CNP: {{ invoice.client_vat_code || '-' }}</div>
+                      <div class="text-xs text-gray-500">Bank: {{ invoice.client_bank || '-' }}</div>
+                      <div class="text-xs text-gray-500">IBAN: {{ invoice.client_iban || '-' }}</div>
+                      <div class="text-xs text-gray-500">Phone: {{ invoice.client_phone || '-' }}</div>
+                    </div>
                   </div>
-                  <div class="text-right">
-                    <div class="text-xs text-gray-500 dark:text-gray-400">Customer</div>
-                    <div class="font-semibold text-gray-900 dark:text-white">{{ invoice.client_name }}</div>
+                  <div class="flex flex-col items-center w-64 min-w-[180px] gap-2 text-center">
+                    <img :src="($page.props.companyInfo as any)?.logo_url || '/favicon.svg'" alt="Company Logo" class="w-32 h-32 object-contain mb-2" />
+                    <div>
+                      <div class="font-semibold text-gray-900">{{ ($page.props.companyInfo as any)?.company_name || '-' }}</div>
+                      <div class="text-xs text-gray-500">Address: {{ ($page.props.companyInfo as any)?.address || '-' }}</div>
+                      <div class="text-xs text-gray-500">
+                        <template v-if="($page.props.companyInfo as any)?.city || ($page.props.companyInfo as any)?.county || ($page.props.companyInfo as any)?.country">
+                          <template v-if="($page.props.companyInfo as any)?.city">{{ ($page.props.companyInfo as any)?.city }}</template>
+                          <template v-if="($page.props.companyInfo as any)?.city && ($page.props.companyInfo as any)?.county">, </template>
+                          <template v-if="($page.props.companyInfo as any)?.county">{{ ($page.props.companyInfo as any)?.county }}</template>
+                          <template v-if="((($page.props.companyInfo as any)?.city || ($page.props.companyInfo as any)?.county) && ($page.props.companyInfo as any)?.country)">, </template>
+                          <template v-if="($page.props.companyInfo as any)?.country">{{ ($page.props.companyInfo as any)?.country }}</template>
+                        </template>
+                        <template v-else>-</template>
+                      </div>
+                      <div class="text-xs text-gray-500">Email: {{ ($page.props.companyInfo as any)?.email || '-' }}</div>
+                      <div class="text-xs text-gray-500">Phone: {{ ($page.props.companyInfo as any)?.phone || '-' }}</div>
+                      <div class="text-xs text-gray-500">IBAN: {{ ($page.props.companyInfo as any)?.iban || '-' }}</div>
+                      <div class="text-xs text-gray-500">Bank: {{ ($page.props.companyInfo as any)?.bank || '-' }}</div>
+                    </div>
                   </div>
                 </div>
                 <div class="mb-4">
-                  <div class="text-xs flex items-center">
-                    <span class="font-semibold mr-1">Deliver To:</span>
-                    <span>
-                      {{ invoice.client_name }}<span v-if="invoice.client_address && invoice.client_address.trim() !== ''">, {{ invoice.client_address }}</span><span v-if="invoice.client_city && invoice.client_city.trim() !== ''">, {{ invoice.client_city }}</span><span v-if="invoice.client_country && invoice.client_country.trim() !== ''">, {{ invoice.client_country }}</span><span v-if="invoice.client_vat_code && invoice.client_vat_code.trim() !== ''">, VAT: {{ invoice.client_vat_code }}</span>
-                    </span>
+                  <div class="text-xs font-semibold mb-2">Products / Services</div>
+                  <div class="max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#262626]">
+                    <table class="min-w-full text-xs">
+                      <thead>
+                        <tr class="bg-gray-100 dark:bg-neutral-800">
+                          <th class="px-2 py-1 text-left">No.</th>
+                          <th class="px-2 py-1 text-left">Description</th>
+                          <th class="px-2 py-1 text-right">Qty</th>
+                          <th class="px-2 py-1 text-right">Unit Price</th>
+                          <th class="px-2 py-1 text-right">VAT</th>
+                          <th class="px-2 py-1 text-right">Discount</th>
+                          <th class="px-2 py-1 text-right">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(product, idx) in products" :key="product.id">
+                          <td class="px-2 py-1">{{ idx + 1 }}</td>
+                          <td class="px-2 py-1">{{ product.product_name }}</td>
+                          <td class="px-2 py-1 text-right">{{ product.quantity }}</td>
+                          <td class="px-2 py-1 text-right">{{ product.converted_price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
+                          <td class="px-2 py-1 text-right">{{ (product.total - product.total_no_vat).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
+                          <td class="px-2 py-1 text-right">{{ (product.discount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
+                          <td class="px-2 py-1 text-right">{{ (product.total - (product.discount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
+                        </tr>
+                        <tr v-if="!products || products.length === 0">
+                          <td colspan="7" class="px-2 py-1 text-center text-gray-400">No items.</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-                <div class="mb-4">
-                  <div class="text-xs font-semibold mb-2">Order Details</div>
-                  <table class="min-w-full text-xs border rounded-xl overflow-hidden bg-white dark:bg-[#262626]">
-                    <thead>
-                      <tr class="bg-gray-100 dark:bg-neutral-800">
-                        <th class="px-2 py-1 text-left">Item</th>
-                        <th class="px-2 py-1 text-right">Qty</th>
-                        <th class="px-2 py-1 text-right">Unit Price</th>
-                        <th class="px-2 py-1 text-right">Tax</th>
-                        <th class="px-2 py-1 text-right">Discount</th>
-                        <th class="px-2 py-1 text-right">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(product, idx) in products" :key="product.id">
-                        <td class="px-2 py-1">{{ product.product_name }}</td>
-                        <td class="px-2 py-1 text-right">{{ product.quantity }}</td>
-                        <td class="px-2 py-1 text-right">{{ product.converted_price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
-                        <td class="px-2 py-1 text-right">{{ (product.total - product.total_no_vat).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
-                        <td class="px-2 py-1 text-right">{{ (product.discount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
-                        <td class="px-2 py-1 text-right">{{ (product.total - (product.discount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</td>
-                      </tr>
-                      <tr v-if="!products || products.length === 0">
-                        <td colspan="6" class="px-2 py-1 text-center text-gray-400">No items.</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div class="flex flex-col gap-2 mt-6 text-sm w-full max-w-xs ml-auto items-end">
+                  <div class="grid grid-cols-2 gap-x-4 w-full">
+                    <div class="flex flex-col gap-2 items-start">
+                      <span class="text-gray-500">Subtotal:</span>
+                      <span class="text-gray-500">Discount:</span>
+                      <span class="text-gray-500">VAT:</span>
+                      <span class="text-gray-500 text-lg mt-2">Total:</span>
+                    </div>
+                    <div class="flex flex-col gap-2 items-end">
+                      <span class="font-semibold text-right">{{ (products?.reduce((sum, p) => parseFloat(sum) + parseFloat(p.total_no_vat), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
+                      <span class="font-semibold text-right">{{ (products?.reduce((sum, p) => sum + (p.discount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
+                      <span class="font-semibold text-right">{{ (products?.reduce((sum, p) => parseFloat(sum) + (p.total - p.total_no_vat), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
+                      <span class="font-bold text-red-600 dark:text-red-400 text-right text-lg mt-2">{{ invoice.total?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="flex flex-col gap-1 mt-6 text-sm">
-                  <div class="flex justify-between">
-                    <span>Total HT:</span>
-                    <span class="font-semibold">{{ (products?.reduce((sum, p) => parseFloat(sum) + parseFloat(p.total_no_vat), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
+                <div class="flex justify-between items-end mt-8">
+                  <div class="text-xs text-gray-500">
+                    <div>Payment method: Bank transfer</div>
+                    <div>IBAN: RO49AAAA1B31007593840000</div>
+                    <div>Bank: BCR</div>
                   </div>
-                  <div class="flex justify-between">
-                    <span>Discount:</span>
-                    <span class="font-semibold">{{ (products?.reduce((sum, p) => sum + (p.discount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span>Total VAT:</span>
-                    <span class="font-semibold">{{ (products?.reduce((sum, p) => parseFloat(sum) + (p.total - p.total_no_vat), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
-                  </div>
-                  <div class="flex justify-between text-lg mt-2">
-                    <span>Total Due:</span>
-                    <span class="font-bold text-red-600 dark:text-red-400">{{ invoice.total?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
+                  <div class="text-xs text-gray-500 text-right">
+                    <div>Issued by: <span class="font-semibold text-gray-900">{{ ($page.props.companyInfo as any)?.company_name || '-' }}</span></div>
+                    <div>Signature: ____________________</div>
                   </div>
                 </div>
               </div>

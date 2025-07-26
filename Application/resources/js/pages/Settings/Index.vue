@@ -10,12 +10,12 @@ import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Settings, Building, Receipt } from 'lucide-vue-next';
 import { ref } from 'vue';
-import { BreadcrumbItem, CompanyInfo } from '@/types';
+import { BreadcrumbItem } from '@/types';
 import InputError from '@/components/InputError.vue';
 
 const page = usePage();
     
-const companyInfo = ref(page.props.companyInfo as CompanyInfo);
+const companyInfo = ref(page.props.companyInfo as any);
 const companyTypes = page.props.companyTypes as Array<{ value: string; label: string }>;
 
 const companyForm = useForm({
