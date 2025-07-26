@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Invoices;
 
-use App\Events\CreatedInvoice;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoices\InvoicesFormRequest;
 use App\Models\Clients;
@@ -58,8 +57,6 @@ class InvoicesFormController extends Controller
             $this->createInvoice($formRequest);
             $this->addProductsToInvoice($formRequest);
 
-            event(new CreatedInvoice($this->invoice->id));
-
             DB::commit();
         }
         catch (\Exception $e) {
@@ -76,6 +73,9 @@ class InvoicesFormController extends Controller
             'client_id' => $client->id,
             'created_by' => request()->user()->id,
             'currency' => $formRequest->input('currency'),
+            'total' => $formRequest->input('total'),
+            'total_no_vat' => $formRequest->input('total_no_vat'),
+            'vat_amount' => $formRequest->input('vat_amount'),
             'vat_payer' => $client->client_tva,
             'payment_deadline' => $formRequest->input('payment_deadline'),
         ];
@@ -94,13 +94,13 @@ class InvoicesFormController extends Controller
                 'product_type' => $product['type'],
                 'price' => $product['price'],
                 'currency' => $product['currency'],
-                'converted_price' => 0.00,
-                'converted_currency' => '',
+                'converted_price' => $product['converted_price'],
+                'converted_currency' => $product['converted_currency'],
                 'quantity' => $product['quantity'],
                 'unit' => $product['unit'],
                 'vat' => $product['vat'],
-                'total_no_vat' =>  0.00,
-                'total' => 0.00,
+                'total_no_vat' =>  $product['total_no_vat'],
+                'total' => $product['total'],
             ];
 
             ProductsToInvoice::create($productElement);
