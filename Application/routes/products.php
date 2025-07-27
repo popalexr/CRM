@@ -13,4 +13,5 @@ Route::middleware('auth')->prefix('products')->name('products.')->group(function
 
     Route::post('/form', [ProductsFormController::class, 'post'])->name('form.post');    
     Route::post('/delete', DeleteProductController::class)->name('delete');
+    Route::post('/stock/{id}', \App\Http\Controllers\Products\HandleProductStockController::class)->name('stock.handle');
 });
