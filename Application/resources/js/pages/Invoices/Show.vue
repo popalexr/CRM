@@ -10,7 +10,10 @@ import { MoreVerticalIcon, SendIcon, FileTextIcon, EditIcon, XCircleIcon, CheckC
 import { InvoiceDetails } from '@/types/invoices';
 
 import { ui, tabs } from '../../invoices_const';
-
+import InvoiceDesign1 from './Designs/InvoiceDesign1.vue';
+import InvoiceDesign2 from './Designs/InvoiceDesign2.vue';
+import InvoiceDesign3 from './Designs/InvoiceDesign3.vue';
+const invoiceDesign = ref(1);
 
 const props = defineProps<{ invoice: InvoiceDetails, products: Array<any> }>();
 const showPopover = ref(false);
@@ -110,8 +113,14 @@ const handleEdit = () => {
 const handleChangeStatus = () => {
 };
 
+
+const showStyleDropdown = ref(false);
 const handleChangeStyle = () => {
-  alert('Change Style: This will allow you to switch between 3 invoice designs. (To be implemented)');
+  showStyleDropdown.value = !showStyleDropdown.value;
+};
+const selectInvoiceDesign = (design: number) => {
+  invoiceDesign.value = design;
+  showStyleDropdown.value = false;
 };
 
 const handleBack = () => {
@@ -173,12 +182,12 @@ const goToInvoicesIndex = () => {
         </div>
       </div>
       <Tabs default-value="invoice" class="mb-4 pl-3 bg-white dark:bg-[rgba(0,0,0,0)]">
-        <TabsList class="mb-5 gap-2 bg-gray-100 text-gray-900 dark:bg-[rgba(0,0,0,0)] dark:text-white border-none">
+        <TabsList class="mb-5 gap-2 bg-gray-50 text-gray-900 border border-gray-200 rounded-lg dark:bg-[rgba(0,0,0,0)] dark:text-gray-200 dark:border-neutral-900">
           <TabsTrigger
             v-for="([tabValue, tabLabel], idx) in Object.entries(tabs)"
             :key="tabValue"
             :value="tabValue"
-            class="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-[rgba(0,0,0,0)] dark:data-[state=active]:text-white"
+            class="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white rounded-md"
           >
             {{ tabLabel }}
           </TabsTrigger>
@@ -348,125 +357,19 @@ const goToInvoicesIndex = () => {
               </div>
             </div>
             <div class="flex-1 min-w-[240px] max-w-2xl mx-auto px-4 mt-13">
-              <div style="margin-top: -2.9rem;" lass="flex justify-end mb-4">
-                <Button variant="outline" class="flex items-center gap-2 ml-auto" style="margin-bottom: 12px;" @click="handleChangeStyle">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="w-4 h-4 mr-1"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
-                  {{ ui.changeStyle }}
-                </Button>
+              <div style="margin-top: -3.7rem;" class="flex justify-end mb-4">
               </div>
-              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm bg-white dark:bg-[rgba(0,0,0,0)] max-h-155 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent dark:text-white">
-                <div class="flex justify-between items-start mb-6">
-                  <div class="flex flex-col items-start justify-center gap-6 flex-1 min-w-[180px] text-left">
-                    <div>
-                      <div class="text-3xl font-bold mb-2">INVOICE</div>
-                      <div class="text-xs text-gray-500 dark:text-white mb-1">No: <span class="font-semibold text-gray-900 dark:text-white">{{ invoice.number }} / {{ invoice.id }}</span></div>
-                      <div class="text-xs text-gray-500 dark:text-white mb-1">Data:  <span class="font-semibold text-gray-900 dark:text-white">{{ invoice.created_at ? invoice.created_at.slice(0, 10) : '-' }}</span></div>
-                      <div class="text-xs text-gray-500 dark:text-white mb-1">Due Date:  <span class="font-semibold text-gray-900 dark:text-white">{{ invoice.due_date }}</span></div>
-                    </div>
-                    <div style="margin-top: 0.9rem;" class="flex flex-col items-center text-center max-w-xs">
-                      <div class="font-semibold text-gray-900 dark:text-white">{{ invoice.client_name || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">Address: {{ invoice.client_address || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">
-                        <template v-if="invoice.client_city || invoice.client_county || invoice.client_country">
-                          <template v-if="invoice.client_city">{{ invoice.client_city }}</template>
-                          <template v-if="invoice.client_city && invoice.client_county">, </template>
-                          <template v-if="invoice.client_county">{{ invoice.client_county }}</template>
-                          <template v-if="(invoice.client_city || invoice.client_county) && invoice.client_country">, </template>
-                          <template v-if="invoice.client_country">{{ invoice.client_country }}</template>
-                        </template>
-                        <template v-else>-</template>
-                      </div>
-                      <div class="text-xs text-gray-500 dark:text-white">CUI/CNP: {{ invoice.client_vat_code || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">Bank: {{ invoice.client_bank || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">IBAN: {{ invoice.client_iban || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">Phone: {{ invoice.client_phone || '-' }}</div>
-                    </div>
-                  </div>
-                  <div class="flex flex-col items-center w-64 min-w-[180px] gap-2 text-center">
-                    <img :src="($page.props.companyInfo as any)?.logo_url || '/favicon.svg'" alt="Company Logo" class="w-32 h-32 object-contain mb-2" />
-                    <div>
-                      <div class="font-semibold text-gray-900 dark:text-white">{{ ($page.props.companyInfo as any)?.company_name || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">Address: {{ ($page.props.companyInfo as any)?.address || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">
-                        <template v-if="($page.props.companyInfo as any)?.city || ($page.props.companyInfo as any)?.county || ($page.props.companyInfo as any)?.country">
-                          <template v-if="($page.props.companyInfo as any)?.city">{{ ($page.props.companyInfo as any)?.city }}</template>
-                          <template v-if="($page.props.companyInfo as any)?.city && ($page.props.companyInfo as any)?.county">, </template>
-                          <template v-if="($page.props.companyInfo as any)?.county">{{ ($page.props.companyInfo as any)?.county }}</template>
-                          <template v-if="((($page.props.companyInfo as any)?.city || ($page.props.companyInfo as any)?.county) && ($page.props.companyInfo as any)?.country)">, </template>
-                          <template v-if="($page.props.companyInfo as any)?.country">{{ ($page.props.companyInfo as any)?.country }}</template>
-                        </template>
-                        <template v-else>-</template>
-                      </div>
-                      <div class="text-xs text-gray-500 dark:text-white">Email: {{ ($page.props.companyInfo as any)?.email || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">Phone: {{ ($page.props.companyInfo as any)?.phone || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">IBAN: {{ ($page.props.companyInfo as any)?.iban || '-' }}</div>
-                      <div class="text-xs text-gray-500 dark:text-white">Bank: {{ ($page.props.companyInfo as any)?.bank || '-' }}</div>
-                    </div>
-                  </div>
+              <div>
+                <div class="flex justify-end mb-2">
+                  <Tabs v-model="invoiceDesign">
+                    <TabsList class="gap-2 bg-gray-50 text-gray-900 border border-gray-200 rounded-lg dark:bg-[rgba(0,0,0,0)] dark:text-gray-200 dark:border-neutral-900">
+                      <TabsTrigger :value="1" :class="'data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white rounded-md'">Design 1</TabsTrigger>
+                      <TabsTrigger :value="2" :class="'data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white rounded-md'">Design 2</TabsTrigger>
+                      <TabsTrigger :value="3" :class="'data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white rounded-md'">Design 3</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                 </div>
-                <div class="mb-4">
-                  <div class="text-xs font-semibold mb-2">{{ ui.productsServices }}</div>
-                  <div class="max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#262626]">
-                    <table class="min-w-full text-xs">
-                      <thead>
-                        <tr class="bg-gray-100 dark:bg-neutral-800">
-                          <th class="px-2 py-1 text-left">No.</th>
-                          <th class="px-2 py-1 text-left">Description</th>
-                          <th class="px-2 py-1 text-right">Qty</th>
-                          <th class="px-2 py-1 text-right">Unit Price</th>
-                          <th class="px-2 py-1 text-right">VAT</th>
-                          <th class="px-2 py-1 text-right">Discount</th>
-                          <th class="px-2 py-1 text-right">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="(product, idx) in products" :key="product.id">
-                          <td class="px-2 py-1">{{ idx + 1 }}</td>
-                          <td class="px-2 py-1">{{ product.product_name }}</td>
-                          <td class="px-2 py-1 text-right">{{ product.quantity }}</td>
-                          <td class="px-2 py-1 text-right">{{ product.converted_price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
-                          <td class="px-2 py-1 text-right">{{ (product.total - product.total_no_vat).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
-                          <td class="px-2 py-1 text-right">{{ (product.discount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
-                          <td class="px-2 py-1 text-right">{{ (product.total - (product.discount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
-                        </tr>
-                        <tr v-if="!products || products.length === 0">
-                          <td colspan="7" class="px-2 py-1 text-center text-gray-400">{{ ui.noItems }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div class="flex flex-col gap-2 mt-6 text-sm w-full max-w-xs ml-auto items-end">
-                  <div class="grid grid-cols-2 gap-x-4 w-full">
-                    <div class="flex flex-col gap-2 items-start">
-                      <span class="text-gray-500 dark:text-white">{{ ui.subtotal }}</span>
-                      <span class="text-gray-500 dark:text-white">{{ ui.discount }}</span>
-                      <span class="text-gray-500 dark:text-white">{{ ui.vat }}</span>
-                      <span class="text-gray-500 dark:text-white text-lg mt-2">{{ ui.total }}</span>
-                    </div>
-                    <div class="flex flex-col gap-2 items-end">
-                      <span class="font-semibold text-right">{{ (products?.reduce((sum, p) => parseFloat(sum) + parseFloat(p.total_no_vat), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
-                      <span class="font-semibold text-right">{{ (products?.reduce((sum, p) => sum + (p.discount || 0), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
-                      <span class="font-semibold text-right">{{ (products?.reduce((sum, p) => parseFloat(sum) + (p.total - p.total_no_vat), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
-                      <span class="font-bold text-red-600 dark:text-red-400 text-right text-lg mt-2">{{ invoice.total?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="flex justify-between items-end mt-8">
-                  <div class="text-xs text-gray-500 dark:text-gray-300">
-                  <div>{{ ui.paymentMethod }}</div>
-                  <div>
-                    IBAN: {{ ($page.props.companyInfo as any)?.iban || '-' }}
-                  </div>
-                  <div>
-                    Bank: {{ ($page.props.companyInfo as any)?.bank || '-' }}
-                  </div>
-                  </div>
-                  <div class="text-xs text-gray-500 text-right dark:text-gray-300">
-                    <div>{{ ui.issuedBy }} <span class="font-semibold text-gray-900 dark:text-white">{{ ($page.props.companyInfo as any)?.company_name || '-' }}</span></div>
-                    <div>{{ ui.signature }}</div>
-                  </div>
-                </div>
+                <component :is="invoiceDesign === 1 ? InvoiceDesign1 : invoiceDesign === 2 ? InvoiceDesign2 : InvoiceDesign3" :invoice="invoice" :products="products" />
               </div>
             </div>
           </div>
