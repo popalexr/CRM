@@ -9,49 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MoreVerticalIcon, SendIcon, FileTextIcon, EditIcon, XCircleIcon, CheckCircleIcon } from 'lucide-vue-next';
 import { InvoiceDetails } from '@/types/invoices';
 
-const ui = {
-  tabs: {
-    invoice: 'Invoice',
-    history: 'History',
-    notes: 'Notes',
-  },
-  notDue: 'Not due',
-  daysUntilDue: 'days until due',
-  totalAmount: 'Total Amount',
-  openAmount: 'Open Amount',
-  vatAmount: 'VAT. Amount',
-  dueDate: 'Due Date',
-  paidOnLabel: 'Paid On',
-  customerAvDelay: 'Customer av delay',
-  payments: 'Payments',
-  add: 'Add',
-  paidOn: 'Paid on',
-  noPayments: 'No payments yet.',
-  addPayment: 'Add Payment',
-  amount: 'Amount',
-  cancel: 'Cancel',
-  productsServices: 'Products / Services',
-  noItems: 'No items.',
-  subtotal: 'Subtotal:',
-  discount: 'Discount:',
-  vat: 'VAT:',
-  total: 'Total:',
-  paymentMethod: 'Payment method: Bank transfer',
-  issuedBy: 'Issued by:',
-  signature: 'Signature: ____________________',
-  changeStyle: 'Change Style',
-  historyContent: 'History content here...',
-  notesContent: 'Notes content here...',
-  voidInvoice: 'Void Invoice',
-  changeStatus: 'Change Status',
-  editInvoice: 'Edit Invoice',
-};
-
-const tabs = [
-  { value: 'invoice', label: ui.tabs.invoice },
-  { value: 'history', label: ui.tabs.history },
-  { value: 'notes', label: ui.tabs.notes }
-];
+import { ui, tabs } from '../../invoices_const';
 
 
 const props = defineProps<{ invoice: InvoiceDetails, products: Array<any> }>();
@@ -217,12 +175,12 @@ const goToInvoicesIndex = () => {
       <Tabs default-value="invoice" class="mb-4 pl-3 bg-white dark:bg-[rgba(0,0,0,0)]">
         <TabsList class="mb-5 gap-2 bg-gray-100 text-gray-900 dark:bg-[rgba(0,0,0,0)] dark:text-white border-none">
           <TabsTrigger
-            v-for="tab in tabs"
-            :key="tab.value"
-            :value="tab.value"
+            v-for="([tabValue, tabLabel], idx) in Object.entries(tabs)"
+            :key="tabValue"
+            :value="tabValue"
             class="data-[state=active]:bg-white data-[state=active]:text-black dark:data-[state=active]:bg-[rgba(0,0,0,0)] dark:data-[state=active]:text-white"
           >
-            {{ tab.label }}
+            {{ tabLabel }}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="invoice">
