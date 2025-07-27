@@ -33,6 +33,8 @@ return [
         'currency' => 'Monedă (ex: EUR, USD, RON)',
         'search_invoices' => 'Caută facturi...',
         'description' => 'Descriere produs',
+        'stock_new_value' => 'Valoare nouă stoc',
+        'stock_value' => 'Valoare',
     ],
 
     'tabs' => [
@@ -70,6 +72,12 @@ return [
         'delete' => 'Șterge',
         'back' => 'Înapoi',
         'add_new' => 'Adaugă produs nou',
+        'manage_stock' => 'Gestionare stoc',
+        'stock_add' => 'Adaugă în stoc',
+        'stock_subtract' => 'Scade din stoc',
+        'stock_set' => 'Setează stoc manual',
+        'cancel' => 'Anulează',
+        'save' => 'Salvează',
     ],
 
     'headings' => [
@@ -83,6 +91,9 @@ return [
         'get_started' => 'Începe prin a adăuga primul tău produs sau serviciu.',
         'no_invoices_found' => 'Nu au fost găsite facturi pentru acest produs.',
         'actions' => 'Acțiuni',
+        'stock_add' => 'Adaugă în stoc',
+        'stock_subtract' => 'Scade din stoc',
+        'stock_set' => 'Setează stoc manual',
     ],
 
     'messages' => [
@@ -96,6 +107,8 @@ return [
         'no_invoices_found' => 'Nu au fost găsite facturi pentru acest produs.',
         'no_notes_available' => 'Nu există note adăugate.',
         'changes_saved_note' => 'Notă: Schimbările de aici vor fi salvate când salvezi formularul produsului.',
+        'invalid_stock_value' => 'Introduceți o valoare validă.',
+        'stock_save_error' => 'Eroare la salvare.',
     ],
 
     'types' => [

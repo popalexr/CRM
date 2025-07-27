@@ -40,3 +40,32 @@ export interface ProductFormConfig {
         edit?: any;
     };
 }
+
+export interface ProductDetails {
+    id: number;
+    name: string;
+    image?: string;
+    type: 'product' | 'service';
+    price: number;
+    currency: string;
+    quantity?: number;
+    unit: string;
+    description?: string;
+    created_at: string;
+}
+
+export interface InvoiceDetails {
+    id: number;
+    client_id: number;
+    total: number;
+    currency: string;
+    status: string;
+    created_at: string;
+    payment_deadline?: string;
+}
+
+export interface Props {
+    product: ProductDetails;
+    formLabels: any;
+    associated_invoices?: InvoiceDetails[];
+}

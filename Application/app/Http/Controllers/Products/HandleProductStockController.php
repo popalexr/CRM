@@ -39,16 +39,16 @@ class HandleProductStockController extends Controller
 
     private function handleIncrement(Products $product, int $value): void
     {
-        $product->stock += $value;
+        $product->quantity = (int)$product->quantity + $value;
     }
 
     private function handleSubtract(Products $product, int $value): void
     {
-        $product->stock = max(0, $product->stock - $value);
+        $product->quantity = max(0, (int)$product->quantity - $value);
     }
 
     private function handleModify(Products $product, int $value): void
     {
-        $product->stock = $value;
+        $product->quantity = $value;
     }
 }

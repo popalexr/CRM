@@ -4,40 +4,17 @@ import { Head, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { ref } from 'vue';
+
+import Dialog from '@/components/ui/dialog/Dialog.vue';
+import DialogContent from '@/components/ui/dialog/DialogContent.vue';
+import DialogHeader from '@/components/ui/dialog/DialogHeader.vue';
+import DialogTitle from '@/components/ui/dialog/DialogTitle.vue';
+import DialogFooter from '@/components/ui/dialog/DialogFooter.vue';
 
 import ProfileHeader from '@/components/ProfileHeader.vue';
 import SearchInput from '@/components/SearchInput.vue';
-
-interface ProductDetails {
-    id: number;
-    name: string;
-    image?: string;
-    type: 'product' | 'service';
-    price: number;
-    currency: string;
-    quantity?: number;
-    unit: string;
-    description?: string;
-    created_at: string;
-}
-
-
-
-interface InvoiceDetails {
-    id: number;
-    client_id: number;
-    total: number;
-    currency: string;
-    status: string;
-    created_at: string;
-    payment_deadline?: string;
-}
-
-interface Props {
-    product: ProductDetails;
-    formLabels: any;
-    associated_invoices?: InvoiceDetails[];
-}
+import type { ProductDetails, InvoiceDetails, Props } from '@/types/products.d.ts';
 
 const props = defineProps<Props>();
 const formLabels = props.formLabels || {};
@@ -54,6 +31,55 @@ const entityData = computed(() => ({
 
 const handleBack = () => {
     router.visit(route('products.index'));
+};
+
+const showStockMenu = ref(false);
+const stockDialog = ref<'increment' | 'subtract' | 'modify' | null>(null);
+const stockValue = ref('');
+const stockLoading = ref(false);
+const stockError = ref('');
+
+const openStockDialog = (action: 'increment' | 'subtract' | 'modify') => {
+  stockDialog.value = action;
+  stockValue.value = '';
+  stockError.value = '';
+  showStockMenu.value = false;
+};
+
+const closeStockDialog = () => {
+  stockDialog.value = null;
+  stockValue.value = '';
+  stockError.value = '';
+};
+
+const handleStockSubmit = async () => {
+  stockLoading.value = true;
+  stockError.value = '';
+  try {
+    const value = parseInt(stockValue.value, 10);
+    if (isNaN(value) || value < 0) {
+      stockError.value = formLabels.messages?.invalid_stock_value || 'Please enter a valid value.';
+      stockLoading.value = false;
+      return;
+    }
+    await router.post(route('products.stock.handle', { id: props.product.id }), {
+      value,
+      action: stockDialog.value,
+    }, {
+      preserveScroll: true,
+      onFinish: () => {
+        stockLoading.value = false;
+        closeStockDialog();
+      },
+      onError: (err) => {
+        stockError.value = err.value || (formLabels.messages?.stock_save_error || 'Error saving.');
+        stockLoading.value = false;
+      }
+    });
+  } catch (e) {
+    stockError.value = formLabels.messages?.stock_save_error || 'Error saving.';
+    stockLoading.value = false;
+  }
 };
 </script>
 
@@ -80,6 +106,16 @@ const handleBack = () => {
                     <div class="bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
                     <div class="flex items-center justify-between mb-8">
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ formLabels.headings?.product_details || 'Product Details' }}</h3>
+                        <div v-if="product.type === 'product'" class="relative">
+                          <Button variant="outline" @click="showStockMenu = !showStockMenu">
+                          {{ formLabels.buttons?.manage_stock || 'Manage Stock' }}
+                          </Button>
+                          <div v-if="showStockMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded shadow-lg z-10">
+                            <button class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" @click="openStockDialog('increment')">{{ formLabels.buttons?.stock_add || 'Add to stock' }}</button>
+                            <button class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" @click="openStockDialog('subtract')">{{ formLabels.buttons?.stock_subtract || 'Subtract from stock' }}</button>
+                            <button class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" @click="openStockDialog('modify')">{{ formLabels.buttons?.stock_set || 'Set stock manually' }}</button>
+                          </div>
+                        </div>
                     </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-4">
@@ -114,7 +150,6 @@ const handleBack = () => {
                         </div>
                     </div>
 
-                    <!-- Tabelul cu facturi asociate, sub detaliile produsului, în aceeași coloană -->
                     <div class="space-y-6 mt-8">
                         <h3 class="text-lg font-semibold mb-4 dark:text-white">{{ formLabels.labels?.associated_invoices || 'Associated Invoices' }}</h3>
                         <div class="mb-4">
@@ -155,6 +190,37 @@ const handleBack = () => {
                         </div>
                     </div>
                 </div>
+                <Dialog v-if="stockDialog" open @close="closeStockDialog">
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {{
+                          stockDialog === 'increment' ? (formLabels.headings?.stock_add || 'Add to stock') :
+                          stockDialog === 'subtract' ? (formLabels.headings?.stock_subtract || 'Subtract from stock') :
+                          (formLabels.headings?.stock_set || 'Set stock manually')
+                        }}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div class="my-4">
+                      <input
+                        v-model="stockValue"
+                        type="number"
+                        min="0"
+                        class="w-full border rounded px-3 py-2"
+                        :placeholder="stockDialog === 'modify' ? (formLabels.placeholders?.stock_new_value || 'New stock value') : (formLabels.placeholders?.stock_value || 'Value')"
+                        @keyup.enter="handleStockSubmit"
+                        autofocus
+                      />
+                      <div v-if="stockError" class="text-red-500 text-sm mt-2">{{ stockError }}</div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" @click="closeStockDialog" :disabled="stockLoading">{{ formLabels.buttons?.cancel || 'Cancel' }}</Button>
+                      <Button @click="handleStockSubmit" :loading="stockLoading">
+                        {{ formLabels.buttons?.save || 'Save' }}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
             </div>
         </div>
     </AppLayout>

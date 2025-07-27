@@ -33,6 +33,8 @@ return [
         'currency' => 'Currency (e.g. EUR, USD, RON)',
         'search_invoices' => 'Search invoices...',
         'description' => 'Product description',
+        'stock_new_value' => 'New stock value',
+        'stock_value' => 'Value',
     ],
 
     'tabs' => [
@@ -70,6 +72,12 @@ return [
         'delete' => 'Delete',
         'back' => 'Back',
         'add_new' => 'Add New Product',
+        'manage_stock' => 'Manage Stock',
+        'stock_add' => 'Add to stock',
+        'stock_subtract' => 'Subtract from stock',
+        'stock_set' => 'Set stock manually',
+        'cancel' => 'Cancel',
+        'save' => 'Save',
     ],
 
     'headings' => [
@@ -83,6 +91,9 @@ return [
         'get_started' => 'Start by adding your first product or service.',
         'no_invoices_found' => 'No invoices found for this product.',
         'actions' => 'Actions',
+        'stock_add' => 'Add to stock',
+        'stock_subtract' => 'Subtract from stock',
+        'stock_set' => 'Set stock manually',
     ],
 
     'messages' => [
@@ -96,6 +107,8 @@ return [
         'no_invoices_found' => 'No invoices found for this product.',
         'no_notes_available' => 'No notes available.',
         'changes_saved_note' => 'Note: Changes here will be saved when you save the product form.',
+        'invalid_stock_value' => 'Please enter a valid value.',
+        'stock_save_error' => 'Error saving.',
     ],
 
     'types' => [
