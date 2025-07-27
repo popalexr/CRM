@@ -7,70 +7,64 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MoreVerticalIcon, SendIcon, FileTextIcon, EditIcon, XCircleIcon, CheckCircleIcon } from 'lucide-vue-next';
+import { InvoiceDetails } from '@/types/invoices';
 
-interface InvoiceDetails {
-  id: number;
-  number: string;
-  client_name: string;
-  date: string;
-  due_date: string;
-  status: string;
-  total: number;
-  currency: string;
-  products: Array<any>;
-  storno?: any;
-  sent: boolean;
-  payments?: Array<any>;
-  creditNote?: any;
-  document?: any;
-  client_address?: string;
-  client_city?: string;
-  client_country?: string;
-  client_county?: string;
-  client_vat_code?: string;
-  client_email?: string;
-  client_phone?: string;
-  client_bank?: string;
-  client_iban?: string;
-  created_at?: string;
-}
+const ui = {
+  tabs: {
+    invoice: 'Invoice',
+    history: 'History',
+    notes: 'Notes',
+  },
+  notDue: 'Not due',
+  daysUntilDue: 'days until due',
+  totalAmount: 'Total Amount',
+  openAmount: 'Open Amount',
+  vatAmount: 'VAT. Amount',
+  dueDate: 'Due Date',
+  paidOnLabel: 'Paid On',
+  customerAvDelay: 'Customer av delay',
+  payments: 'Payments',
+  add: 'Add',
+  paidOn: 'Paid on',
+  noPayments: 'No payments yet.',
+  addPayment: 'Add Payment',
+  amount: 'Amount',
+  cancel: 'Cancel',
+  productsServices: 'Products / Services',
+  noItems: 'No items.',
+  subtotal: 'Subtotal:',
+  discount: 'Discount:',
+  vat: 'VAT:',
+  total: 'Total:',
+  paymentMethod: 'Payment method: Bank transfer',
+  issuedBy: 'Issued by:',
+  signature: 'Signature: ____________________',
+  changeStyle: 'Change Style',
+  historyContent: 'History content here...',
+  notesContent: 'Notes content here...',
+  voidInvoice: 'Void Invoice',
+  changeStatus: 'Change Status',
+  editInvoice: 'Edit Invoice',
+};
+
+const tabs = [
+  { value: 'invoice', label: ui.tabs.invoice },
+  { value: 'history', label: ui.tabs.history },
+  { value: 'notes', label: ui.tabs.notes }
+];
+
 
 const props = defineProps<{ invoice: InvoiceDetails, products: Array<any> }>();
 const showPopover = ref(false);
 const showPaymentModal = ref(false);
 const payments = ref(props.invoice.payments ? [...props.invoice.payments] : []);
 
-const deletePayment = (idx: number) => {
-  if (!confirm('Are you sure you want to delete this payment?')) return;
-  inertiaRouter.post(
-    `/invoices/${props.invoice.id}/payments`,
-    {
-      _method: 'delete',
-      index: idx
-    },
-    {
-      preserveScroll: true,
-      onSuccess: (page) => {
-        const props: any = page.props;
-        if (props?.invoice?.payments) {
-          payments.value = [...props.invoice.payments];
-        } else {
-          window.location.reload();
-        }
-      },
-      onError: (errors) => {
-        alert('Failed to delete payment: ' + (errors?.message || ''));
-      }
-    }
-  );
-};
 const newPayment = ref({ amount: '', paid_on: '' });
 
 const openPaymentModal = () => {
   newPayment.value = { amount: '', paid_on: '' };
   showPaymentModal.value = true;
 };
-
 
 const addPayment = () => {
   if (!newPayment.value.amount || !newPayment.value.paid_on) return;
@@ -106,12 +100,6 @@ const openAmount = computed(() => {
   return props.invoice.total - (payments.value.reduce((sum, p) => sum + (p.amount || 0), 0) || 0);
 });
 
-const tabs = [
-  { value: 'invoice', label: 'Invoice' },
-  { value: 'history', label: 'History' },
-  { value: 'notes', label: 'Notes' },
-];
-
 const handleSend = () => {
   inertiaRouter.post(`/invoices/${props.invoice.id}/send`, {}, {
     onSuccess: () => {
@@ -122,42 +110,6 @@ const handleSend = () => {
     }
   });
 };
-
-const printInvoicePreview = () => {
-
-  const invoicePreview = document.querySelector('.max-w-2xl .rounded-xl.border.border-gray-200');
-  if (!invoicePreview) {
-    alert('Nu s-a găsit preview-ul facturii pentru printare!');
-    return;
-  }
-  const printWindow = window.open('', '', 'width=900,height=1200');
-  if (!printWindow) {
-    alert('Pop-up blocked! Permite pop-up-uri pentru a printa.');
-    return;
-  }
-  const styleTags = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map(el => el.outerHTML).join('\n');
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Invoice #${props.invoice.id}</title>
-        ${styleTags}
-        <style>
-          body { background: white !important; color: #222; margin:0; padding:0; }
-          @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-        </style>
-      </head>
-      <body>
-        <div style="margin:40px auto; max-width:900px;">${invoicePreview.outerHTML}</div>
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => {
-    printWindow.print();
-  }, 400);
-};
-
 
 const handleMarkAsPaid = () => {
   const today = new Date().toISOString().slice(0, 10);
@@ -197,10 +149,6 @@ const handleEdit = () => {
   router.visit(`/invoices/${props.invoice.id}/edit`);
 };
 
-const handleVoid = () => {
-};
-
-
 const handleChangeStatus = () => {
 };
 
@@ -235,7 +183,7 @@ const goToInvoicesIndex = () => {
             <SendIcon class="w-4 h-4 mr-2" />
             Send
           </Button>
-          <Button variant="outline" @click="printInvoicePreview">
+          <Button variant="outline">
             <FileTextIcon class="w-4 h-4 mr-2" />
             PDF
           </Button>
@@ -250,17 +198,17 @@ const goToInvoicesIndex = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem @click="handleVoid">
+              <DropdownMenuItem>
                 <XCircleIcon class="w-4 h-4 mr-2 text-rose-500" />
-                Stornează factura
+                {{ ui.voidInvoice }}
               </DropdownMenuItem>
               <DropdownMenuItem @click="handleChangeStatus">
                 <EditIcon class="w-4 h-4 mr-2 text-blue-500" />
-                Schimbă status
+                {{ ui.changeStatus }}
               </DropdownMenuItem>
               <DropdownMenuItem @click="handleEdit">
                 <EditIcon class="w-4 h-4 mr-2 text-gray-500" />
-                Editează factura
+                {{ ui.editInvoice }}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -335,10 +283,10 @@ const goToInvoicesIndex = () => {
                     <template v-else>
                       <span class="flex items-center bg-green-50 text-green-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-green-900/30 dark:text-green-400">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Not due
+                        {{ ui.notDue }}
                       </span>
                       <span class="text-xs text-green-600 font-medium dark:text-green-400">
-                        {{ Math.ceil((new Date(invoice.due_date).getTime() - new Date().getTime()) / (1000*60*60*24)) }} days until due
+                        {{ Math.ceil((new Date(invoice.due_date).getTime() - new Date().getTime()) / (1000*60*60*24)) }} {{ ui.daysUntilDue }}
                       </span>
                     </template>
                   </template>
@@ -346,23 +294,23 @@ const goToInvoicesIndex = () => {
               </div>
               <div class="grid grid-cols-2 gap-4 mb-6 bg-white dark:bg-[rgba(0,0,0,0)] rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
                 <div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Total Amount</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.totalAmount }}</div>
                   <div class="text-lg font-semibold text-red-600 dark:text-red-400">{{ invoice.total?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Open Amount</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.openAmount }}</div>
                   <div class="text-lg font-semibold dark:text-white">{{ openAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">VAT. Amount</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.vatAmount }}</div>
                   <div class="text-lg font-semibold dark:text-white">{{ (products?.reduce((sum, p) => sum + ((p.total || 0) - (p.total_no_vat || 0)), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Due Date</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.dueDate }}</div>
                   <div class="text-base font-medium dark:text-white">{{ invoice.due_date }}</div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Paid On</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.paidOnLabel }}</div>
                   <div class="text-base font-medium dark:text-white">
                     <template v-if="payments.length > 0 && openAmount <= 0">
                       {{
@@ -380,7 +328,7 @@ const goToInvoicesIndex = () => {
                   </div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Customer av delay</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.customerAvDelay }}</div>
                   <div class="text-base font-medium dark:text-white">
                     {{ invoice.due_date && invoice.payments && invoice.payments.length > 0 && invoice.payments[0].paid_on ?
                       (Math.max(0, Math.ceil(((new Date(invoice.payments[0].paid_on).getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)))) + ' days') : '-' }}
@@ -388,7 +336,7 @@ const goToInvoicesIndex = () => {
                 </div>
               </div>
                 <div class="flex items-center justify-between mt-6 mb-2">
-                  <div class="font-semibold text-lg">Payments</div>
+                    <div class="font-semibold text-lg">{{ ui.payments }}</div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -396,7 +344,7 @@ const goToInvoicesIndex = () => {
                     :disabled="openAmount <= 0"
                     @click="openAmount > 0 && openPaymentModal()"
                   >
-                    + Add
+                    {{ ui.add }}
                   </Button>
                 </div>
               <div class="flex flex-col gap-3 mb-6 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
@@ -407,7 +355,7 @@ const goToInvoicesIndex = () => {
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="text-base font-semibold text-gray-900 dark:text-white">{{ payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">Paid on <span class="font-medium">{{ payment.paid_on }}</span></div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.paidOn }} <span class="font-medium">{{ payment.paid_on }}</span></div>
                     </div>
                     <div class="text-xs text-gray-400">#{{ idx + 1 }}</div>
                   </div>
@@ -415,7 +363,7 @@ const goToInvoicesIndex = () => {
                 <template v-else>
                   <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[rgba(0,0,0,0)]/40 px-4 py-6 text-center text-xs text-gray-400">
                     <svg class="mx-auto mb-2 w-8 h-8 text-gray-300 dark:text-gray-700" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 8v4l2 2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9"/></svg>
-                    No payments yet.
+                    {{ ui.noPayments }}
                   </div>
                 </template>
               </div>
@@ -424,19 +372,19 @@ const goToInvoicesIndex = () => {
                 <div class="w-full max-w-xs rounded-2xl p-6 flex flex-col gap-5 shadow-2xl border border-gray-100 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)]">
                   <div class="font-semibold text-lg mb-2 text-gray-900 dark:text-white flex items-center gap-2">
                     <svg class="w-6 h-6 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Add Payment
+                    {{ ui.addPayment }}
                   </div>
                   <div class="flex flex-col gap-3">
-                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Amount</label>
+                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.amount }}</label>
                     <input v-model="newPayment.amount" type="number" min="0" step="0.01" placeholder="0.00" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
                   </div>
                   <div class="flex flex-col gap-3">
-                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Paid On</label>
+                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.paidOn }}</label>
                     <input v-model="newPayment.paid_on" type="date" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
                   </div>
                   <div class="flex gap-2 mt-2">
-                    <Button variant="outline" size="sm" class="flex-1 bg-gray-50 dark:bg-[rgba(0,0,0,0)] border-gray-200 dark:border-neutral-900 hover:bg-gray-100 dark:hover:bg-[rgba(0,0,0,0)]/80 text-gray-700 dark:text-gray-200" @click="showPaymentModal = false">Cancel</Button>
-                    <Button variant="default" size="sm" class="flex-1 bg-[rgba(0,0,0,0)] dark:bg-white text-white dark:text-black font-semibold shadow hover:bg-gray-800 dark:hover:bg-gray-200 dark:hover:bg-gray-100" @click="addPayment">Add</Button>
+                    <Button variant="outline" size="sm" class="flex-1 bg-gray-50 dark:bg-[rgba(0,0,0,0)] border-gray-200 dark:border-neutral-900 hover:bg-gray-100 dark:hover:bg-[rgba(0,0,0,0)]/80 text-gray-700 dark:text-gray-200" @click="showPaymentModal = false">{{ ui.cancel }}</Button>
+                    <Button variant="default" size="sm" class="flex-1 bg-[rgba(0,0,0,0)] dark:bg-white text-white dark:text-black font-semibold shadow hover:bg-gray-800 dark:hover:bg-gray-200 dark:hover:bg-gray-100" @click="addPayment">{{ ui.add }}</Button>
                   </div>
                 </div>
               </div>
@@ -445,22 +393,22 @@ const goToInvoicesIndex = () => {
               <div style="margin-top: -2.9rem;" lass="flex justify-end mb-4">
                 <Button variant="outline" class="flex items-center gap-2 ml-auto" style="margin-bottom: 12px;" @click="handleChangeStyle">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="w-4 h-4 mr-1"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
-                  Change Style
+                  {{ ui.changeStyle }}
                 </Button>
               </div>
-              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm bg-white dark:bg-[rgba(0,0,0,0)] max-h-155 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
+              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm bg-white dark:bg-[rgba(0,0,0,0)] max-h-155 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent dark:text-white">
                 <div class="flex justify-between items-start mb-6">
                   <div class="flex flex-col items-start justify-center gap-6 flex-1 min-w-[180px] text-left">
                     <div>
                       <div class="text-3xl font-bold mb-2">INVOICE</div>
-                      <div class="text-xs text-gray-500 mb-1">No: <span class="font-semibold text-gray-900">{{ invoice.number }} / {{ invoice.id }}</span></div>
-                      <div class="text-xs text-gray-500 mb-1">Data:  <span class="font-semibold text-gray-900">{{ invoice.created_at ? invoice.created_at.slice(0, 10) : '-' }}</span></div>
-                      <div class="text-xs text-gray-500 mb-1">Due Date:  <span class="font-semibold text-gray-900">{{ invoice.due_date }}</span></div>
+                      <div class="text-xs text-gray-500 dark:text-white mb-1">No: <span class="font-semibold text-gray-900 dark:text-white">{{ invoice.number }} / {{ invoice.id }}</span></div>
+                      <div class="text-xs text-gray-500 dark:text-white mb-1">Data:  <span class="font-semibold text-gray-900 dark:text-white">{{ invoice.created_at ? invoice.created_at.slice(0, 10) : '-' }}</span></div>
+                      <div class="text-xs text-gray-500 dark:text-white mb-1">Due Date:  <span class="font-semibold text-gray-900 dark:text-white">{{ invoice.due_date }}</span></div>
                     </div>
                     <div style="margin-top: 0.9rem;" class="flex flex-col items-center text-center max-w-xs">
-                      <div class="font-semibold text-gray-900">{{ invoice.client_name || '-' }}</div>
-                      <div class="text-xs text-gray-500">Address: {{ invoice.client_address || '-' }}</div>
-                      <div class="text-xs text-gray-500">
+                      <div class="font-semibold text-gray-900 dark:text-white">{{ invoice.client_name || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">Address: {{ invoice.client_address || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">
                         <template v-if="invoice.client_city || invoice.client_county || invoice.client_country">
                           <template v-if="invoice.client_city">{{ invoice.client_city }}</template>
                           <template v-if="invoice.client_city && invoice.client_county">, </template>
@@ -470,18 +418,18 @@ const goToInvoicesIndex = () => {
                         </template>
                         <template v-else>-</template>
                       </div>
-                      <div class="text-xs text-gray-500">CUI/CNP: {{ invoice.client_vat_code || '-' }}</div>
-                      <div class="text-xs text-gray-500">Bank: {{ invoice.client_bank || '-' }}</div>
-                      <div class="text-xs text-gray-500">IBAN: {{ invoice.client_iban || '-' }}</div>
-                      <div class="text-xs text-gray-500">Phone: {{ invoice.client_phone || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">CUI/CNP: {{ invoice.client_vat_code || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">Bank: {{ invoice.client_bank || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">IBAN: {{ invoice.client_iban || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">Phone: {{ invoice.client_phone || '-' }}</div>
                     </div>
                   </div>
                   <div class="flex flex-col items-center w-64 min-w-[180px] gap-2 text-center">
                     <img :src="($page.props.companyInfo as any)?.logo_url || '/favicon.svg'" alt="Company Logo" class="w-32 h-32 object-contain mb-2" />
                     <div>
-                      <div class="font-semibold text-gray-900">{{ ($page.props.companyInfo as any)?.company_name || '-' }}</div>
-                      <div class="text-xs text-gray-500">Address: {{ ($page.props.companyInfo as any)?.address || '-' }}</div>
-                      <div class="text-xs text-gray-500">
+                      <div class="font-semibold text-gray-900 dark:text-white">{{ ($page.props.companyInfo as any)?.company_name || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">Address: {{ ($page.props.companyInfo as any)?.address || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">
                         <template v-if="($page.props.companyInfo as any)?.city || ($page.props.companyInfo as any)?.county || ($page.props.companyInfo as any)?.country">
                           <template v-if="($page.props.companyInfo as any)?.city">{{ ($page.props.companyInfo as any)?.city }}</template>
                           <template v-if="($page.props.companyInfo as any)?.city && ($page.props.companyInfo as any)?.county">, </template>
@@ -491,15 +439,15 @@ const goToInvoicesIndex = () => {
                         </template>
                         <template v-else>-</template>
                       </div>
-                      <div class="text-xs text-gray-500">Email: {{ ($page.props.companyInfo as any)?.email || '-' }}</div>
-                      <div class="text-xs text-gray-500">Phone: {{ ($page.props.companyInfo as any)?.phone || '-' }}</div>
-                      <div class="text-xs text-gray-500">IBAN: {{ ($page.props.companyInfo as any)?.iban || '-' }}</div>
-                      <div class="text-xs text-gray-500">Bank: {{ ($page.props.companyInfo as any)?.bank || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">Email: {{ ($page.props.companyInfo as any)?.email || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">Phone: {{ ($page.props.companyInfo as any)?.phone || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">IBAN: {{ ($page.props.companyInfo as any)?.iban || '-' }}</div>
+                      <div class="text-xs text-gray-500 dark:text-white">Bank: {{ ($page.props.companyInfo as any)?.bank || '-' }}</div>
                     </div>
                   </div>
                 </div>
                 <div class="mb-4">
-                  <div class="text-xs font-semibold mb-2">Products / Services</div>
+                  <div class="text-xs font-semibold mb-2">{{ ui.productsServices }}</div>
                   <div class="max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#262626]">
                     <table class="min-w-full text-xs">
                       <thead>
@@ -524,7 +472,7 @@ const goToInvoicesIndex = () => {
                           <td class="px-2 py-1 text-right">{{ (product.total - (product.discount || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
                         </tr>
                         <tr v-if="!products || products.length === 0">
-                          <td colspan="7" class="px-2 py-1 text-center text-gray-400">No items.</td>
+                          <td colspan="7" class="px-2 py-1 text-center text-gray-400">{{ ui.noItems }}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -533,10 +481,10 @@ const goToInvoicesIndex = () => {
                 <div class="flex flex-col gap-2 mt-6 text-sm w-full max-w-xs ml-auto items-end">
                   <div class="grid grid-cols-2 gap-x-4 w-full">
                     <div class="flex flex-col gap-2 items-start">
-                      <span class="text-gray-500">Subtotal:</span>
-                      <span class="text-gray-500">Discount:</span>
-                      <span class="text-gray-500">VAT:</span>
-                      <span class="text-gray-500 text-lg mt-2">Total:</span>
+                      <span class="text-gray-500 dark:text-white">{{ ui.subtotal }}</span>
+                      <span class="text-gray-500 dark:text-white">{{ ui.discount }}</span>
+                      <span class="text-gray-500 dark:text-white">{{ ui.vat }}</span>
+                      <span class="text-gray-500 dark:text-white text-lg mt-2">{{ ui.total }}</span>
                     </div>
                     <div class="flex flex-col gap-2 items-end">
                       <span class="font-semibold text-right">{{ (products?.reduce((sum, p) => parseFloat(sum) + parseFloat(p.total_no_vat), 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</span>
@@ -547,14 +495,18 @@ const goToInvoicesIndex = () => {
                   </div>
                 </div>
                 <div class="flex justify-between items-end mt-8">
-                  <div class="text-xs text-gray-500">
-                    <div>Payment method: Bank transfer</div>
-                    <div>IBAN: RO49AAAA1B31007593840000</div>
-                    <div>Bank: BCR</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-300">
+                  <div>{{ ui.paymentMethod }}</div>
+                  <div>
+                    IBAN: {{ ($page.props.companyInfo as any)?.iban || '-' }}
                   </div>
-                  <div class="text-xs text-gray-500 text-right">
-                    <div>Issued by: <span class="font-semibold text-gray-900">{{ ($page.props.companyInfo as any)?.company_name || '-' }}</span></div>
-                    <div>Signature: ____________________</div>
+                  <div>
+                    Bank: {{ ($page.props.companyInfo as any)?.bank || '-' }}
+                  </div>
+                  </div>
+                  <div class="text-xs text-gray-500 text-right dark:text-gray-300">
+                    <div>{{ ui.issuedBy }} <span class="font-semibold text-gray-900 dark:text-white">{{ ($page.props.companyInfo as any)?.company_name || '-' }}</span></div>
+                    <div>{{ ui.signature }}</div>
                   </div>
                 </div>
               </div>
@@ -562,10 +514,10 @@ const goToInvoicesIndex = () => {
           </div>
         </TabsContent>
         <TabsContent value="history">
-          <div class="text-gray-500 italic">History content here...</div>
+          <div class="text-gray-500 italic">{{ ui.historyContent }}</div>
         </TabsContent>
         <TabsContent value="notes">
-          <div class="text-gray-500 italic">Notes content here...</div>
+          <div class="text-gray-500 italic">{{ ui.notesContent }}</div>
         </TabsContent>
       </Tabs>
     </div>
