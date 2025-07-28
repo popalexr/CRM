@@ -71,3 +71,40 @@ onBeforeUnmount(() => { dz?.destroy?.(); dz = null })
   >
   </div>
 </template>
+
+<style>
+.dropzone .dz-preview .dz-remove {
+    position: absolute;
+    top: 0.5rem; /* 8px */
+    right: 0.5rem; /* 8px */
+    width: 1.75rem; /* 28px */
+    height: 1.75rem; /* 28px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(239, 68, 68, 0.8); /* red-500 cu transparență */
+    color: white;
+    border-radius: 9999px; /* rounded-full */
+    text-decoration: none;
+    font-size: 0; /* Ascunde textul "Remove file" */
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 20;
+}
+
+.dropzone .dz-preview:hover .dz-remove {
+    opacity: 1; /* Afișează butonul la hover pe imagine */
+}
+
+.dropzone .dz-preview .dz-remove:hover {
+    background-color: rgb(220, 38, 38); /* red-600 */
+}
+
+/* Adaugă conținutul "X" folosind un pseudo-element */
+.dropzone .dz-preview .dz-remove::before {
+    content: '✕'; /* Caracterul "X" */
+    font-size: 0.875rem; /* 14px */
+    font-weight: bold;
+    line-height: 1;
+}
+</style>
