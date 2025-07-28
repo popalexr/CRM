@@ -24,3 +24,21 @@ export interface InvoiceDetails {
   client_iban?: string;
   created_at?: string;
 }
+
+export interface Invoice {
+  id: number
+  original_invoice_id?: number | null
+  client: {
+    name: string
+    image?: string | null
+  }
+  user: {
+    name: string
+    image?: string | null
+  }
+  total?: number | null
+  currency: string
+  status: 'draft' | 'submitted' | 'paid' | 'not_paid' | 'anulled' | 'corrected'
+  payment_deadline: string
+  created_at: string
+}

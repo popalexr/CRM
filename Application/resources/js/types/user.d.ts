@@ -174,3 +174,15 @@ export type UserPageProps = import('./index').AppPageProps & {
     user: UserDetails;
     formLabels: UserFormLabels;
 };
+
+export interface Props extends UserIndexProps {
+    users: User[];
+    formData?: {
+        labels: any;
+        buttons: any;
+        messages: any;
+        placeholders: any;
+        tabs: any;
+        config: any;
+    };
+}

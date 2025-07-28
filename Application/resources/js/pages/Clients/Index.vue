@@ -3,21 +3,10 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Client, type ClientPageProps } from '@/types';
 import { Head, usePage, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableHead, 
-    TableHeader, 
-    TableRow 
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Edit, Eye, MoreHorizontal, Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 import LaravelPagination from '@/components/LaravelPagination.vue';
@@ -129,7 +118,9 @@ const handleAddClient = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="client in clients" :key="client.id" @click="handleView(client.id)" class="cursor-pointer">
+                        <ContextMenu v-for="client in clients" :key="client.id">
+                          <ContextMenuTrigger as-child>
+                            <TableRow @click="handleView(client.id)" class="cursor-pointer">
                             <TableCell>
                                 <div class="flex items-center gap-3">
                                     <Avatar class="overflow-hidden aspect-square rounded-full h-10 w-10">
@@ -162,33 +153,52 @@ const handleAddClient = () => {
                             </TableCell>
 
                             <TableCell class="text-right" @click.stop>
-                              <ContextMenu>
-                                <ContextMenuTrigger as-child>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger as-child>
                                   <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
                                     <MoreHorizontal class="h-4 w-4" />
                                     <span class="sr-only">Open menu</span>
                                   </Button>
-                                </ContextMenuTrigger>
-                                <ContextMenuContent class="w-40">
-                                  <ContextMenuItem @click="handleView(client.id)" v-if="hasPermission('clients-view')">
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" class="w-40">
+                                  <DropdownMenuItem @click="handleView(client.id)" v-if="hasPermission('clients-view')">
                                     <Eye class="mr-2 h-4 w-4" />
                                     {{ formLabels.buttons.view }}
-                                  </ContextMenuItem>
-                                  <ContextMenuItem @click="handleEdit(client.id)" v-if="hasPermission('clients-form')">
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem @click="handleEdit(client.id)" v-if="hasPermission('clients-form')">
                                     <Edit class="mr-2 h-4 w-4" />
                                     {{ formLabels.buttons.edit }}
-                                  </ContextMenuItem>
-                                  <ContextMenuItem v-if="hasPermission('clients-delete')"
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem v-if="hasPermission('clients-delete')"
                                     @click="handleDelete(client.id)"
                                     class="text-red-600 focus:text-red-600"
                                   >
                                     <Trash2 class="mr-2 h-4 w-4" />
                                     {{ formLabels.buttons.delete }}
-                                  </ContextMenuItem>
-                                </ContextMenuContent>
-                              </ContextMenu>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </TableCell>
-                        </TableRow>
+                          </TableRow>
+                          </ContextMenuTrigger>
+                          <ContextMenuContent class="w-40">
+                            <ContextMenuItem @click="handleView(client.id)" v-if="hasPermission('clients-view')">
+                              <Eye class="mr-2 h-4 w-4" />
+                              {{ formLabels.buttons.view }}
+                            </ContextMenuItem>
+                            <ContextMenuItem @click="handleEdit(client.id)" v-if="hasPermission('clients-form')">
+                              <Edit class="mr-2 h-4 w-4" />
+                              {{ formLabels.buttons.edit }}
+                            </ContextMenuItem>
+                            <ContextMenuItem v-if="hasPermission('clients-delete')"
+                              @click="handleDelete(client.id)"
+                              class="text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 class="mr-2 h-4 w-4" />
+                              {{ formLabels.buttons.delete }}
+                            </ContextMenuItem>
+                          </ContextMenuContent>
+                        </ContextMenu>
                     </TableBody>
                 </Table>
 
