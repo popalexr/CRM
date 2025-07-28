@@ -35,9 +35,9 @@ class ClientsFormController extends Controller
         {
             return Inertia::render('Clients/Create', [
                 'formLabels' => $this->getFormLabels('clients'),
+                'currencies' => config('currencies'),
             ]);
         }
-
         if (blank($this->client))
         {
             return redirect()
@@ -49,6 +49,7 @@ class ClientsFormController extends Controller
             'client'         => $this->client,
             'clientContacts' => $this->getContactPersons(),
             'formLabels'     => $this->getFormLabels('clients'),
+            'currencies'     => config('currencies'),
         ]);
     }
 
@@ -114,6 +115,8 @@ class ClientsFormController extends Controller
             'currency'            => $request->input('currency'),
             'notes'               => $request->input('notes', null),
             'client_tva'          => $isClientTypeBusiness ? $request->boolean('client_tva') : true,
+            'currencies' => config('currencies'),
+
 
         ]);
 
@@ -151,6 +154,8 @@ class ClientsFormController extends Controller
             'currency'            => $request->input('currency'),
             'notes'               => $request->input('notes', null),
             'client_tva'          => $isClientTypeBusiness ? $request->boolean('client_tva') : true,
+            'currencies' => config('currencies'),
+
 
         ]);
 

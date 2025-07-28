@@ -36,12 +36,16 @@ class InvoicesFormController extends Controller
         }
 
         if (!$this->id) {
-            return Inertia::render('Invoices/Create');
+            return Inertia::render('Invoices/Create',[
+                'currencies' => config('currencies'),
+        ]);
         }
 
         return Inertia::render('Invoices/Edit', [
             'invoice' => $this->getInvoiceInfo(),
             'products' => $this->getInvoiceProducts(),
+            'currencies' => config('currencies'),
+            
         ]);
     }
 

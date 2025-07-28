@@ -16,7 +16,13 @@ import Dropzone from '@/components/Dropzone.vue';
 import { DEFAULT_PRODUCT_FORM_DATA } from '@/constants/products';
 import axios from 'axios';
 
-const props = defineProps<ProductCreateProps>();
+const props = defineProps<{
+  currencies: Record<string, string>, // ex: { RON: "Lei", EUR: "Euro" }
+  formConfig: any,
+  formLabels: any,
+  productTypes: any,
+  productFieldTypes: any
+}>()
 const page = usePage();
 
 
@@ -175,12 +181,23 @@ onBeforeMount(() => {
                                             <Label for="currency">{{ formLabels.labels?.currency || 'Currency' }}</Label>
                                             <InputError :message="form.errors.currency" />
                                         </div>
-                                        <Input 
-                                            id="currency" 
-                                            v-model="form.currency as string" 
-                                            :placeholder="formLabels.placeholders?.currency || 'Currency (e.g. EUR, USD, RON)'"
-                                        />
-                                    </div>
+                                        <Select v-model="form.currency as string" class="w-full">
+                                            <SelectTrigger class="w-full">
+                                            <SelectValue :placeholder="formLabels.placeholders?.currency || 'Select currency'" />
+                                            </SelectTrigger>
+                                            <SelectContent class="w-full">
+                                            <SelectGroup>
+                                                <SelectItem
+                                                v-for="(label, code) in props.currencies"
+                                                :key="code"
+                                                :value="code"
+                                                >
+                                                {{ label }} ({{ code }})
+                                                </SelectItem>
+                                            </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                        </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
                                             <Label for="vat_id">{{ formLabels.labels?.vat || 'VAT' }}</Label>

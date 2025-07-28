@@ -23,7 +23,15 @@ class InvoicesFormRequest extends FormRequest
     {
         return [
             'client_id' => 'required|integer|exists:clients,id',
-            'currency' => 'required|string',
+            'currency' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!in_array($value, array_keys(config('currencies')))) {
+                        $fail('The selected currency is invalid.');
+                    }
+                },
+            ],
             'payment_deadline' => 'required|date',
             'total' => 'required|numeric',
             'total_no_vat' => 'required|numeric',
@@ -40,7 +48,7 @@ class InvoicesFormRequest extends FormRequest
             'products.*.type' => 'required|string|in:product,service',
             'products.*.total_no_vat' => 'nullable|numeric',
             'products.*.total' => 'nullable|numeric',
-            'products.*.vat_amount' => 'nullable|numeric',
+            
         ];
     }
 
@@ -71,7 +79,7 @@ class InvoicesFormRequest extends FormRequest
             'products.*.vat_amount' => 'The VAT amount field is invalid.',
             'products.*.total_no_vat' => 'The total without VAT field is invalid.',
             'products.*.total' => 'The total field is invalid.',
-            'products.*.vat_amount' => 'The VAT amount field is invalid.',
+            
         ];
     }
 }

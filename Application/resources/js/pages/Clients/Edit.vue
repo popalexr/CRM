@@ -25,6 +25,12 @@ import ContactsFormManager from '@/components/ContactsFormManager.vue';
 import { Switch } from '@/components/ui/switch';
 import Dropzone from '@/components/Dropzone.vue';
 
+const props = defineProps<{
+    currencies: Record<string, string>;
+    client: any;
+    clientContacts: any[];
+}>();
+
 const page = usePage<ClientPageProps>();
 const formLabels = page.props.formLabels;
 
@@ -275,11 +281,22 @@ const uploadedFileRemoved = () => {
                                             <Label for="currency">{{ formLabels.labels.currency }}</Label>
                                             <InputError :message="form.errors.currency" />
                                         </div>
-                                        <Input
-                                            id="currency"
-                                            v-model="form.currency"
-                                            :placeholder="formLabels.placeholders.currency_example"
-                                        />
+                                        <Select v-model="form.currency" class="w-full">
+                                            <SelectTrigger>
+                                                <SelectValue :placeholder="formLabels.placeholders.currency_example" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    <SelectItem
+                                                        v-for="(label, code) in props.currencies"
+                                                        :key="code"
+                                                        :value="code"
+                                                    >
+                                                        {{ label }} ({{ code }})
+                                                    </SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
                                 <div class="mt-6 space-y-2">

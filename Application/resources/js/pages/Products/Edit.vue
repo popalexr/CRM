@@ -15,7 +15,16 @@ import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
 import axios from 'axios';
 
-const props = defineProps<Props>();
+const props = defineProps<{
+  product: any,
+  currencies: Record<string, string>,
+  formConfig: any,
+  formLabels: any,
+  productTypes: Record<string, string>,
+  productFieldTypes?: any
+}>();
+
+
 const page = usePage();
 
 
@@ -185,11 +194,22 @@ onBeforeMount(() => {
                                             <Label for="currency">{{ formLabels.labels?.currency || 'Currency' }}</Label>
                                             <InputError :message="form.errors.currency" />
                                         </div>
-                                        <Input 
-                                            id="currency" 
-                                            v-model="form.currency as string" 
-                                            :placeholder="formLabels.placeholders?.currency || 'Currency (e.g. EUR, USD, RON)'"
-                                        />
+                                        <Select v-model="form.currency" class="w-full">
+                                            <SelectTrigger class="w-full">
+                                                <SelectValue :placeholder="formLabels.placeholders?.currency || 'Select currency'" />
+                                            </SelectTrigger>
+                                            <SelectContent class="w-full">
+                                                <SelectGroup>
+                                                <SelectItem
+                                                    v-for="(label, code) in props.currencies"
+                                                    :key="code"
+                                                    :value="code"
+                                                >
+                                                    {{ label }} ({{ code }})
+                                                </SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                            </Select>
                                     </div>
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">

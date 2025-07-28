@@ -25,7 +25,15 @@ class ProductsFormRequest extends FormRequest
             'name'          => 'required|string|max:255',
             'type'          => 'required|in:' . $this->getProductTypes(),
             'price'         => 'required|numeric',
-            'currency'      => 'required|string|max:10',
+            'currency'      => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!in_array($value, array_keys(config('currencies')))) {
+                        $fail('The selected currency is invalid.');
+                    }
+                },
+            ],
             'vat_id'        => 'required|integer|exists:vat,id',
             'unit'          => 'nullable|string|max:50',
             'quantity'      => 'nullable|numeric',
@@ -33,7 +41,6 @@ class ProductsFormRequest extends FormRequest
             'image_file_id' => 'nullable|integer|exists:temporary_files,id',
         ];
     }
-
     /**
      * Get custom messages for validator errors.
      */

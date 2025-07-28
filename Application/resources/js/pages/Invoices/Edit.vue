@@ -38,7 +38,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = usePage().props;
+const props = defineProps<{
+  invoice: any,
+  products: any[],
+  currencies: Record<string, string>
+}>();
+
 
 const form = useForm({
     client_id: props.invoice.client_id,
@@ -227,11 +232,22 @@ onBeforeMount(() => {
                                     <Label for="currency">Currency</Label>
                                     <InputError :message="form.errors.currency" />
                                 </div>
-                                <Input 
-                                    id="currency" 
-                                    placeholder="Currency"
-                                    v-model="form.currency"
-                                />
+                                <Select v-model="form.currency" class="w-full">
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent class="w-full">
+                                        <SelectGroup>
+                                        <SelectItem
+                                            v-for="(label, code) in props.currencies"
+                                            :key="code"
+                                            :value="code"
+                                        >
+                                            {{ label }} ({{ code }})
+                                        </SelectItem>
+                                        </SelectGroup>
+                                    </SelectContent>
+                                    </Select>
                             </div>
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">

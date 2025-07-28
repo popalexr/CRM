@@ -40,6 +40,7 @@ class ProductsFormController extends Controller
                 'formLabels'        => $this->getFormLabels('products'),
                 'productTypes'      => config('products.product_types'),
                 'productFieldTypes' => config('products.field_types'),
+                'currencies'        => config('currencies'),
             ]);
         }
 
@@ -49,6 +50,7 @@ class ProductsFormController extends Controller
             'formLabels'        => $this->getFormLabels('products'),
             'productTypes'      => config('products.product_types'),
             'productFieldTypes' => config('products.field_types'),
+            'currencies'        => config('currencies'),
         ]);
     }
 
