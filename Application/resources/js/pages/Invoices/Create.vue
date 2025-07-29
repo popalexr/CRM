@@ -28,7 +28,8 @@ import { computed, onBeforeMount, reactive, ref, watch } from 'vue';
 
 
 const props = defineProps<{
-  currencies: Record<string, string>
+  currencies: Record<string, string>,
+  vatPayer: boolean,
 }>()
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -103,6 +104,10 @@ const addProductToList = (product: any) => {
             return (parseFloat(productElement.total_no_vat) + parseFloat(productElement.vat_amount)).toFixed(2);
         }),
     });
+
+    if (!props.vatPayer) {
+        productElement.vat = 0;
+    }
 
     axios.get(route('api.currencyRate', {
         currency_code: product.currency,

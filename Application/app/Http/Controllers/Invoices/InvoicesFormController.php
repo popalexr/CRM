@@ -8,6 +8,7 @@ use App\Models\Clients;
 use App\Models\Invoices;
 use App\Models\Products;
 use App\Models\ProductsToInvoice;
+use App\Models\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -40,14 +41,15 @@ class InvoicesFormController extends Controller
         if (!$this->id) {
             return Inertia::render('Invoices/Create',[
                 'currencies' => config('currencies'),
-        ]);
+                'vatPayer' => Settings::get('vat_payer', true),
+            ]);
         }
 
         return Inertia::render('Invoices/Edit', [
             'invoice' => $this->getInvoiceInfo(),
             'products' => $this->getInvoiceProducts(),
             'currencies' => config('currencies'),
-            
+            'vatPayer' => Settings::get('vat_payer', true),
         ]);
     }
 

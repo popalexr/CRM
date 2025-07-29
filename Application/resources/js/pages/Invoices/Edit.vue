@@ -39,9 +39,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const props = defineProps<{
-  invoice: any,
-  products: any[],
-  currencies: Record<string, string>
+    invoice: any,
+    products: any[],
+    currencies: Record<string, string>,
+    vatPayer: boolean,
 }>();
 
 
@@ -109,6 +110,10 @@ const addProductToList = (product: any) => {
             return (parseFloat(productElement.total_no_vat) + parseFloat(productElement.vat_amount)).toFixed(2);
         }),
     });
+
+    if (!props.vatPayer) {
+        productElement.vat = 0;
+    }
 
     axios.get(route('api.currencyRate', {
         currency_code: product.currency,
