@@ -14,10 +14,21 @@ class PaymentsFormRequest extends FormRequest
     public function rules()
     {
         return [
-            'id' => 'nullable|integer',
-            'invoice_id' => 'required|integer|exists:invoices,id',
             'amount_paid' => 'required|numeric|min:0.01',
-            'currency' => 'required|string|max:3',
+            'payment_date' => 'required|date',
+            'currency' => 'required|string|in:' . implode(',', array_keys(config('currencies'))),
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'amount_paid.required'  => 'The amount paid is required.',
+            'amount_paid'           => 'Invalid amount paid.',
+            'payment_date.required' => 'The payment date is required.',
+            'payment_date'          => 'The payment date is invalid.',
+            'currency.required'     => 'The currency is required.',
+            'currency'              => 'The currency is invalid.',
         ];
     }
 }

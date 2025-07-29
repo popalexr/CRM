@@ -5,19 +5,21 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Invoices\InvoicesController;
 use App\Http\Controllers\Invoices\DeleteInvoiceController;
 use App\Http\Controllers\Invoices\InvoicesFormController;
-use App\Http\Controllers\Invoices\InvoicePaymentsController;
-
+use App\Http\Controllers\Invoices\Payments\InvoicePaymentsFormController;
+use App\Http\Controllers\Invoices\SendInvoiceToClientController;
 
 Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function () {
     Route::get('/', InvoicesController::class)->name('index');
-    Route::get('/{invoice}/edit', [InvoicesController::class, 'edit'])->name('edit');
-    Route::put('/{invoice}', [InvoicesController::class, 'update'])->name('update');
     Route::get('/details', InvoiceDetailsController::class)->name('details');
     Route::get('/form', InvoicesFormController::class)->name('form');
-    Route::post('/{invoice}/payments', [InvoicePaymentsController::class, 'store'])->name('payments.store');
 
+    Route::post('/sendInvoice', [SendInvoiceToClientController::class, '__invoke'])->name('send_invoice');
     Route::post('/form', [InvoicesFormController::class, 'post'])->name('form.post');
+    
     Route::post('/delete', DeleteInvoiceController::class)->name('delete');
-    Route::post('/invoicePayments', [InvoicePaymentsFormController::class, '__invoke'])->name('invoice_payments');
+
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::post('/form', InvoicePaymentsFormController::class)->name('form.post');
+    });
 });
 
