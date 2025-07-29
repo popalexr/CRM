@@ -9,9 +9,9 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Eye, Trash2, Edit } from 'lucide-vue-next'
+import { MoreHorizontal, Eye, Trash2, Edit, Replace } from 'lucide-vue-next'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import { Invoice } from '@/types/invoices'
+import { parseDate, parseStatus, getStatusBadgeVariant } from '@/invoices_const'
 
 const props = defineProps<{ invoices: Invoice[] }>()
 
@@ -37,16 +37,6 @@ const handleView = (id: number) => {
 const handleDeleteConfirm = () => {
   if (!invoiceToDelete.value) return
 
-  // router.post(route('invoices.delete', { id: invoiceToDelete.value.id }), {}, {
-  //   preserveScroll: true,
-  //   onSuccess: () => {
-  //     handleDeleteCancel()
-  //   },
-  //   onError: () => {
-  //     handleDeleteCancel()
-  //   }
-  // })
-
   router.visit(route('invoices.delete', { id: invoiceToDelete.value.id }), {
     method: 'post',
   })
@@ -63,7 +53,11 @@ const isOverdue = (dateString: string) => {
   return new Date(dateString) < new Date()
 }
 
-import { parseDate, parseStatus, getStatusBadgeVariant } from '@/invoices_const'
+const handleStornoInvoice = (id: number) => {
+  router.visit(route('invoices.storno', { id: id }), {
+    method: 'post',
+  })
+}
 
 </script>
 
@@ -165,6 +159,10 @@ import { parseDate, parseStatus, getStatusBadgeVariant } from '@/invoices_const'
                             <Edit class="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
+                          <DropdownMenuItem @click="handleStornoInvoice(invoice.id)" v-if="!invoice.status.includes('draft', 'anulled', 'storno')">
+                            <Replace class="mr-2 h-4 w-4" />
+                            Storno
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             v-if="invoice.status === 'draft' || invoice.status === 'paid'"
                             @click="handleDeleteRequest(invoice)"
@@ -186,6 +184,10 @@ import { parseDate, parseStatus, getStatusBadgeVariant } from '@/invoices_const'
                   <ContextMenuItem @click="router.visit(route('invoices.form', { id: invoice.id }))" v-if="invoice.status === 'draft'">
                     <Edit class="mr-2 h-4 w-4" />
                     Edit
+                  </ContextMenuItem>
+                  <ContextMenuItem @click="handleStornoInvoice(invoice.id)" v-if="!invoice.status.includes('draft', 'anulled', 'storno')">
+                    <Replace class="mr-2 h-4 w-4" />
+                    Storno
                   </ContextMenuItem>
                   <ContextMenuItem
                     v-if="invoice.status === 'draft' || invoice.status === 'paid'"
