@@ -3,7 +3,14 @@
     <div class="bg-orange-500 h-4 w-full"></div>
     <div class="flex justify-between items-center px-10 pt-10 pb-2">
       <div class="flex flex-col gap-1">
-        <img :src="($page.props.companyInfo as any)?.logo_url || '/favicon.svg'" alt="Logo" class="w-16 h-16 object-contain mb-2" />
+      <div class="w-16 h-16 flex items-center justify-center bg-gray-300 text-white text-2xl font-bold uppercase rounded-full overflow-hidden mb-2">
+        <template v-if="logoUrl">
+          <img :src="logoUrl" alt="Logo" class="w-full h-full object-contain" />
+        </template>
+        <template v-else>
+          {{ companyInitial }}
+        </template>
+      </div>
         <span class="font-bold text-lg">{{ ($page.props.companyInfo as any)?.company_name || '-' }}</span>
       </div>
       <div class="flex flex-col items-end gap-1">
@@ -16,19 +23,39 @@
       <div class="text-xs font-semibold text-orange-700">Due: {{ invoice.due_date }}</div>
     </div>
     <div class="flex flex-row justify-between px-10 py-4 gap-8">
-      <div class="flex-1">
-        <div class="font-bold text-sm mb-1">Invoice to:</div>
-        <div class="text-xs font-semibold">{{ invoice.client_name || '-' }}</div>
-        <div class="text-xs text-gray-600">{{ invoice.client_address || '-' }}</div>
-        <div class="text-xs text-gray-600">CUI/CNP: {{ invoice.client_vat_code || '-' }}</div>
-      </div>
-      <div class="flex-1 text-xs text-right">
-        <div class="font-bold mb-1">Company</div>
-        <div>{{ ($page.props.companyInfo as any)?.address || '-' }}</div>
-        <div>IBAN: {{ ($page.props.companyInfo as any)?.iban || '-' }}</div>
-        <div>Bank: {{ ($page.props.companyInfo as any)?.bank || '-' }}</div>
-      </div>
+  <!-- Furnizor (dreapta) -->
+  <div class="flex-1 text-xs">
+    <div class="font-bold text-sm mb-1 text-gray-500">Furnizor</div>
+    <div class="font-semibold">{{ company.company_name || '-' }}</div>
+    <div>{{ company.address || '-' }}</div>
+    <div>IBAN: {{ company.iban || '-' }}</div>
+    <div>Bank: {{ company.bank || '-' }}</div>
+    <div>CUI: {{ company.cui || '-' }}</div>
+    <div>Nr. Înreg.: {{ company.registration_number || '-' }}</div>
+    <div>Email: {{ company.email || '-' }}</div>
+    <div>Phone: {{ company.phone || '-' }}</div>
+  </div>
+
+  <!-- Cumpărător (stânga) -->
+  <div class="flex-1 text-xs text-right">
+    <div class="font-bold text-sm mb-1 text-gray-500">Cumpărător</div>
+    <div class="font-semibold">{{ invoice.client_name || '-' }}</div>
+    <div>{{ invoice.client_address || '-' }}</div>
+    <div>
+      <template v-if="invoice.client_type === 'individual'">
+        CNP: {{ invoice.client_vat_code || '-' }}
+      </template>
+      <template v-else>
+        CUI: {{ invoice.client_vat_code || '-' }}
+      </template>
     </div>
+    <div>Nr. Înreg.: {{ invoice.client_registration_number || '-' }}</div>
+    <div>Bank: {{ invoice.client_bank || '-' }}</div>
+    <div>IBAN: {{ invoice.client_iban || '-' }}</div>
+    <div>Phone: {{ invoice.client_phone || '-' }}</div>
+  </div>
+</div>
+
     <div class="px-10">
       <table class="w-full text-xs border-t border-gray-200">
         <thead>
@@ -86,5 +113,22 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ invoice: any, products: any[] }>();
+import { usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
+
+defineProps<{ invoice: any, products: any[] }>()
+
+const page = usePage()
+const company = page.props.companyInfo as any || {}
+const settings = page.props.settings as any || {}
+
+const logoUrl = computed(() => {
+  if (company.logo_url) return company.logo_url
+  if (settings.logo_path) return `/storage/${settings.logo_path}`
+  return null
+})
+
+const companyInitial = computed(() => {
+  return company.company_name ? company.company_name[0].toUpperCase() : '?'
+})
 </script>
