@@ -10,36 +10,27 @@ class InvoicePaymentsController extends Controller
 {
     public function store(Request $request, $invoiceId)
     {
-        $invoice = Invoices::findOrFail($invoiceId);
-
-        // Handle delete payment
         if ($request->input('_method') === 'delete') {
-            $index = $request->input('index');
-            $payments = $invoice->payments ?? [];
-            if (is_numeric($index) && isset($payments[$index])) {
-                array_splice($payments, $index, 1);
-                $invoice->payments = $payments;
-                $invoice->save();
+            $paymentId = $request->input('payment_id');
+            if ($paymentId) {
+                \App\Models\InvoicesPayments::where('id', $paymentId)->where('invoice_id', $invoiceId)->delete();
             }
-            // Redirect with id as query parameter, matching route
-            return redirect()->route('invoices.details', ['id' => $invoice->id]);
+            return redirect()->route('invoices.details', ['id' => $invoiceId]);
         }
 
-        // Add payment
         $request->validate([
-            'amount' => 'required|numeric|min:0.01',
-            'paid_on' => 'required|date',
+            'amount_paid' => 'required|numeric|min:0.01',
+            'currency' => 'required|string|max:3',
+            'paid_at' => 'required|date',
         ]);
 
-        $payments = $invoice->payments ?? [];
-        $payments[] = [
-            'amount' => (float)$request->input('amount'),
-            'paid_on' => $request->input('paid_on'),
-        ];
-        $invoice->payments = $payments;
-        $invoice->save();
+        \App\Models\InvoicesPayments::create([
+            'invoice_id' => $invoiceId,
+            'amount_paid' => $request->input('amount_paid'),
+            'currency' => $request->input('currency'),
+            'paid_at' => $request->input('paid_at'),
+        ]);
 
-        // Redirect with id as query parameter, matching route
-        return redirect()->route('invoices.details', ['id' => $invoice->id]);
+        return redirect()->route('invoices.details', ['id' => $invoiceId]);
     }
 }
