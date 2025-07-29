@@ -100,8 +100,11 @@ const handleStornoInvoice = (id: number) => {
                 <ContextMenuTrigger as-child>
                   <TableRow @click="handleView(invoice.id)" class="cursor-pointer">
                     <TableCell>
-                      <span v-if="invoice.original_invoice_id">
-                        #{{ invoice.id }} → #{{ invoice.original_invoice_id }}
+                      <span v-if="invoice.status === 'anulled'">
+                        #{{ invoice.id }} → #{{ invoice.storno.storno_invoice_id }}
+                      </span>
+                      <span v-else-if="invoice.status === 'storno'">
+                        #{{ invoice.storno.original_invoice_id }} → #{{ invoice.id }}
                       </span>
                       <span v-else>#{{ invoice.id }}</span>
                     </TableCell>

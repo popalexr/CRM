@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Invoices;
 use App\Http\Controllers\Controller;
 use App\Models\Clients;
 use App\Models\Invoices;
+use App\Models\StornoInvoices;
 use App\Models\User;
 use Inertia\Inertia;
 
@@ -28,6 +29,8 @@ class InvoicesController extends Controller
         $invoices->map(function ($invoice) {
             $invoice['client'] = Clients::find($invoice['client_id'])->toArray();
             $invoice['user'] = User::find($invoice['created_by'])->toArray();
+
+            $invoice['storno'] = StornoInvoices::where('original_invoice_id', $invoice['id'])->orWhere('storno_invoice_id', $invoice['id'])->first();
 
             return $invoice;
         });
