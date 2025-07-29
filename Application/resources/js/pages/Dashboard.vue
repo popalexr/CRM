@@ -106,12 +106,16 @@ const chartOptions = {
     scales: {
         x: {
             grid: { display: false },
-            ticks: { color: '#111' },
+            ticks: {
+                color: document.documentElement.classList.contains('dark') ? '#fff' : '#111',
+            },
         },
         y: {
             beginAtZero: true,
             grid: { color: '#d1fae5' },
-            ticks: { color: '#111' },
+            ticks: {
+                color: document.documentElement.classList.contains('dark') ? '#fff' : '#111',
+            },
         },
     },
 };
@@ -182,7 +186,7 @@ const overdueInvoices: InfoListItem[] = props.overdueInvoices;
                     </Select>
                     <Button as-child variant="secondary" class="p-0 border-none shadow-none">
                         <Link :href="route('clients.form')"
-                              class="!bg-black text-white dark:bg-white dark:text-black hover:!bg-gray-900 dark:hover:bg-gray-200 rounded px-4 py-2 flex items-center">
+                              class="!bg-black text-white dark:!bg-white dark:!text-black hover:!bg-gray-900 dark:hover:!bg-gray-200 rounded px-4 py-2 flex items-center">
                             <Plus class="w-4 h-4 mr-2" /> Add Client
                         </Link>
                     </Button>
@@ -242,7 +246,7 @@ const overdueInvoices: InfoListItem[] = props.overdueInvoices;
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between">
                             <CardTitle>Reminder</CardTitle>
-                            <Button variant="outline" size="sm" @click="addReminder">Add Reminder</Button>
+                            <Button variant="outline" size="sm" class="dark:!bg-white dark:!text-black" @click="addReminder">Add Reminder</Button>
                         </CardHeader>
                         <CardContent class="flex flex-col items-center justify-center h-full">
                             <div class="text-center">
@@ -255,11 +259,13 @@ const overdueInvoices: InfoListItem[] = props.overdueInvoices;
                                     </div>
                                     <div class="text-sm text-muted-foreground mb-2">Time: {{ reminder.time }}</div>
                                     <div class="flex gap-2 mt-2 justify-start">
-                                        <Button variant="secondary" class="px-4" @click="finishReminder" :disabled="reminder.finished">Finish</Button>
+                                        <Button variant="secondary" class="px-4 dark:!bg-white dark:!text-black" @click="finishReminder" :disabled="reminder.finished">Finish</Button>
                                         <Button variant="destructive" class="px-4" @click="deleteReminder">Delete</Button>
                                     </div>
                                 </div>
-                                <div v-else class="text-muted-foreground">No reminder set.</div>
+                                <div v-else class="text-muted-foreground" style="min-height: 120px; display: flex; align-items: center; justify-content: center;">
+                                    No reminder set.
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
