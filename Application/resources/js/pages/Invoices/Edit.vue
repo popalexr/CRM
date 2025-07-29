@@ -89,7 +89,7 @@ const addProductToList = (product: any) => {
     const productVat = product.vat ? parseFloat(product.vat) : parseFloat(vats.value.find(v => v.id === product.vat_id)?.rate || 0);
 
     let productElement: any = reactive({
-        product_id: product.id,
+        id: product.id,
         name: product.name,
         price: parseFloat(product.price).toFixed(2),
         currency: product.currency,
@@ -120,6 +120,8 @@ const addProductToList = (product: any) => {
             productElement.converted_currency = response.data.currency_code;
 
             form.products.push(productElement);
+
+            console.log('Product added:', productElement);
         })
         .catch(error => {
             console.error('Error fetching currency rate:', error);
@@ -300,25 +302,28 @@ onBeforeMount(() => {
                                         </TableHead>
                                         <TableHead>
                                             <Input v-model="product.quantity" type="number" :placeholder="product.unit" />
+                                            <InputError :message="form.errors[`products.${index}.quantity`]" class="py-2" />
                                         </TableHead>
                                         <TableHead>
                                             <p v-if="product.vat !== null">{{ product.vat }}%</p>
                                             <Select @update:model-value="changeVat($event, product)" class="w-full" v-else>
-                                            <SelectTrigger class="w-full">
-                                                <SelectValue placeholder="No VAT selected." />
-                                            </SelectTrigger>
-                                            <SelectContent class="min-w-0 w-full">
-                                                <SelectGroup>
-                                                    <SelectItem 
-                                                        v-for="vat in vats" 
-                                                        :key="vat.id" 
-                                                        :value="vat.id"
-                                                    >
-                                                        {{ vat.rate }}%
-                                                    </SelectItem>
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
+                                                <SelectTrigger class="w-full">
+                                                    <SelectValue placeholder="No VAT selected." />
+                                                </SelectTrigger>
+                                                <SelectContent class="min-w-0 w-full">
+                                                    <SelectGroup>
+                                                        <SelectItem 
+                                                            v-for="vat in vats" 
+                                                            :key="vat.id" 
+                                                            :value="vat.id"
+                                                        >
+                                                            {{ vat.rate }}%
+                                                        </SelectItem>
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+
+                                            <InputError :message="form.errors[`products.${index}.vat`]" class="py-2" />
                                         </TableHead>
                                         <TableHead>
                                             <p v-if="product.vat !== null">

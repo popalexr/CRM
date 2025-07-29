@@ -23,7 +23,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { ArrowLeft, Plus, Trash } from 'lucide-vue-next';
+import { ArrowLeft, Plus, Trash, TriangleAlert } from 'lucide-vue-next';
 import { computed, onBeforeMount, reactive, ref, watch } from 'vue';
 
 
@@ -83,7 +83,7 @@ const addProductToList = (product: any) => {
     }
 
     let productElement: any = reactive({
-        product_id: product.id,
+        id: product.id,
         name: product.name,
         price: parseFloat(product.price).toFixed(2),
         currency: product.currency,
@@ -245,6 +245,7 @@ onBeforeMount(() => {
                             <Button 
                                 type="button"
                                 @click="openProductModal"
+                                v-if="form.products.length > 0"
                             >
                                 <Plus/>
                             </Button>
@@ -278,25 +279,28 @@ onBeforeMount(() => {
                                         </TableHead>
                                         <TableHead>
                                             <Input v-model="product.quantity" type="number" :placeholder="product.unit" />
+                                            <InputError :message="form.errors[`products.${index}.quantity`]" class="py-2" />
                                         </TableHead>
                                         <TableHead>
                                             <p v-if="product.vat !== null">{{ product.vat }}%</p>
                                             <Select @update:model-value="changeVat($event, product)" class="w-full" v-else>
-                                            <SelectTrigger class="w-full">
-                                                <SelectValue placeholder="No VAT selected." />
-                                            </SelectTrigger>
-                                            <SelectContent class="min-w-0 w-full">
-                                                <SelectGroup>
-                                                    <SelectItem 
-                                                        v-for="vat in vats" 
-                                                        :key="vat.id" 
-                                                        :value="vat.id"
-                                                    >
-                                                        {{ vat.rate }}%
-                                                    </SelectItem>
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
+                                                <SelectTrigger class="w-full">
+                                                    <SelectValue placeholder="No VAT selected." />
+                                                </SelectTrigger>
+                                                <SelectContent class="min-w-0 w-full">
+                                                    <SelectGroup>
+                                                        <SelectItem 
+                                                            v-for="vat in vats" 
+                                                            :key="vat.id" 
+                                                            :value="vat.id"
+                                                        >
+                                                            {{ vat.rate }}%
+                                                        </SelectItem>
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+
+                                            <InputError :message="form.errors[`products.${index}.vat`]" class="py-2" />
                                         </TableHead>
                                         <TableHead>
                                             <p v-if="product.vat !== null">
@@ -341,7 +345,7 @@ onBeforeMount(() => {
                             </Table>
                             <div v-else class="text-center text-muted-foreground">
                                 <div>No products added yet.</div>
-                                <Button variant="outline" class="mt-4" @click="form.products.push({ name: 'test', price: 1, vat: 19, quantity: 1, type: 'product' })">
+                                <Button variant="outline" class="mt-4" @click="openProductModal" type="button">
                                     Add Product
                                 </Button>
                             </div>

@@ -9,6 +9,7 @@ class ProductsToInvoice extends Model
     protected $table = 'products_to_invoice';
 
     protected $fillable = [
+        'product_id',
         'invoice_id',
         'product_name',
         'product_type',

@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoices\InvoicesFormRequest;
 use App\Models\Clients;
 use App\Models\Invoices;
+use App\Models\Products;
 use App\Models\ProductsToInvoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class InvoicesFormController extends Controller
@@ -75,6 +77,7 @@ class InvoicesFormController extends Controller
             ->map(function ($product) {
                 return [
                     'id' => $product->id,
+                    'product_id' => $product->product_id,
                     'name' => $product->product_name,
                     'type' => $product->product_type,
                     'price' => $product->price,
@@ -119,6 +122,7 @@ class InvoicesFormController extends Controller
 
             $this->createInvoice($formRequest);
             $this->addProductsToInvoice($formRequest);
+            $this->updateProductsStockOnCreation($formRequest);
 
             DB::commit();
         }
@@ -135,13 +139,22 @@ class InvoicesFormController extends Controller
 
             $this->editInvoice($formRequest);
 
+            $this->updateProductsStockOnUpdate($formRequest);
+            
             $this->deleteProductsFromInvoice();
             $this->addProductsToInvoice($formRequest);
+
 
             DB::commit();
         }
         catch (\Exception $e) {
             DB::rollBack();
+
+            Log::error('Failed to update invoice', [
+                'invoice_id' => $this->invoice->id,
+                'error' => $e->getMessage(),
+            ]);
+
             return redirect()->back()->with(['error' => 'Failed to update invoice.']);
         }
     }
@@ -192,6 +205,7 @@ class InvoicesFormController extends Controller
         foreach ($products as $product) {
             $productElement = [
                 'invoice_id' => $this->invoice->id,
+                'product_id' => $product['id'] ?? null,
                 'product_name' => $product['name'],
                 'product_type' => $product['type'],
                 'price' => $product['price'],
@@ -218,5 +232,64 @@ class InvoicesFormController extends Controller
         }
 
         return $client;
+    }
+
+    private function updateProductsStockOnCreation(InvoicesFormRequest $formRequest): void
+    {
+        $products = $formRequest->input('products', []);
+
+        foreach ($products as $product) {
+            if ($product['type'] === 'service') {
+                continue;
+            }
+
+            $productModel = Products::find($product['id']);
+
+            if (blank($productModel)) {
+                continue;
+            }
+
+            if ($productModel->quantity < $product['quantity']) {
+                throw new \Exception("Not enough stock for product ID {$product['id']}.");
+            }
+
+            $productModel->quantity -= $product['quantity'];
+            $productModel->save();
+        }
+    }
+
+    private function updateProductsStockOnUpdate(InvoicesFormRequest $formRequest): void
+    {
+        $products = $formRequest->input('products', []);
+
+        foreach ($products as $product) {
+            if ($product['type'] === 'service') {
+                continue;
+            }
+
+            if (!isset($product['id'])) {
+                continue;
+            }
+
+            $productModel = Products::find($product['id']);
+
+            if (blank($productModel)) {
+                continue;
+            }
+
+            $currentInvoiceProduct = ProductsToInvoice::where('product_id', $product['id'])
+                ->where('invoice_id', $this->invoice->id)
+                ->first();
+
+            if (blank($currentInvoiceProduct)) {
+                continue;
+            }
+
+            $currentQuantity = $currentInvoiceProduct->quantity;
+            $difference = $product['quantity'] - $currentQuantity;
+
+            $productModel->quantity -= $difference;
+            $productModel->save();
+        }
     }
 }
