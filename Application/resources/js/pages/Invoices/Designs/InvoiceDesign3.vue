@@ -19,7 +19,6 @@
         </div>
             </div>
     <div class="flex flex-col md:flex-row gap-10 p-10 border-b border-gray-200 dark:border-gray-800">
-  <!-- FURNIZOR - în STÂNGA -->
   <div class="flex-1">
     <div class="font-bold">Furnizor</div>
     <div class="text-xs">{{ company.company_name || '-' }}</div>
@@ -32,7 +31,6 @@
     <div class="text-xs">Telefon: {{ company.phone || '-' }}</div>
   </div>
 
-  <!-- CLIENT - în DREAPTA -->
   <div class="flex-1 flex flex-col items-end pr-2 text-right">
     <div class="font-bold">Cumpărător</div>
     <div class="text-xs">{{ invoice.client_name || '-' }}</div>
@@ -111,14 +109,12 @@ const page = usePage()
 const company = page.props.companyInfo as any || {}
 const settings = page.props.settings as any || {}
 
-// Logo din companyInfo sau fallback din settings
 const logoUrl = computed(() => {
   if (company.logo_url) return company.logo_url
   if (settings.logo_path) return `/storage/${settings.logo_path}`
   return null
 })
 
-// Prima literă din nume
 const companyInitial = computed(() => {
   return company.company_name ? company.company_name[0].toUpperCase() : '?'
 })

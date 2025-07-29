@@ -73,7 +73,7 @@ class InvoiceDetailsController extends Controller
 
     private function getCompanyInfo(): array
     {
-        $settings = Settings::all()->keyBy('name');
+        $settings = Settings::all()->keyBy('key');
 
         return [
             'company_name' => $settings->get('company_name')?->value ?? '',
@@ -88,6 +88,8 @@ class InvoiceDetailsController extends Controller
             'bank' => $settings->get('bank')?->value ?? '',
             'swift' => $settings->get('swift')?->value ?? '',
             'vat_payer' => filter_var($settings->get('vat_payer')?->value ?? false, FILTER_VALIDATE_BOOLEAN),
+            'cui' => $settings->get('cui')?->value ?? '',
+            'registration_number' => $settings->get('registration_number')?->value ?? '',
         ];
     }
 

@@ -23,7 +23,6 @@
       <div class="text-xs font-semibold text-orange-700">Due: {{ invoice.due_date }}</div>
     </div>
     <div class="flex flex-row justify-between px-10 py-4 gap-8">
-  <!-- Furnizor (dreapta) -->
   <div class="flex-1 text-xs">
     <div class="font-bold text-sm mb-1 text-gray-500">Furnizor</div>
     <div class="font-semibold">{{ company.company_name || '-' }}</div>
@@ -36,7 +35,6 @@
     <div>Phone: {{ company.phone || '-' }}</div>
   </div>
 
-  <!-- Cumpărător (stânga) -->
   <div class="flex-1 text-xs text-right">
     <div class="font-bold text-sm mb-1 text-gray-500">Cumpărător</div>
     <div class="font-semibold">{{ invoice.client_name || '-' }}</div>
