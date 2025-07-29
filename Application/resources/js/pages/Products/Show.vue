@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { ArrowLeftIcon } from 'lucide-vue-next';
+import { ArrowLeftIcon, PlusCircleIcon, MinusCircleIcon, Edit2Icon } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { ref } from 'vue';
 
@@ -102,7 +102,6 @@ const handleStockSubmit = async () => {
                     <ProfileHeader 
                         :entity="entityData"
                     />
-
                     <div class="bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
                     <div class="flex items-center justify-between mb-8">
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ formLabels.headings?.product_details || 'Product Details' }}</h3>
@@ -110,10 +109,19 @@ const handleStockSubmit = async () => {
                           <Button variant="outline" @click="showStockMenu = !showStockMenu">
                           {{ formLabels.buttons?.manage_stock || 'Manage Stock' }}
                           </Button>
-                          <div v-if="showStockMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded shadow-lg z-10">
-                            <button class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" @click="openStockDialog('increment')">{{ formLabels.buttons?.stock_add || 'Add to stock' }}</button>
-                            <button class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" @click="openStockDialog('subtract')">{{ formLabels.buttons?.stock_subtract || 'Subtract from stock' }}</button>
-                            <button class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800" @click="openStockDialog('modify')">{{ formLabels.buttons?.stock_set || 'Set stock manually' }}</button>
+                          <div v-if="showStockMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg z-10">
+                            <button class="w-full flex items-center gap-2 text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl " @click="openStockDialog('increment')">
+                              <PlusCircleIcon class="w-5 h-5 text-green-500" />
+                              <span>{{ formLabels.buttons?.stock_add || 'Add to stock' }}</span>
+                            </button>
+                            <button class="w-full flex items-center gap-2 text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl " @click="openStockDialog('subtract')">
+                              <MinusCircleIcon class="w-5 h-5 text-red-500" />
+                              <span>{{ formLabels.buttons?.stock_subtract || 'Subtract from stock' }}</span>
+                            </button>
+                            <button class="w-full flex items-center gap-2 text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl " @click="openStockDialog('modify')">
+                              <Edit2Icon class="w-5 h-5 text-blue-500" />
+                              <span>{{ formLabels.buttons?.stock_set || 'Set stock manually' }}</span>
+                            </button>
                           </div>
                         </div>
                     </div>

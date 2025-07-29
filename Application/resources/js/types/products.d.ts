@@ -13,15 +13,16 @@ export interface ProductFormData {
 }
 
 export interface Product {
-    id?: number;
-    name?: string;
-    type?: string;
-    price?: string | number;
-    vat_id?: number | null;
-    unit?: string;
-    currency?: string;
-    quantity?: string | number;
+    id: number;
+    name: string;
+    image?: string;
+    type: 'product' | 'service';
+    price: number;
+    currency: string;
+    quantity?: number;
+    unit: string;
     description?: string;
+    created_at: string;
 }
 
 export interface ProductFormConfig {
@@ -68,4 +69,9 @@ export interface Props {
     product: ProductDetails;
     formLabels: any;
     associated_invoices?: InvoiceDetails[];
+}
+
+export interface Props_ProductsIndex {
+    products: Product[];
+    formLabels: any;
 }

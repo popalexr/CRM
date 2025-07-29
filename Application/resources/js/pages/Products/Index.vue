@@ -9,26 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-vue-next';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Pencil } from 'lucide-vue-next';
+import { Product, Props_ProductsIndex } from '@/types/products';
 
-interface Product {
-    id: number;
-    name: string;
-    image?: string;
-    type: 'product' | 'service';
-    price: number;
-    currency: string;
-    quantity?: number;
-    unit: string;
-    description?: string;
-    created_at: string;
-}
 
-interface Props {
-    products: Product[];
-    formLabels: any;
-}
-
-const props = defineProps<Props>();
+const props = defineProps<Props_ProductsIndex>();
 const formLabels = props.formLabels || {};
 
 const showDeleteDialog = ref(false);
