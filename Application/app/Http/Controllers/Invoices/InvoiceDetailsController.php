@@ -29,10 +29,8 @@ class InvoiceDetailsController extends Controller
 
 
         $invoiceData = $this->invoice->toArray();
-        // Adaugă due_date pentru compatibilitate cu frontend-ul
         $invoiceData['due_date'] = $this->invoice->payment_deadline;
 
-        // Adaugă detalii client
         $client = $this->invoice->client_id ? \App\Models\Clients::find($this->invoice->client_id) : null;
         $invoiceData['client_name'] = $client?->client_name ?? '';
         $invoiceData['client_address'] = $client?->address ?? '';
@@ -50,7 +48,6 @@ class InvoiceDetailsController extends Controller
             ->get()
             ->toArray();
 
-        // Fetch company info from settings
         $settings = \App\Models\Settings::all()->keyBy('key');
         $companyInfo = [
             'company_name' => $settings->get('company_name')?->value ?? '',
@@ -71,6 +68,7 @@ class InvoiceDetailsController extends Controller
             'invoice' => $invoiceData,
             'products' => $products,
             'companyInfo' => $companyInfo,
+            'currencies' => config('currencies'),
         ]);
     }
 }

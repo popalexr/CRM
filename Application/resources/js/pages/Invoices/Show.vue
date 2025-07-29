@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MoreVerticalIcon, SendIcon, FileTextIcon, EditIcon, XCircleIcon, CheckCircleIcon } from 'lucide-vue-next';
+import Select from '@/components/ui/select/Select.vue';
+import SelectContent from '@/components/ui/select/SelectContent.vue';
+import SelectGroup from '@/components/ui/select/SelectGroup.vue';
+import SelectItem from '@/components/ui/select/SelectItem.vue';
+import SelectTrigger from '@/components/ui/select/SelectTrigger.vue';
+import SelectValue from '@/components/ui/select/SelectValue.vue';
 import { InvoiceDetails } from '@/types/invoices';
 
 import { ui, tabs } from '../../invoices_const';
@@ -15,25 +21,26 @@ import InvoiceDesign2 from './Designs/InvoiceDesign2.vue';
 import InvoiceDesign3 from './Designs/InvoiceDesign3.vue';
 const invoiceDesign = ref(1);
 
-const props = defineProps<{ invoice: InvoiceDetails, products: Array<any> }>();
+const props = defineProps<{ invoice: InvoiceDetails, products: Array<any>, currencies: Record<string, string> }>();
 const showPopover = ref(false);
 const showPaymentModal = ref(false);
 const payments = ref(props.invoice.payments ? [...props.invoice.payments] : []);
 
-const newPayment = ref({ amount: '', paid_on: '' });
+const newPayment = ref({ amount: '', paid_on: '', currency: '' });
 
 const openPaymentModal = () => {
-  newPayment.value = { amount: '', paid_on: '' };
+  newPayment.value = { amount: '', paid_on: '', currency: props.invoice.currency || '' };
   showPaymentModal.value = true;
 };
 
 const addPayment = () => {
-  if (!newPayment.value.amount || !newPayment.value.paid_on) return;
+  if (!newPayment.value.amount || !newPayment.value.paid_on || !newPayment.value.currency) return;
   inertiaRouter.post(
     `/invoices/${props.invoice.id}/payments`,
     {
       amount: newPayment.value.amount,
-      paid_on: newPayment.value.paid_on
+      paid_on: newPayment.value.paid_on,
+      currency: newPayment.value.currency
     },
     {
       preserveScroll: true,
@@ -335,8 +342,8 @@ const goToInvoicesIndex = () => {
                 </template>
               </div>
 
-              <div v-if="showPaymentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0)]/80 backdrop-blur-sm">
-                <div class="w-full max-w-xs rounded-2xl p-6 flex flex-col gap-5 shadow-2xl border border-gray-100 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)]">
+              <div v-if="showPaymentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0)]/80 backdrop-blur-sm" @click.self="showPaymentModal = false">
+                <div class="w-full max-w-xs rounded-2xl p-6 flex flex-col gap-5 shadow-2xl border border-gray-100 dark:border-neutral-900 bg-white dark:bg-black">
                   <div class="font-semibold text-lg mb-2 text-gray-900 dark:text-white flex items-center gap-2">
                     <svg class="w-6 h-6 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     {{ ui.addPayment }}
@@ -349,9 +356,24 @@ const goToInvoicesIndex = () => {
                     <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.paidOn }}</label>
                     <input v-model="newPayment.paid_on" type="date" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
                   </div>
+                  <div class="flex flex-col gap-3">
+                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Currency</label>
+                    <Select v-model="newPayment.currency" class="w-full">
+                      <SelectTrigger class="w-full">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent class="w-full">
+                        <SelectGroup>
+                          <SelectItem v-for="(label, code) in props.currencies" :key="code" :value="code">
+                            {{ label }} ({{ code }})
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div class="flex gap-2 mt-2">
                     <Button variant="outline" size="sm" class="flex-1 bg-gray-50 dark:bg-[rgba(0,0,0,0)] border-gray-200 dark:border-neutral-900 hover:bg-gray-100 dark:hover:bg-[rgba(0,0,0,0)]/80 text-gray-700 dark:text-gray-200" @click="showPaymentModal = false">{{ ui.cancel }}</Button>
-                    <Button variant="default" size="sm" class="flex-1 bg-[rgba(0,0,0,0)] dark:bg-white text-white dark:text-black font-semibold shadow hover:bg-gray-800 dark:hover:bg-gray-200 dark:hover:bg-gray-100" @click="addPayment">{{ ui.add }}</Button>
+                    <Button variant="outline" size="sm" class="flex-1 bg-gray-50 dark:bg-[rgba(0,0,0,0)] border-gray-200 dark:border-neutral-900 hover:bg-gray-100 dark:hover:bg-[rgba(0,0,0,0)]/80 text-gray-700 dark:text-gray-200" @click="addPayment">{{ ui.add }}</Button>
                   </div>
                 </div>
               </div>
