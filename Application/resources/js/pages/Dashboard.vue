@@ -14,7 +14,26 @@ import { getPeriodOptions } from '../periodOptions';
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
 const props = defineProps<DashboardProps>();
-const t = (key: string) => props.dashboardLang[key] || key;
+const t = (key: string) => {
+    const fallback: Record<string, string> = {
+        'dashboard': 'Dashboard',
+        'dashboard.total_clients': 'Total Clients',
+        'dashboard.issued_invoices': 'Issued Invoices',
+        'dashboard.overdue_invoices': 'Overdue Invoices',
+        'dashboard.period_revenue': 'Period Revenue',
+        'overview': 'Overview',
+        'select_period': 'Select period',
+        'add_client': 'Add Client',
+        'add_product': 'Add Product',
+        'monthly_revenue': 'Monthly Revenue',
+        'revenue_evolution': 'Revenue Evolution',
+        'top_clients': 'Top Clients',
+        'alerts': 'Alerts',
+        'no_clients': 'No clients',
+        'no_overdue': 'No overdue invoices',
+    };
+    return props.dashboardLang[key] || fallback[key] || key;
+};
 const selectedPeriod = ref(props.currentFilter);
 const periodOptions: PeriodOption[] = getPeriodOptions(t);
 
@@ -25,7 +44,7 @@ watch(() => props.currentFilter, (newVal) => {
 watch(selectedPeriod, (newValue) => {
     if (newValue !== props.currentFilter) {
         router.get(route('home'), { filter: newValue }, {
-            preserveState: true,
+            preserveState: false,
             preserveScroll: true,
         });
     }
@@ -54,6 +73,10 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: route('home'),
     },
 ];
+
+const stats: StatCard[] = props.stats;
+const topClients: InfoListItem[] = props.topClients;
+const overdueInvoices: InfoListItem[] = props.overdueInvoices;
 </script>
 
 <template>
@@ -89,7 +112,7 @@ const breadcrumbs: BreadcrumbItem[] = [
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card v-for="stat in stats" :key="stat.title">
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">{{ stat.title }}</CardTitle>
+                        <CardTitle class="text-sm font-medium">{{ t(stat.title) || stat.title }}</CardTitle>
                         <component :is="icons[stat.icon]" class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -110,7 +133,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">{{ t('top_clients') }}</CardTitle>
+                        <CardTitle class="text-sm font-medium">{{ t('top_clients') || 'Top Clients' }}</CardTitle>
                         <TrendingUp class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent class="space-y-4 pt-4">
@@ -120,7 +143,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <p class="text-sm text-muted-foreground">{{ client.value }}</p>
                             </div>
                         </div>
-                        <p v-else class="text-sm text-center text-muted-foreground py-4">{{ t('no_clients') }}</p>
+                        <p v-else class="text-sm text-center text-muted-foreground py-4">{{ t('no_clients') || 'No clients' }}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -128,17 +151,24 @@ const breadcrumbs: BreadcrumbItem[] = [
             <div class="grid grid-cols-1">
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">{{ t('alerts') }}</CardTitle>
-                        <AlertTriangle class="h-4 w-4 text-destructive" />
+                        <CardTitle class="text-sm font-medium">{{ t('alerts') || 'Alerts' }}</CardTitle>
+                        <AlertTriangle class="h-5 w-5 text-destructive animate-pulse" />
                     </CardHeader>
                     <CardContent class="space-y-4 pt-4">
                         <div v-if="overdueInvoices.length > 0">
-                            <div v-for="invoice in overdueInvoices" :key="invoice.name" class="flex items-center">
-                                <p class="text-sm font-medium flex-1 truncate">{{ invoice.name }}</p>
-                                <p class="text-sm text-red-600">{{ invoice.value }}</p>
+                            <div v-for="invoice in overdueInvoices" :key="invoice.name"
+                                class="flex items-center rounded-lg border px-3 py-2 mb-2 shadow-sm border-gray-200 bg-white dark:border-gray-800 dark:bg-[rgba(0,0,0,0)]">
+                                <div class="flex-1">
+                                    <p class="text-base font-semibold text-gray-900 dark:text-white truncate">{{ invoice.name }}</p>
+                                    <p class="text-xs text-red-600">{{ invoice.value }}</p>
+                                </div>
+                                <span class="ml-2 px-2 py-1 rounded bg-red-100 text-xs text-red-800 font-bold">Overdue</span>
+                                <a :href="route('invoices.details', { id: invoice.id })"
+                                   class="ml-4 px-3 py-1 rounded text-xs font-semibold transition bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                                >View Invoice</a>
                             </div>
                         </div>
-                        <p v-else class="text-sm text-center text-muted-foreground py-4">{{ t('no_overdue') }}</p>
+                        <p v-else class="text-sm text-center text-muted-foreground py-4">{{ t('no_overdue') || 'No overdue invoices' }}</p>
                     </CardContent>
                 </Card>
             </div>

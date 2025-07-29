@@ -17,7 +17,6 @@ export interface PageProps {
     auth: any;
     ziggy?: any;
     sidebarOpen?: boolean;
-    // Add other global props as needed
 }
 
 export interface ClientPageProps extends PageProps {
@@ -40,8 +39,10 @@ export interface StatCard {
 }
 
 export interface InfoListItem {
+    id: number;
     name: string;
     value: string;
+    url?: string;
 }
 
 export interface DashboardProps {
