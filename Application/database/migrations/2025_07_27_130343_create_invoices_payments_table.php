@@ -13,9 +13,7 @@ return new class extends Migration
     {
         Schema::create('invoices_payments', function (Blueprint $table) {
             $table->id();
-            
-            // Cheia externă către tabelul 'invoices'
-            // Se va șterge în cascadă: dacă se șterge o factură, se șterg și plățile asociate.
+
             $table->foreignId('invoice_id')->constrained('invoices')->onDelete('cascade');
             
             $table->decimal('amount_paid', 10, 2);
