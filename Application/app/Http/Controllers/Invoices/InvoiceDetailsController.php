@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Invoices;
 
 use App\Http\Controllers\Controller;
+use App\Models\Clients;
 use App\Models\Invoices;
+use App\Models\InvoicesPayments;
 use App\Models\ProductsToInvoice;
+use App\Models\Settings;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -26,30 +29,53 @@ class InvoiceDetailsController extends Controller
             return redirect()->route('invoices.index')->with(['error' => 'Invoice not found.']);
         }
 
-        $this->invoice->load('payments');
+        return Inertia::render('Invoices/Show', [
+            'invoice' => $this->getInvoiceInfo(),
+            'products' => $this->getInvoiceProducts(),
+            'companyInfo' => $this->getCompanyInfo(),
+            'payments' => $this->getPayments(),
+            'currencies' => config('currencies'),
+        ]);
+    }
 
-        $invoiceData = $this->invoice->toArray();
-        $invoiceData['due_date'] = $this->invoice->payment_deadline;
+    private function getInvoiceInfo(): array
+    {
+        $client = Clients::find($this->invoice->client_id);
 
-        $client = $this->invoice->client_id ? \App\Models\Clients::find($this->invoice->client_id) : null;
-        $invoiceData['client_name'] = $client?->client_name ?? '';
-        $invoiceData['client_address'] = $client?->address ?? '';
-        $invoiceData['client_city'] = $client?->city ?? '';
-        $invoiceData['client_county'] = $client?->county ?? '';
-        $invoiceData['client_country'] = $client?->country ?? '';
-        $invoiceData['client_vat_code'] = $client?->cui ?? '';
-        $invoiceData['client_bank'] = $client?->bank_name ?? '';
-        $invoiceData['client_iban'] = $client?->iban ?? '';
-        $invoiceData['client_phone'] = $client?->client_phone ?? '';
-        $invoiceData['client_email'] = $client?->client_email ?? '';
+        if (blank($client)) {
+            return [];
+        }
 
-        $products = ProductsToInvoice::where('invoice_id', $this->id)
+        return array_merge(
+            $this->invoice->toArray(),
+            [
+                'client_name' => $client->client_name,
+                'client_address' => $client->address,
+                'client_city' => $client->city,
+                'client_county' => $client->county,
+                'client_country' => $client->country,
+                'client_vat_code' => $client->cui,
+                'client_bank' => $client->bank_name,
+                'client_iban' => $client->iban,
+                'client_phone' => $client->client_phone,
+                'client_email' => $client->client_email,
+            ]
+        );
+    }
+
+    private function getInvoiceProducts(): array
+    {
+        return ProductsToInvoice::where('invoice_id', $this->invoice->id)
             ->orderBy('id', 'asc')
             ->get()
             ->toArray();
+    }
 
-        $settings = \App\Models\Settings::all()->keyBy('key');
-        $companyInfo = [
+    private function getCompanyInfo(): array
+    {
+        $settings = Settings::all()->keyBy('name');
+
+        return [
             'company_name' => $settings->get('company_name')?->value ?? '',
             'company_type' => $settings->get('company_type')?->value ?? '',
             'address' => $settings->get('address')?->value ?? '',
@@ -63,12 +89,13 @@ class InvoiceDetailsController extends Controller
             'swift' => $settings->get('swift')?->value ?? '',
             'vat_payer' => filter_var($settings->get('vat_payer')?->value ?? false, FILTER_VALIDATE_BOOLEAN),
         ];
+    }
 
-        return Inertia::render('Invoices/Show', [
-            'invoice' => $invoiceData,
-            'products' => $products,
-            'companyInfo' => $companyInfo,
-            'currencies' => config('currencies'),
-        ]);
+    private function getPayments(): array
+    {
+        return InvoicesPayments::where('invoice_id', $this->invoice->id)
+            ->orderBy('paid_at', 'desc')
+            ->get()
+            ->toArray();
     }
 }

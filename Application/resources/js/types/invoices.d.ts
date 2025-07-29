@@ -3,7 +3,7 @@ export interface InvoiceDetails {
   number: string;
   client_name: string;
   date: string;
-  due_date: string;
+  payment_deadline: string;
   status: string;
   total: number;
   currency: string;

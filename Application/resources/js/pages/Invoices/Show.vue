@@ -2,7 +2,6 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
-import { router as inertiaRouter } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -19,92 +18,71 @@ import { ui, tabs } from '../../invoices_const';
 import InvoiceDesign1 from './Designs/InvoiceDesign1.vue';
 import InvoiceDesign2 from './Designs/InvoiceDesign2.vue';
 import InvoiceDesign3 from './Designs/InvoiceDesign3.vue';
+import axios from 'axios';
+import InputError from '@/components/InputError.vue';
 const invoiceDesign = ref(1);
 
-const props = defineProps<{ invoice: InvoiceDetails, products: Array<any>, currencies: Record<string, string> }>();
+const props = defineProps<{ invoice: InvoiceDetails, products: Array<any>, payments: Array<any>, currencies: Record<string, string> }>();
 const showPopover = ref(false);
 const showPaymentModal = ref(false);
-const payments = ref(props.invoice.payments ? [...props.invoice.payments] : []);
+const payments = ref(props.payments);
 
-const newPayment = ref({ amount_paid: '', paid_at: '', currency: '' });
+const newPayment = ref({ amount_paid: '', payment_date: '', currency: '' });
+const newPaymentErrors = ref({
+  amount_paid: '',
+  payment_date: '',
+  currency: ''
+});
 
 const openPaymentModal = () => {
-  newPayment.value = { amount_paid: '', paid_at: '', currency: props.invoice.currency || '' };
+  newPayment.value = { amount_paid: '', payment_date: '', currency: props.invoice.currency || '' };
   showPaymentModal.value = true;
 };
 
 const addPayment = () => {
-  if (!newPayment.value.amount_paid || !newPayment.value.paid_at || !newPayment.value.currency) return;
-  inertiaRouter.post(
-    `/invoices/${props.invoice.id}/payments`,
-    {
-      amount_paid: newPayment.value.amount_paid,
-      paid_at: newPayment.value.paid_at,
-      currency: newPayment.value.currency
-    },
-    {
-      preserveScroll: true,
-      onSuccess: (page) => {
-        const props: any = page.props;
-        if (props?.invoice?.payments) {
-          payments.value = [...props.invoice.payments];
-          const open = props.invoice.total - (props.invoice.payments.reduce((sum: number, p: any) => sum + (p.amount_paid || 0), 0) || 0);
-          if (open <= 0) {
-            props.invoice.status = 'paid';
-          }
-        } else {
-          window.location.reload();
-        }
-        showPaymentModal.value = false;
-      },
-      onError: (errors) => {
-        alert('Failed to save payment: ' + (errors?.message || ''));
+  newPaymentErrors.value = {
+    amount_paid: '',
+    payment_date: '',
+    currency: ''
+  };
+
+  axios.post(route('invoices.payments.form.post', { id: props.invoice.id }), newPayment.value)
+    .then(response => {
+      const payment = response.data;
+      payments.value.push(payment);
+      showPaymentModal.value = false;
+
+      window.location.reload();
+    })
+    .catch(error => {
+      console.error('Failed to add payment:', error);
+
+      if (error.response && error.response.data && error.response.data.errors) {
+        const errors = error.response.data.errors;
+        newPaymentErrors.value.amount_paid = errors.amount_paid ? errors.amount_paid[0] : '';
+        newPaymentErrors.value.payment_date = errors.payment_date ? errors.payment_date[0] : '';
+        newPaymentErrors.value.currency = errors.currency ? errors.currency[0] : '';
       }
-    }
-  );
+    });
 };
 
 const openAmount = computed(() => {
-  return props.invoice.total - (payments.value.reduce((sum, p) => sum + (p.amount_paid || 0), 0) || 0);
+  return props.invoice.total - (payments.value.reduce((sum, p) => sum + (parseFloat(p.converted_amount_paid) || 0), 0) || 0);
 });
 
 const handleSend = () => {
-  inertiaRouter.post(`/invoices/${props.invoice.id}/send`, {}, {
-    onSuccess: () => {
-      alert('Invoice sent to client!');
-    },
-    onError: (errors) => {
-      alert('Failed to send invoice: ' + (errors?.message || ''));
-    }
+  router.visit(route('invoices.send_invoice', {id: props.invoice.id}), {
+    method: 'post',
+    preserveScroll: true,
   });
 };
 
 const handleMarkAsPaid = () => {
-  const today = new Date().toISOString().slice(0, 10);
-  const open = openAmount.value;
-  if (open <= 0) {
-    alert('Invoice is already fully paid.');
-    return;
-  }
-  inertiaRouter.post(
-    `/invoices/${props.invoice.id}/payments`,
-    {
-      amount_paid: open,
-      paid_at: today,
-      currency: props.invoice.currency 
-
-    },
-    {
-      preserveScroll: true,
-      onError: (errors) => {
-        alert('Failed to save payment: ' + (errors?.message || ''));
-      }
-    }
-  );
+  // TODO: Implement mark as paid logic
 };
 
 const handleEdit = () => {
-  router.visit(`/invoices/${props.invoice.id}/edit`);
+  router.visit(route('invoices.form', { id: props.invoice.id }));
 };
 
 const handleChangeStatus = () => {
@@ -193,15 +171,15 @@ const goToInvoicesIndex = () => {
           <div class="flex flex-col md:flex-row gap-8">
             <div class="flex-1 min-w-[340px] max-w-[420px] flex flex-col gap-4 pl-1">              
               <div class="flex items-center gap-4 mb-4">
-                <template v-if="invoice.due_date">
+                <template v-if="invoice.payment_deadline">
                   <template v-if="payments.length > 0">
                     <template v-if="openAmount <= 0">
-                      <template v-if="payments.every(p => new Date(p.paid_at) <= new Date(invoice.due_date))">
+                      <template v-if="payments.every(p => new Date(p.paid_at) <= new Date(invoice.payment_deadline))">
                         <span class="flex items-center bg-green-50 text-green-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-green-900/30 dark:text-green-400">
                           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                           On time
                         </span>
-                        <span class="text-xs text-green-600 font-medium dark:text-green-400">Paid on {{ payments[payments.length-1].paid_at }}</span>
+                        <span class="text-xs text-green-600 font-medium dark:text-green-400">Paid on {{ new Date(payments[0].paid_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
                       </template>
                       <template v-else>
                         <span class="flex items-center bg-red-50 text-red-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-red-900/30 dark:text-red-400">
@@ -209,18 +187,18 @@ const goToInvoicesIndex = () => {
                           Overdue
                         </span>
                         <span class="text-xs text-red-500 font-medium dark:text-red-400">
-                          Paid {{ Math.ceil((new Date(payments[payments.length-1].paid_at).getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)) }} days late
+                          Paid {{ Math.ceil((new Date(payments[payments.length-1].paid_at).getTime() - new Date(invoice.payment_deadline).getTime()) / (1000*60*60*24)) }} days late
                         </span>
                       </template>
                     </template>
                     <template v-else>
-                      <template v-if="new Date() > new Date(invoice.due_date)">
+                      <template v-if="new Date() > new Date(invoice.payment_deadline)">
                         <span class="flex items-center bg-red-50 text-red-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-red-900/30 dark:text-red-400">
                           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                           Overdue
                         </span>
                         <span class="text-xs text-red-500 font-medium dark:text-red-400">
-                          {{ Math.ceil((new Date().getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)) }} days overdue, partial payment
+                          {{ Math.ceil((new Date().getTime() - new Date(invoice.payment_deadline).getTime()) / (1000*60*60*24)) }} days overdue, partial payment
                         </span>
                       </template>
                       <template v-else>
@@ -229,19 +207,19 @@ const goToInvoicesIndex = () => {
                           Partial payment
                         </span>
                         <span class="text-xs text-yellow-600 font-medium dark:text-yellow-400">
-                          {{ Math.ceil((new Date(invoice.due_date).getTime() - new Date().getTime()) / (1000*60*60*24)) }} days until due
+                          {{ Math.ceil((new Date(invoice.payment_deadline).getTime() - new Date().getTime()) / (1000*60*60*24)) }} days until due
                         </span>
                       </template>
                     </template>
                   </template>
                   <template v-else>
-                    <template v-if="new Date() > new Date(invoice.due_date)">
+                    <template v-if="new Date() > new Date(invoice.payment_deadline)">
                       <span class="flex items-center bg-red-50 text-red-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-red-900/30 dark:text-red-400">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         Overdue
                       </span>
                       <span class="text-xs text-red-500 font-medium dark:text-red-400">
-                        {{ Math.ceil((new Date().getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)) }} days overdue
+                        {{ Math.ceil((new Date().getTime() - new Date(invoice.payment_deadline).getTime()) / (1000*60*60*24)) }} days overdue
                       </span>
                     </template>
                     <template v-else>
@@ -250,7 +228,7 @@ const goToInvoicesIndex = () => {
                         {{ ui.notDue }}
                       </span>
                       <span class="text-xs text-green-600 font-medium dark:text-green-400">
-                        {{ Math.ceil((new Date(invoice.due_date).getTime() - new Date().getTime()) / (1000*60*60*24)) }} {{ ui.daysUntilDue }}
+                        {{ Math.ceil((new Date(invoice.payment_deadline).getTime() - new Date().getTime()) / (1000*60*60*24)) }} {{ ui.daysUntilDue }}
                       </span>
                     </template>
                   </template>
@@ -271,20 +249,15 @@ const goToInvoicesIndex = () => {
                 </div>
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.dueDate }}</div>
-                  <div class="text-base font-medium dark:text-white">{{ invoice.due_date }}</div>
+                    <div class="text-base font-medium dark:text-white">
+                    {{ new Date(invoice.payment_deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}
+                    </div>
                 </div>
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.paidOnLabel }}</div>
                   <div class="text-base font-medium dark:text-white">
                     <template v-if="payments.length > 0 && openAmount <= 0">
-                      {{
-                        (() => {
-                          const today = new Date().toISOString().slice(0, 10);
-                          const validPayments = payments.filter(p => p.paid_at && p.paid_at <= today);
-                          if (validPayments.length === 0) return '-';
-                          return validPayments[validPayments.length-1].paid_at;
-                        })()
-                      }}
+                      {{ new Date(payments[0].paid_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}
                     </template>
                     <template v-else>
                       -
@@ -294,8 +267,8 @@ const goToInvoicesIndex = () => {
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.customerAvDelay }}</div>
                   <div class="text-base font-medium dark:text-white">
-                    {{ invoice.due_date && invoice.payments && invoice.payments.length > 0 && invoice.payments[0].paid_at ?
-                      (Math.max(0, Math.ceil(((new Date(invoice.payments[0].paid_at).getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)))) + ' days') : '-' }}
+                    {{ invoice.payment_deadline && payments.length > 0 && payments[0].paid_at ?
+                      (Math.max(0, Math.ceil(((new Date(payments[0].paid_at).getTime() - new Date(invoice.payment_deadline).getTime()) / (1000*60*60*24)))) + ' days') : '-' }}
                   </div>
                 </div>
               </div>
@@ -306,7 +279,7 @@ const goToInvoicesIndex = () => {
                     size="sm"
                     class="text-black border-black hover:bg-gray-100 dark:text-white dark:border-gray-500 dark:hover:bg-gray-800"
                     :disabled="openAmount <= 0"
-                    @click="openAmount > 0 && openPaymentModal()"
+                    @click="openPaymentModal()"
                   >
                     {{ ui.add }}
                   </Button>
@@ -318,8 +291,8 @@ const goToInvoicesIndex = () => {
                       <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <div class="text-base font-semibold text-gray-900 dark:text-white">{{ (payment.amount_paid || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.paidOn }} <span class="font-medium">{{ payment.paid_at }}</span></div>
+                      <div class="text-base font-semibold text-gray-900 dark:text-white">{{ payment.converted_amount_paid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.paidOn }} <span class="font-medium">{{ new Date(payment.paid_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span></div>
                     </div>
                     <div class="text-xs text-gray-400">#{{ idx + 1 }}</div>
                   </div>
@@ -339,15 +312,24 @@ const goToInvoicesIndex = () => {
                     {{ ui.addPayment }}
                   </div>
                   <div class="flex flex-col gap-3">
-                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.amount_paid }}</label>
+                    <div class="flex items-center justify-between">
+                      <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.amount }}</label>
+                      <InputError :message="newPaymentErrors.amount_paid" />
+                    </div>
                     <input v-model="newPayment.amount_paid" type="number" min="0" step="0.01" placeholder="0.00" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
                   </div>
                   <div class="flex flex-col gap-3">
-                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.paidOn }}</label>
-                    <input v-model="newPayment.paid_at" type="date" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
+                    <div class="flex items-center justify-between">
+                      <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.paidOn }}</label>
+                      <InputError :message="newPaymentErrors.payment_date" />
+                    </div>
+                    <input v-model="newPayment.payment_date" type="date" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
                   </div>
                   <div class="flex flex-col gap-3">
-                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Currency</label>
+                    <div class="flex items-center justify-between">
+                      <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Currency</label>
+                      <InputError :message="newPaymentErrors.currency" />
+                    </div>
                     <Select v-model="newPayment.currency" class="w-full">
                       <SelectTrigger class="w-full">
                         <SelectValue placeholder="Select currency" />
