@@ -26,7 +26,7 @@ class InvoiceDetailsController extends Controller
             return redirect()->route('invoices.index')->with(['error' => 'Invoice not found.']);
         }
 
-
+        $this->invoice->load('payments');
 
         $invoiceData = $this->invoice->toArray();
         $invoiceData['due_date'] = $this->invoice->payment_deadline;

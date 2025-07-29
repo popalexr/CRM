@@ -26,20 +26,20 @@ const showPopover = ref(false);
 const showPaymentModal = ref(false);
 const payments = ref(props.invoice.payments ? [...props.invoice.payments] : []);
 
-const newPayment = ref({ amount: '', paid_on: '', currency: '' });
+const newPayment = ref({ amount_paid: '', paid_at: '', currency: '' });
 
 const openPaymentModal = () => {
-  newPayment.value = { amount: '', paid_on: '', currency: props.invoice.currency || '' };
+  newPayment.value = { amount_paid: '', paid_at: '', currency: props.invoice.currency || '' };
   showPaymentModal.value = true;
 };
 
 const addPayment = () => {
-  if (!newPayment.value.amount || !newPayment.value.paid_on || !newPayment.value.currency) return;
+  if (!newPayment.value.amount_paid || !newPayment.value.paid_at || !newPayment.value.currency) return;
   inertiaRouter.post(
     `/invoices/${props.invoice.id}/payments`,
     {
-      amount: newPayment.value.amount,
-      paid_on: newPayment.value.paid_on,
+      amount_paid: newPayment.value.amount_paid,
+      paid_at: newPayment.value.paid_at,
       currency: newPayment.value.currency
     },
     {
@@ -48,7 +48,7 @@ const addPayment = () => {
         const props: any = page.props;
         if (props?.invoice?.payments) {
           payments.value = [...props.invoice.payments];
-          const open = props.invoice.total - (props.invoice.payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0);
+          const open = props.invoice.total - (props.invoice.payments.reduce((sum: number, p: any) => sum + (p.amount_paid || 0), 0) || 0);
           if (open <= 0) {
             props.invoice.status = 'paid';
           }
@@ -65,7 +65,7 @@ const addPayment = () => {
 };
 
 const openAmount = computed(() => {
-  return props.invoice.total - (payments.value.reduce((sum, p) => sum + (p.amount || 0), 0) || 0);
+  return props.invoice.total - (payments.value.reduce((sum, p) => sum + (p.amount_paid || 0), 0) || 0);
 });
 
 const handleSend = () => {
@@ -89,23 +89,13 @@ const handleMarkAsPaid = () => {
   inertiaRouter.post(
     `/invoices/${props.invoice.id}/payments`,
     {
-      amount: open,
-      paid_on: today
+      amount_paid: open,
+      paid_at: today,
+      currency: props.invoice.currency 
+
     },
     {
       preserveScroll: true,
-      onSuccess: (page) => {
-        const props: any = page.props;
-        if (props?.invoice?.payments) {
-          payments.value = [...props.invoice.payments];
-          const open = props.invoice.total - (props.invoice.payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0);
-          if (open <= 0) {
-            props.invoice.status = 'paid';
-          }
-        } else {
-          window.location.reload();
-        }
-      },
       onError: (errors) => {
         alert('Failed to save payment: ' + (errors?.message || ''));
       }
@@ -206,12 +196,12 @@ const goToInvoicesIndex = () => {
                 <template v-if="invoice.due_date">
                   <template v-if="payments.length > 0">
                     <template v-if="openAmount <= 0">
-                      <template v-if="payments.every(p => new Date(p.paid_on) <= new Date(invoice.due_date))">
+                      <template v-if="payments.every(p => new Date(p.paid_at) <= new Date(invoice.due_date))">
                         <span class="flex items-center bg-green-50 text-green-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-green-900/30 dark:text-green-400">
                           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                           On time
                         </span>
-                        <span class="text-xs text-green-600 font-medium dark:text-green-400">Paid on {{ payments[payments.length-1].paid_on }}</span>
+                        <span class="text-xs text-green-600 font-medium dark:text-green-400">Paid on {{ payments[payments.length-1].paid_at }}</span>
                       </template>
                       <template v-else>
                         <span class="flex items-center bg-red-50 text-red-600 text-xs font-semibold px-3 py-1 rounded mr-2 dark:bg-red-900/30 dark:text-red-400">
@@ -219,7 +209,7 @@ const goToInvoicesIndex = () => {
                           Overdue
                         </span>
                         <span class="text-xs text-red-500 font-medium dark:text-red-400">
-                          Paid {{ Math.ceil((new Date(payments[payments.length-1].paid_on).getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)) }} days late
+                          Paid {{ Math.ceil((new Date(payments[payments.length-1].paid_at).getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)) }} days late
                         </span>
                       </template>
                     </template>
@@ -290,9 +280,9 @@ const goToInvoicesIndex = () => {
                       {{
                         (() => {
                           const today = new Date().toISOString().slice(0, 10);
-                          const validPayments = payments.filter(p => p.paid_on && p.paid_on <= today);
+                          const validPayments = payments.filter(p => p.paid_at && p.paid_at <= today);
                           if (validPayments.length === 0) return '-';
-                          return validPayments[validPayments.length-1].paid_on;
+                          return validPayments[validPayments.length-1].paid_at;
                         })()
                       }}
                     </template>
@@ -304,8 +294,8 @@ const goToInvoicesIndex = () => {
                 <div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.customerAvDelay }}</div>
                   <div class="text-base font-medium dark:text-white">
-                    {{ invoice.due_date && invoice.payments && invoice.payments.length > 0 && invoice.payments[0].paid_on ?
-                      (Math.max(0, Math.ceil(((new Date(invoice.payments[0].paid_on).getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)))) + ' days') : '-' }}
+                    {{ invoice.due_date && invoice.payments && invoice.payments.length > 0 && invoice.payments[0].paid_at ?
+                      (Math.max(0, Math.ceil(((new Date(invoice.payments[0].paid_at).getTime() - new Date(invoice.due_date).getTime()) / (1000*60*60*24)))) + ' days') : '-' }}
                   </div>
                 </div>
               </div>
@@ -328,8 +318,8 @@ const goToInvoicesIndex = () => {
                       <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <div class="text-base font-semibold text-gray-900 dark:text-white">{{ payment.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.paidOn }} <span class="font-medium">{{ payment.paid_on }}</span></div>
+                      <div class="text-base font-semibold text-gray-900 dark:text-white">{{ (payment.amount_paid || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }} {{ invoice.currency }}</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">{{ ui.paidOn }} <span class="font-medium">{{ payment.paid_at }}</span></div>
                     </div>
                     <div class="text-xs text-gray-400">#{{ idx + 1 }}</div>
                   </div>
@@ -349,12 +339,12 @@ const goToInvoicesIndex = () => {
                     {{ ui.addPayment }}
                   </div>
                   <div class="flex flex-col gap-3">
-                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.amount }}</label>
-                    <input v-model="newPayment.amount" type="number" min="0" step="0.01" placeholder="0.00" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
+                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.amount_paid }}</label>
+                    <input v-model="newPayment.amount_paid" type="number" min="0" step="0.01" placeholder="0.00" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
                   </div>
                   <div class="flex flex-col gap-3">
                     <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ ui.paidOn }}</label>
-                    <input v-model="newPayment.paid_on" type="date" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
+                    <input v-model="newPayment.paid_at" type="date" class="rounded-lg px-3 py-2 border border-gray-200 dark:border-neutral-900 bg-white dark:bg-[rgba(0,0,0,0)] focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-900 outline-none text-base text-gray-900 dark:text-white transition" />
                   </div>
                   <div class="flex flex-col gap-3">
                     <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Currency</label>

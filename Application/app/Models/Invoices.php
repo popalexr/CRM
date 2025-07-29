@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invoices extends Model
 {
@@ -21,10 +23,12 @@ class Invoices extends Model
         'payment_deadline',
         'status',
         'deleted_at',
-        'payments',
+        
     ];
+     
 
-    protected $casts = [
-        'payments' => 'array',
-    ];
+    public function payments(): HasMany
+    {
+        return $this->hasMany(InvoicesPayments::class, 'invoice_id');
+    }
 }
