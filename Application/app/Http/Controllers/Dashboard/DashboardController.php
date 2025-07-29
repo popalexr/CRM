@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Clients;
 use App\Models\Invoices;
-use App\Models\Products;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +12,38 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    private string $filter;
+
+    private string $startDate;
+    private string $endDate;
+
+    public function __construct
+    (
+        public Request $request
+    )
+    {
+        $this->filter = $this->request->input('filter', 'last_30_days');
+    }
+
+    public function __invoke()
+    {
+        $period = $this->getDateRange($this->filter);
+        $this->startDate = $period['start'];
+        $this->endDate = $period['end'];
+
+        return Inertia::render('Dashboard', [
+            'stats' => $this->getStats(),
+            'topClients' => $this->getTopClients(),
+            'overdueInvoices' => $this->getOverdueInvoices(),
+            'revenueData' => $this->getRevenueChartData($this->startDate, $this->endDate, $this->filter),
+            'currentFilter' => $this->filter,
+            'dashboardLang' => __('dashboard'),
+            'reminderDashboard' => auth()->user()->reminder_dashboard,
+            'paidInvoicesCount' => $this->getTotalPaidInvoices(),
+            'totalInvoicesCount' => $this->getTotalInvoices(),
+        ]);
+    }
+
     public function saveReminder(Request $request)
     {
         $user = $request->user();
@@ -21,6 +52,94 @@ class DashboardController extends Controller
         $user->save();
         return redirect()->back()->with('success', 'Reminder saved!');
     }
+
+    private function getStats(): array
+    {
+        return [
+            [
+                'title' => 'Total Clients',
+                'value' => Clients::whereBetween('created_at', [$this->startDate, $this->endDate])->count(),
+                'icon' => 'Users',
+            ],
+            [
+                'title' => 'Ended Invoices',
+                'value' => Invoices::where('status', 'finalized')
+                    ->whereNull('deleted_at')
+                    ->whereBetween('created_at', [$this->startDate, $this->endDate])
+                    ->count(),
+                'icon' => 'Package',
+            ],
+            [
+                'title' => 'Running Invoices',
+                'value' => Invoices::where('status', 'active')->whereBetween('created_at', [$this->startDate, $this->endDate])->count(),
+                'icon' => 'FileText',
+            ],
+            [
+                'title' => 'Pending Invoices',
+                'value' => Invoices::whereNotIn('status', ['anulled', 'storno', 'paid'])
+                    ->whereNull('deleted_at')
+                    ->where(function($query) {
+                        $query->whereNull('payment_deadline')->orWhere('payment_deadline', '>=', now());
+                    })
+                    ->whereBetween('created_at', [$this->startDate, $this->endDate])
+                    ->count(),
+                'icon' => 'AlertTriangle',
+            ],
+        ];
+    }
+
+    private function getTotalInvoices(): int
+    {
+        return Invoices::whereNull('deleted_at')
+            ->whereBetween('created_at', [$this->startDate, $this->endDate])
+            ->count();
+    }
+
+    private function getTotalPaidInvoices(): int
+    {
+        return Invoices::whereNull('deleted_at')
+            ->whereIn('status', ['finalized', 'paid'])
+            ->whereBetween('created_at', [$this->startDate, $this->endDate])
+            ->count();
+    }
+
+    private function getTopClients(): array
+    {
+        return Invoices::with('client')
+            ->select('client_id', DB::raw('SUM(total) as total_revenue'))
+            ->whereBetween('created_at', [$this->startDate, $this->endDate])
+            ->groupBy('client_id')
+            ->orderBy('total_revenue', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(fn($invoice) => [
+                'name' => $invoice->client->client_name ?? 'Deleted Client',
+                'value' => number_format($invoice->total_revenue, 2) . ' RON',
+            ])
+            ->toArray();
+    }
+
+    private function getOverdueInvoices(): array
+    {
+        return Invoices::with('client')
+            ->where(function($query) {
+                $query->where('status', 'unpaid')
+                      ->orWhere('status', 'draft');
+            })
+            ->where('payment_deadline', '<', now())
+            ->whereNull('deleted_at')
+            ->orderBy('payment_deadline', 'asc')
+            ->get()
+            ->map(fn($invoice) => [
+                'name' => $invoice->client && $invoice->client->client_name ? $invoice->client->client_name : 'Unknown Client',
+                'value' => $invoice->payment_deadline ? ('Overdue by ' . floor((new Carbon($invoice->payment_deadline))->diffInDays(now())) . ' days') : 'Overdue',
+                'id' => $invoice->id,
+                'status' => $invoice->status,
+                'deleted_at' => $invoice->deleted_at,
+            ])
+            ->toArray();
+    }
+
     private function getRevenueChartData($startDate, $endDate, $filter): array
     {
         $databaseConnection = DB::connection()->getDriverName();
@@ -81,97 +200,6 @@ class DashboardController extends Controller
         }
 
         return ['labels' => $labels, 'data' => $data];
-    }
-    public function __invoke(Request $request)
-    {
-        $filter = $request->input('filter', 'last_30_days');
-        $period = $this->getDateRange($filter);
-        $startDate = $period['start'];
-        $endDate = $period['end'];
-
-        $stats = [
-            [
-                'title' => 'Total Clients',
-                'value' => Clients::whereBetween('created_at', [$startDate, $endDate])->count(),
-                'icon' => 'Users',
-            ],
-            [
-                'title' => 'Ended Invoices',
-                'value' => Invoices::where('status', 'finalized')
-                    ->whereNull('deleted_at')
-                    ->whereBetween('created_at', [$startDate, $endDate])
-                    ->count(),
-                'icon' => 'Package',
-            ],
-            [
-                'title' => 'Running Invoices',
-                'value' => Invoices::where('status', 'active')->whereBetween('created_at', [$startDate, $endDate])->count(),
-                'icon' => 'FileText',
-            ],
-            [
-                'title' => 'Pending Invoices',
-                'value' => Invoices::where('status', 'draft')
-                    ->where('payment_status', 'unpaid')
-                    ->whereNull('deleted_at')
-                    ->where(function($query) {
-                        $query->whereNull('due_date')->orWhere('due_date', '>=', now());
-                    })
-                    ->whereBetween('created_at', [$startDate, $endDate])
-                    ->count(),
-                'icon' => 'AlertTriangle',
-            ],
-        ];
-        $totalInvoicesCount = Invoices::whereNull('deleted_at')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-        $paidInvoicesCount = Invoices::whereNull('deleted_at')
-            ->whereIn('status', ['finalized', 'paid'])
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
-
-        $topClients = Invoices::with('client')
-            ->select('client_id', DB::raw('SUM(total) as total_revenue'))
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('client_id')
-            ->orderBy('total_revenue', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(fn($invoice) => [
-                'name' => $invoice->client->client_name ?? 'Deleted Client',
-                'value' => number_format($invoice->total_revenue, 2) . ' RON',
-            ]);
-
-        $overdueInvoices = Invoices::with('client')
-            ->where(function($query) {
-                $query->where('status', 'unpaid')
-                      ->orWhere('status', 'draft');
-            })
-            ->where('due_date', '<', now())
-            ->whereNull('deleted_at')
-            ->orderBy('due_date', 'asc')
-            ->get()
-            ->map(fn($invoice) => [
-                'name' => $invoice->client && $invoice->client->client_name ? $invoice->client->client_name : 'Unknown Client',
-                'value' => $invoice->due_date ? ('Overdue by ' . $invoice->due_date->diffInDays(now()) . ' days') : 'Overdue',
-                'id' => $invoice->id,
-                'status' => $invoice->status,
-                'deleted_at' => $invoice->deleted_at,
-            ]);
-
-        $revenueChartData = $this->getRevenueChartData($startDate, $endDate, $filter);
-
-        return Inertia::render('Dashboard', [
-            'stats' => $stats,
-            'topClients' => $topClients,
-            'overdueInvoices' => $overdueInvoices,
-            'revenueData' => $revenueChartData,
-            'currentFilter' => $filter,
-            'dashboardLang' => __('dashboard'),
-            'reminderDashboard' => auth()->user()->reminder_dashboard,
-            'paidInvoicesCount' => $paidInvoicesCount,
-            'totalInvoicesCount' => $totalInvoicesCount,
-        ]);
     }
 
     private function getDateRange(string $filter): array
