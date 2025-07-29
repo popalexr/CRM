@@ -80,11 +80,11 @@ const showVatRates = () => {
                         <Building class="h-4 w-4" />
                         General Information
                     </Button>
-                    <Button class="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/10" @click="showVatRates">
+                    <Button class="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/10 mr-2" @click="showVatRates">
                         <Receipt class="h-4 w-4" />
                         VAT Rates
                     </Button>
-                    <Button class="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/10" @click="router.visit(route('settings.logo.show'))">
+                    <Button class="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/10" @click="router.visit(route('settings.logo'))">
                         <ImageIcon class="h-4 w-4" />
                         Logo
                     </Button>

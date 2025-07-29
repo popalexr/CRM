@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Settings, Building, Receipt } from 'lucide-vue-next';
+import { Plus, Settings, Building, Receipt, ImageIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { BreadcrumbItem, VatRate } from '@/types';
 import Icon from '@/components/Icon.vue';
@@ -110,6 +110,10 @@ const onSaveEdit = (payload) => {
                     <Button class="flex items-center gap-2 active mr-2">
                         <Receipt class="h-4 w-4" />
                         VAT Rates
+                    </Button>
+                    <Button class="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/10" @click="router.visit(route('settings.logo'))">
+                        <ImageIcon class="h-4 w-4" />
+                        Logo
                     </Button>
                 </TabsList>
 
