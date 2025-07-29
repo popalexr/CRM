@@ -368,7 +368,7 @@ onBeforeMount(() => {
                             </Table>
                             <div v-else class="text-center text-muted-foreground">
                                 <div>No products added yet.</div>
-                                <Button variant="outline" class="mt-4" @click="form.products.push({ name: 'test', price: 1, vat: 19, quantity: 1, type: 'product' })">
+                                <Button variant="outline" class="mt-4" @click="openProductModal">
                                     Add Product
                                 </Button>
                             </div>
