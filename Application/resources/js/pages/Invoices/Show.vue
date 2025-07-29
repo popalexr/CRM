@@ -78,7 +78,11 @@ const handleSend = () => {
 };
 
 const handleMarkAsPaid = () => {
-  // TODO: Implement mark as paid logic
+  router.visit(route('invoices.change_status', { id: props.invoice.id }), {
+    method: 'post',
+    data: { status: 'paid' },
+    preserveScroll: true,
+  });
 };
 
 const handleEdit = () => {
@@ -129,7 +133,7 @@ const goToInvoicesIndex = () => {
             <FileTextIcon class="w-4 h-4 mr-2" />
             PDF
           </Button>
-          <Button variant="outline" @click="handleMarkAsPaid">
+          <Button variant="outline" @click="handleMarkAsPaid" v-if="invoice.status !== 'paid' && invoice.status !== 'storno'">
             <CheckCircleIcon class="w-4 h-4 mr-2" />
             Mark as Paid
           </Button>
@@ -148,7 +152,7 @@ const goToInvoicesIndex = () => {
                 <EditIcon class="w-4 h-4 mr-2 text-blue-500" />
                 {{ ui.changeStatus }}
               </DropdownMenuItem>
-              <DropdownMenuItem @click="handleEdit">
+              <DropdownMenuItem @click="handleEdit" v-if="invoice.status === 'draft'">
                 <EditIcon class="w-4 h-4 mr-2 text-gray-500" />
                 {{ ui.editInvoice }}
               </DropdownMenuItem>
