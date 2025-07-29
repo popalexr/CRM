@@ -124,7 +124,7 @@ const overdueInvoices: InfoListItem[] = props.overdueInvoices;
 <template>
     <Head :title="t('dashboard')" />
 
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto max-w-6xl px-4 py-6 space-y-6 gap-x-4">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>

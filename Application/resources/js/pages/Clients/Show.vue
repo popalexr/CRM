@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,19 @@ import { Client, ClientContact, type ClientPageProps } from '@/types/index';
 
 const page = usePage<ClientPageProps>();
 const client = page.props.client as Client;
+
+const formLabels = page.props.formLabels;
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: formLabels.headings?.clients || 'Clients',
+        href: route('clients.index'),
+    },
+    {
+        title: formLabels.headings?.view_client || 'View Client',
+        href: route('clients.details', { id: client.id }),
+    },
+];
 
 const initialContacts = (page.props.clientContacts || []).map((contact: any) => ({
     id: contact.id,
@@ -21,7 +35,6 @@ const initialContacts = (page.props.clientContacts || []).map((contact: any) => 
     updated_at: contact.updated_at,
     deleted_at: contact.deleted_at
 })) as ClientContact[];
-const formLabels = page.props.formLabels;
 const contacts = ref<ClientContact[]>(initialContacts);
 
 
@@ -129,7 +142,7 @@ const handleBack = () => {
 <template>
     <Head :title="`${formLabels.headings.client_details}: ${client.client_name}`" />
 
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto px-4 py-6">
             <div class="flex items-center mb-6">
                 <Button variant="ghost" size="sm" @click="handleBack" class="mr-4 p-2">

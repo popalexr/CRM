@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/AppLayout.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
@@ -13,6 +14,13 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { Invoice } from '@/types/invoices'
 
 const props = defineProps<{ invoices: Invoice[] }>()
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Invoices',
+    href: route('invoices.index'),
+  },
+];
 
 const showDeleteDialog = ref(false)
 const invoiceToDelete = ref<Invoice | null>(null)
@@ -61,7 +69,7 @@ import { parseDate, parseStatus, getStatusBadgeVariant } from '@/invoices_const'
 
 <template>
   <Head title="Invoices" />
-  <AppLayout>
+  <AppLayout :breadcrumbs="breadcrumbs">
     <div class="p-6 space-y-6">
       <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-bold">Invoices</h1>

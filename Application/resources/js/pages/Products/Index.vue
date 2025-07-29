@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,13 @@ import { Product, Props_ProductsIndex } from '@/types/products';
 
 const props = defineProps<Props_ProductsIndex>();
 const formLabels = props.formLabels || {};
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: formLabels.headings?.products || 'Products',
+        href: route('products.index'),
+    },
+];
 
 const showDeleteDialog = ref(false);
 const productToDelete = ref<Product | null>(null);
@@ -67,7 +75,7 @@ const formatPrice = (price: number, currency: string) => {
 <template>
     <Head :title="formLabels.headings?.products || 'Products'" />
 
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto px-4 py-6 max-w-6xl another-class">
             <div class="flex items-center justify-between mb-6">
                 <h1 class="text-2xl font-bold">{{ formLabels.headings?.products || 'Products' }}</h1>

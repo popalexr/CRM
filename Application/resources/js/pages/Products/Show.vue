@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,17 @@ import type { ProductDetails, InvoiceDetails, Props } from '@/types/products.d.t
 const props = defineProps<Props>();
 const formLabels = props.formLabels || {};
 const associatedInvoices = props.associated_invoices || [];
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: formLabels.headings?.products || 'Products',
+        href: route('products.index'),
+    },
+    {
+        title: formLabels.headings?.view_product || 'View Product',
+        href: route('products.details', { id: props.product.id }),
+    },
+];
 
 const entityData = computed(() => ({
     id: props.product.id,
@@ -86,7 +98,7 @@ const handleStockSubmit = async () => {
 <template>
     <Head :title="`${formLabels.headings?.product_details || 'Product Details'}: ${product.name}`" />
 
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto px-4 py-6 max-w-6xl">
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-4">

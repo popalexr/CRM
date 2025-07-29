@@ -15,6 +15,18 @@ import type { UserPageProps, UserDetails } from '@/types/user';
 const page = usePage<UserPageProps>();
 const user = page.props.user as UserDetails;
 const formLabels = page.props.formLabels;
+
+import type { BreadcrumbItem } from '@/types';
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: formLabels.headings?.users || 'Users',
+        href: route('users.index'),
+    },
+    {
+        title: formLabels.headings?.view_user || 'View User',
+        href: route('users.details', { id: user.id }),
+    },
+];
 const authUser = page.props.auth?.user;
 
 const isSelf = computed(() => authUser && user && authUser.id === user.id);
@@ -172,7 +184,7 @@ const previewGradient = async (index: number) => {
 <template>
     <Head :title="`${formLabels.headings.user_details}: ${user.name}`" />
 
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto px-4 py-6">
             <div class="flex items-center mb-6">
                 <Button variant="ghost" size="sm" @click="handleBack" class="mr-4 p-2">

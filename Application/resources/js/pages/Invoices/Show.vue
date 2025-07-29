@@ -23,6 +23,18 @@ import InputError from '@/components/InputError.vue';
 const invoiceDesign = ref(1);
 
 const props = defineProps<{ invoice: InvoiceDetails, products: Array<any>, payments: Array<any>, currencies: Record<string, string> }>();
+
+import type { BreadcrumbItem } from '@/types';
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Invoices',
+    href: route('invoices.index'),
+  },
+  {
+    title: `View Invoice #${props.invoice.id}`,
+    href: route('invoices.details', { id: props.invoice.id }),
+  },
+];
 const showPopover = ref(false);
 const showPaymentModal = ref(false);
 const payments = ref(props.payments);
@@ -117,7 +129,7 @@ const goToInvoicesIndex = () => {
 
 <template>
   <Head :title="`Invoice #${invoice.id}`" />
-  <AppLayout>
+  <AppLayout :breadcrumbs="breadcrumbs">
     <div class="container mx-auto px-4 py-6 flex flex-col gap-4">
       <div class="flex items-center gap-2 mb-2">
         <button data-slot="button" @click="goToInvoicesIndex" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md px-3 has-[>svg]:px-2.5 gap-2 cursor-pointer">
