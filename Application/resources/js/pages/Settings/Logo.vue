@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { computed, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
-import { Setting } from '@/types/setting';
 
 const props = defineProps<{
     currentLogoUrl?: string | null;
@@ -19,7 +18,6 @@ const form = useForm({
     logo_file_id: '',
 });
 
-// Obiect pentru a afișa imaginea existentă în Dropzone
 const initialFile = ref<{ name: string, size: number, url: string } | null>(
     props.currentLogoUrl 
         ? { name: 'Logo Actual', size: 12345, url: props.currentLogoUrl } 
@@ -40,7 +38,6 @@ const fileUploadSuccess = (payload: { response: any }) => {
     if (responseData && responseData.file_id) {
         form.logo_file_id = responseData.file_id;
         
-        // Actualizează previzualizarea cu noul fișier
         if (responseData.file_url) {
             initialFile.value = {
                 name: responseData.file_name,

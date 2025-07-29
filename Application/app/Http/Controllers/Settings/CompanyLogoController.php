@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\Settings; // Presupunând că ai un model pentru setări
+use App\Models\Settings; 
 use App\Models\TemporaryFiles;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -11,9 +11,7 @@ use Inertia\Inertia;
 
 class CompanyLogoController extends Controller
 {
-    /**
-     * Afișează pagina pentru încărcarea logo-ului.
-     */
+
     public function show()
     {
         
@@ -24,9 +22,7 @@ class CompanyLogoController extends Controller
         ]);
     }
 
-    /**
-     * Salvează noul logo al companiei.
-     */
+
     public function store(Request $request)
     {
         $request->validate([
@@ -55,18 +51,18 @@ class CompanyLogoController extends Controller
         $publicPath = '/storage/company/' . $tmpFile->file_name;
         
         Settings::updateOrCreate(
-    ['key' => 'company_logo'], 
-    [
-        'value' => $publicPath,   
-        'type'  => 'file'          
-    ]
-);
+            ['key' => 'company_logo'], 
+            [
+            'value' => $publicPath,   
+            'type'  => 'file'          
+            ]
+        );
 
        
         File::delete($sourcePath);
         $tmpFile->delete();
 
-        return redirect()->route('settings.logo.show')->with('success', 'Logo-ul a fost actualizat cu succes.');
+        return redirect()->route('settings.logo.show')->with('success', 'Logo has been updated successfully.');
     }
     public function destroy()
     {
@@ -84,6 +80,6 @@ class CompanyLogoController extends Controller
             $setting->delete();
         }
 
-        return back()->with('success', 'Logo-ul a fost șters cu succes.');
+        return back()->with('success', 'Logo has been deleted successfully.');
     }
 }

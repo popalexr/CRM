@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Settings, Building, Receipt, ImageIcon } from 'lucide-vue-next'; // Am adăugat ImageIcon
+import { Plus, Settings, Building, Receipt, ImageIcon } from 'lucide-vue-next'; 
 import { ref } from 'vue';
 import { BreadcrumbItem } from '@/types';
 import InputError from '@/components/InputError.vue';
