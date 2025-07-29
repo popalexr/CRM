@@ -103,7 +103,7 @@ const addProductToList = (product: any) => {
             return (parseFloat(productElement.total_no_vat) * parseFloat(productElement.vat || 0) / 100).toFixed(2);
         }),
         total_no_vat: computed(() => {
-            return (parseFloat(productElement.converted_price) * parseFloat(productElement.quantity || 0)).toFixed(2);
+            return (parseFloat(productElement.converted_price) * parseFloat(productElement.quantity || 1)).toFixed(2);
         }),
         total: computed(() => {
             return (parseFloat(productElement.total_no_vat) + parseFloat(productElement.vat_amount)).toFixed(2);
