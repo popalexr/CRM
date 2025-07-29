@@ -9,42 +9,15 @@ import { Users, Package, FileText, Plus, AlertTriangle, TrendingUp, Check } from
 import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale } from 'chart.js';
 import type { StatCard, InfoListItem, PeriodOption, BreadcrumbItem } from '@/types';
-
-interface DashboardProps {
-    stats: StatCard[];
-    topClients: InfoListItem[];
-    overdueInvoices: InfoListItem[];
-    revenueData: { labels: string[]; data: number[] };
-    currentFilter: string;
-    dashboardLang: Record<string, string>;
-    paidInvoicesCount?: number;
-    totalInvoicesCount?: number;
-    reminderDashboard?: string | null;
-}
+import type { DashboardProps } from '@/types/dashboard';
 import { getPeriodOptions } from '../periodOptions';
-
+import { fallback, chartOptions} from '../dashboard_conts';
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale);
 
 const props = defineProps<DashboardProps>();
 const t = (key: string) => {
-    const fallback: Record<string, string> = {
-        'dashboard': 'Dashboard',
-        'dashboard.total_clients': 'Total Clients',
-        'dashboard.issued_invoices': 'Issued Invoices',
-        'dashboard.overdue_invoices': 'Overdue Invoices',
-        'dashboard.period_revenue': 'Period Revenue',
-        'overview': 'Overview',
-        'select_period': 'Select period',
-        'add_client': 'Add Client',
-        'add_product': 'Add Product',
-        'monthly_revenue': 'Monthly Revenue',
-        'revenue_evolution': 'Revenue Evolution',
-        'top_clients': 'Top Clients',
-        'alerts': 'Alerts',
-        'no_clients': 'No clients',
-        'no_overdue': 'No overdue invoices',
-    };
+   
     return props.dashboardLang[key] || fallback[key] || key;
 };
 const selectedPeriod = ref(props.currentFilter);
@@ -90,35 +63,7 @@ watch(selectedPeriod, (newValue) => {
         });
     }
 });
-const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: {
-            display: false,
-        },
-        tooltip: {
-            backgroundColor: '#111',
-            titleColor: '#fff',
-            bodyColor: '#fff',
-        },
-    },
-    scales: {
-        x: {
-            grid: { display: false },
-            ticks: {
-                color: document.documentElement.classList.contains('dark') ? '#fff' : '#111',
-            },
-        },
-        y: {
-            beginAtZero: true,
-            grid: { color: '#d1fae5' },
-            ticks: {
-                color: document.documentElement.classList.contains('dark') ? '#fff' : '#111',
-            },
-        },
-    },
-};
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -130,6 +75,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 const stats: StatCard[] = props.stats;
 const projectProgress = 41;
 const reminder = ref<{ title: string; time: string; finished?: boolean } | null>(props.reminderDashboard ? JSON.parse(props.reminderDashboard) : null);
+const showReminderModal = ref(false);
+const newReminderTitle = ref('');
+const newReminderDate = ref('');
 
 function finishReminder() {
     if (reminder.value) {
@@ -148,16 +96,26 @@ function deleteReminder() {
 }
 
 function addReminder() {
-    const title = prompt('Reminder title:');
-    if (!title) return;
-    const time = prompt('Reminder time:');
-    if (!time) return;
-    const newReminder = { title, time };
+    showReminderModal.value = true;
+}
+
+function saveReminder() {
+    if (!newReminderTitle.value || !newReminderDate.value) return;
+    const newReminder = { title: newReminderTitle.value, time: newReminderDate.value };
     reminder.value = newReminder;
     router.post(route('dashboard.reminder'), { reminder: newReminder }, {
         onSuccess: () => {
+            showReminderModal.value = false;
+            newReminderTitle.value = '';
+            newReminderDate.value = '';
         }
     });
+}
+
+function closeReminderModal() {
+    showReminderModal.value = false;
+    newReminderTitle.value = '';
+    newReminderDate.value = '';
 }
 const topClients: InfoListItem[] = props.topClients;
 const overdueInvoices: InfoListItem[] = props.overdueInvoices;
@@ -251,20 +209,44 @@ const overdueInvoices: InfoListItem[] = props.overdueInvoices;
                         <CardContent class="flex flex-col items-center justify-center h-full">
                             <div class="text-center">
                                 <div v-if="reminder" class="mb-2">
-                                    <div class="flex items-center gap-2">
-                                        <div class="font-semibold text-lg text-green-700 ml-15">{{ reminder.title }}</div>
+                                    <div class="flex flex-col items-center justify-center gap-2 w-full">
+                                        <div class="font-semibold text-lg text-green-700 w-full text-center break-words" style="max-width: 220px; word-break: break-word;">{{ reminder.title }}</div>
                                         <template v-if="reminder.finished">
-                                            <Check class="w-5 h-5 text-green-600" />
+                                            <Check class="w-5 h-5 text-green-600 mx-auto" />
                                         </template>
                                     </div>
                                     <div class="text-sm text-muted-foreground mb-2">Time: {{ reminder.time }}</div>
-                                    <div class="flex gap-2 mt-2 justify-start">
+                                    <div class="flex gap-2 mt-2 justify-center">
                                         <Button variant="secondary" class="px-4 dark:!bg-white dark:!text-black" @click="finishReminder" :disabled="reminder.finished">Finish</Button>
                                         <Button variant="destructive" class="px-4" @click="deleteReminder">Delete</Button>
                                     </div>
                                 </div>
                                 <div v-else class="text-muted-foreground" style="min-height: 120px; display: flex; align-items: center; justify-content: center;">
                                     No reminder set.
+                                </div>
+                            </div>
+                            <div v-if="showReminderModal" class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
+                                <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-sm relative" style="opacity:0.97;">
+                                    <button @click="closeReminderModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-900">&times;</button>
+                                    <div class="flex flex-col items-center justify-center mb-4">
+                                        <svg class="w-8 h-8 text-black-600 mb-2 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                            <path d="M13.73 21a2 2 0 01-3.46 0"></path>
+                                        </svg>
+                                        <span class="text-lg font-bold text-center max-w-full">Add Reminder</span>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium mb-1">Title</label>
+                                        <input v-model="newReminderTitle" type="text" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring" placeholder="Reminder title" />
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium mb-1">Time</label>
+                                        <input v-model="newReminderDate" type="date" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring" />
+                                    </div>
+                                    <div class="flex gap-2 justify-center">
+                                        <Button variant="secondary" class="px-4" @click="saveReminder">Save</Button>
+                                        <Button variant="outline" class="px-4" @click="closeReminderModal">Cancel</Button>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
