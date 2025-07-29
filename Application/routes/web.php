@@ -3,7 +3,9 @@
 use App\Http\Controllers\Dashboard\DashboardController;
 use Illuminate\Support\Facades\Route;
 
+
 Route::get('/', DashboardController::class)->middleware(['auth', 'verified'])->name('home');
+Route::post('/dashboard/reminder', [DashboardController::class, 'saveReminder'])->middleware(['auth'])->name('dashboard.reminder');
 
 
 require __DIR__.'/profile.php';

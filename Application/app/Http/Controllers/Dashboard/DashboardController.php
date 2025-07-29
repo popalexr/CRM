@@ -13,6 +13,75 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    public function saveReminder(Request $request)
+    {
+        $user = $request->user();
+        $reminder = $request->input('reminder');
+        $user->reminder_dashboard = json_encode($reminder);
+        $user->save();
+        return redirect()->back()->with('success', 'Reminder saved!');
+    }
+    private function getRevenueChartData($startDate, $endDate, $filter): array
+    {
+        $databaseConnection = DB::connection()->getDriverName();
+        $dateFormat = match ($databaseConnection) {
+            'mysql' => "DATE_FORMAT(created_at, '%Y-%m')",
+            'sqlite' => "strftime('%Y-%m', created_at)",
+            default => "DATE_FORMAT(created_at, '%Y-%m')",
+        };
+
+        if ($filter === 'this_month' || $filter === 'last_30_days') {
+            $groupFormat = '%Y-%m-%d';
+            $labelFormat = 'd M';
+        } elseif ($filter === 'this_quarter') {
+            $groupFormat = '%Y-%m';
+            $labelFormat = 'M Y';
+        } elseif ($filter === 'this_year') {
+            $groupFormat = '%Y-%m';
+            $labelFormat = 'M Y';
+        } else {
+            $groupFormat = '%Y-%m';
+            $labelFormat = 'M Y';
+        }
+
+        $dateFormat = $databaseConnection === 'sqlite' ? "strftime('$groupFormat', created_at)" : "DATE_FORMAT(created_at, '$groupFormat')";
+
+        $revenueData = Invoices::select(
+                DB::raw('SUM(total) as total'),
+                DB::raw("{$dateFormat} as period")
+            )
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('period')
+            ->orderBy('period', 'asc')
+            ->get();
+
+        $labels = [];
+        $data = [];
+
+        $periods = [];
+        $current = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+        if ($groupFormat === '%Y-%m-%d') {
+            while ($current <= $end) {
+                $periods[] = $current->format('Y-m-d');
+                $labels[] = $current->format($labelFormat);
+                $current->addDay();
+            }
+        } else {
+            while ($current <= $end) {
+                $periods[] = $current->format('Y-m');
+                $labels[] = $current->format($labelFormat);
+                $current->addMonth();
+            }
+        }
+
+        foreach ($periods as $i => $periodStr) {
+            $revenue = $revenueData->firstWhere('period', $periodStr);
+            $data[] = $revenue ? $revenue->total : 0;
+        }
+
+        return ['labels' => $labels, 'data' => $data];
+    }
     public function __invoke(Request $request)
     {
         $filter = $request->input('filter', 'last_30_days');
@@ -22,26 +91,44 @@ class DashboardController extends Controller
 
         $stats = [
             [
-                'title' => __('dashboard.total_clients'),
+                'title' => 'Total Clients',
                 'value' => Clients::whereBetween('created_at', [$startDate, $endDate])->count(),
                 'icon' => 'Users',
             ],
             [
-                'title' => __('dashboard.period_revenue'),
-                'value' => number_format(Invoices::where('status', 'paid')->whereBetween('created_at', [$startDate, $endDate])->sum('total'), 2) . ' RON',
-                'icon' => 'FileText',
-            ],
-            [
-                'title' => __('dashboard.issued_invoices'),
-                'value' => Invoices::whereBetween('created_at', [$startDate, $endDate])->count(),
+                'title' => 'Ended Invoices',
+                'value' => Invoices::where('status', 'finalized')
+                    ->whereNull('deleted_at')
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->count(),
                 'icon' => 'Package',
             ],
             [
-                'title' => __('dashboard.overdue_invoices'),
-                'value' => Invoices::where('status', 'unpaid')->where('payment_deadline', '<', now())->count(),
+                'title' => 'Running Invoices',
+                'value' => Invoices::where('status', 'active')->whereBetween('created_at', [$startDate, $endDate])->count(),
                 'icon' => 'FileText',
             ],
+            [
+                'title' => 'Pending Invoices',
+                'value' => Invoices::where('status', 'draft')
+                    ->where('payment_status', 'unpaid')
+                    ->whereNull('deleted_at')
+                    ->where(function($query) {
+                        $query->whereNull('due_date')->orWhere('due_date', '>=', now());
+                    })
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->count(),
+                'icon' => 'AlertTriangle',
+            ],
         ];
+        $totalInvoicesCount = Invoices::whereNull('deleted_at')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        $paidInvoicesCount = Invoices::whereNull('deleted_at')
+            ->whereIn('status', ['finalized', 'paid'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
 
         $topClients = Invoices::with('client')
             ->select('client_id', DB::raw('SUM(total) as total_revenue'))
@@ -51,38 +138,25 @@ class DashboardController extends Controller
             ->limit(5)
             ->get()
             ->map(fn($invoice) => [
-                'name' => $invoice->client->client_name ?? 'Client Șters',
+                'name' => $invoice->client->client_name ?? 'Deleted Client',
                 'value' => number_format($invoice->total_revenue, 2) . ' RON',
             ]);
 
         $overdueInvoices = Invoices::with('client')
-            ->whereIn('status', ['unpaid', 'draft'])
-            ->where('payment_deadline', '<', now())
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->where(function($query) {
+                $query->where('status', 'unpaid')
+                      ->orWhere('status', 'draft');
+            })
+            ->where('due_date', '<', now())
             ->whereNull('deleted_at')
-            ->orderBy('payment_deadline', 'asc')
-            ->limit(5)
+            ->orderBy('due_date', 'asc')
             ->get()
             ->map(fn($invoice) => [
+                'name' => $invoice->client && $invoice->client->client_name ? $invoice->client->client_name : 'Unknown Client',
+                'value' => $invoice->due_date ? ('Overdue by ' . $invoice->due_date->diffInDays(now()) . ' days') : 'Overdue',
                 'id' => $invoice->id,
-                'name' => $invoice->client->client_name ?? 'Client Șters',
-                'value' => 'Overdue by ' . abs((int)Carbon::parse($invoice->payment_deadline)->diffInDays(now())) . ' days',
-                'url' => route('invoices.details', ['id' => $invoice->id]),
-            ]);
-
-        $revenueChartData = $this->getRevenueChartData($startDate, $endDate, $filter);
-
-        $overdueInvoices = Invoices::with('client')
-            ->whereIn('status', ['unpaid', 'draft'])
-            ->where('payment_deadline', '<', now())
-            ->whereNull('deleted_at')
-            ->orderBy('payment_deadline', 'asc')
-            ->limit(5)
-            ->get()
-            ->map(fn($invoice) => [
-                'name' => $invoice->client->client_name ?? 'Client Șters',
-                'value' => 'Overdue by ' . abs((int)Carbon::parse($invoice->payment_deadline)->diffInDays(now())) . ' days',
-                'url' => route('invoices.edit', ['invoice' => $invoice->id]),
+                'status' => $invoice->status,
+                'deleted_at' => $invoice->deleted_at,
             ]);
 
         $revenueChartData = $this->getRevenueChartData($startDate, $endDate, $filter);
@@ -94,6 +168,9 @@ class DashboardController extends Controller
             'revenueData' => $revenueChartData,
             'currentFilter' => $filter,
             'dashboardLang' => __('dashboard'),
+            'reminderDashboard' => auth()->user()->reminder_dashboard,
+            'paidInvoicesCount' => $paidInvoicesCount,
+            'totalInvoicesCount' => $totalInvoicesCount,
         ]);
     }
 
@@ -107,50 +184,35 @@ class DashboardController extends Controller
         };
     }
 
-    private function getRevenueChartData($startDate, $endDate, $filter): array
-    {
-        if ($filter === 'last_30_days') {
-            // Group by week
-            $labels = [];
-            $data = [];
-            $start = Carbon::parse($startDate)->startOfDay();
-            for ($i = 0; $i < 4; $i++) {
-                $weekStart = $start->copy()->addDays($i * 7);
-                $weekEnd = $weekStart->copy()->addDays(6)->endOfDay();
-                $labels[] = $weekStart->format('d M') . ' - ' . $weekEnd->format('d M');
-                $weekSum = Invoices::whereBetween('created_at', [$weekStart, $weekEnd])->sum('total');
-                $data[] = $weekSum;
-            }
-            return ['labels' => $labels, 'data' => $data];
-        } else {
-            $databaseConnection = DB::connection()->getDriverName();
-            $dateFormat = match ($databaseConnection) {
-                'mysql' => "DATE_FORMAT(created_at, '%Y-%m')",
-                'sqlite' => "strftime('%Y-%m', created_at)",
-                default => "DATE_FORMAT(created_at, '%Y-%m')",
-            };
+    // private function getRevenueChartData(): array
+    // {
+    //     $databaseConnection = DB::connection()->getDriverName();
+    //     $dateFormat = match ($databaseConnection) {
+    //         'mysql' => "DATE_FORMAT(created_at, '%Y-%m')",
+    //         'sqlite' => "strftime('%Y-%m', created_at)",
+    //         default => "DATE_FORMAT(created_at, '%Y-%m')",
+    //     };
 
-            $revenueData = Invoices::select(
-                    DB::raw('SUM(total) as total'),
-                    DB::raw("{$dateFormat} as month")
-                )
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->groupBy('month')
-                ->orderBy('month', 'asc')
-                ->get();
+    //     $revenueData = Invoices::select(
+    //             DB::raw('SUM(total) as total'),
+    //             DB::raw("{$dateFormat} as month")
+    //         )
+    //         ->where('created_at', '>=', Carbon::now()->subMonths(5)->startOfMonth())
+    //         ->groupBy('month')
+    //         ->orderBy('month', 'asc')
+    //         ->get();
 
-            $labels = [];
-            $data = [];
-            $period = Carbon::parse($startDate)->toPeriod(Carbon::parse($endDate)->startOfMonth(), '1 month');
+    //     $labels = [];
+    //     $data = [];
+    //     $period = Carbon::now()->subMonths(5)->startOfMonth()->toPeriod(Carbon::now()->startOfMonth(), '1 month');
 
-            foreach ($period as $date) {
-                $monthStr = $date->format('Y-m');
-                $labels[] = $date->format('M Y');
-                $revenue = $revenueData->firstWhere('month', $monthStr);
-                $data[] = $revenue ? $revenue->total : 0;
-            }
+    //     foreach ($period as $date) {
+    //         $monthStr = $date->format('Y-m');
+    //         $labels[] = $date->format('M Y');
+    //         $revenue = $revenueData->firstWhere('month', $monthStr);
+    //         $data[] = $revenue ? $revenue->total : 0;
+    //     }
 
-            return ['labels' => $labels, 'data' => $data];
-        }
-    }
+    //     return ['labels' => $labels, 'data' => $data];
+    // }
 }

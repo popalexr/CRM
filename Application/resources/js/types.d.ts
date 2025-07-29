@@ -53,6 +53,11 @@ export interface DashboardProps {
         labels: string[];
         data: number[];
     };
+    clientsData?: {
+        data: number[];
+    };
+    paidInvoicesCount?: number;
+    totalInvoicesCount?: number;
     currentFilter: string;
     dashboardLang: Record<string, string>;
 }
