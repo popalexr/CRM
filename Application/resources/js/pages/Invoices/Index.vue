@@ -12,8 +12,10 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { MoreHorizontal, Eye, Trash2, Edit, Replace } from 'lucide-vue-next'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { parseDate, parseStatus, getStatusBadgeVariant } from '@/invoices_const'
+import LaravelPagination from '@/components/LaravelPagination.vue';
+import { Invoice } from '@/types/invoices';
 
-const props = defineProps<{ invoices: Invoice[] }>()
+const props = defineProps<{ invoices: Invoice[], meta: Array<any> }>()
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -21,6 +23,15 @@ const breadcrumbs: BreadcrumbItem[] = [
     href: route('invoices.index'),
   },
 ];
+
+const meta = props.meta;
+
+const links = ref({
+    current_page: meta.current_page,
+    per_page: meta.per_page,
+    total: meta.total,
+    last_page: meta.last_page
+});
 
 const showDeleteDialog = ref(false)
 const invoiceToDelete = ref<Invoice | null>(null)
@@ -205,6 +216,13 @@ const handleStornoInvoice = (id: number) => {
             </template>
           </TableBody>
         </Table>
+
+        <div class="mt-4 flex justify-end" v-if="links.total > links.per_page">
+          <LaravelPagination
+              :meta="links"
+              :route-name="'invoices.index'"
+          />
+      </div>
       </div>
     </div>
 

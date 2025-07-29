@@ -15,8 +15,16 @@ class InvoicesController extends Controller
 
     public function __invoke()
     {
+        $invoices = $this->getInvoices();
+
         return Inertia::render('Invoices/Index', [
-            'invoices' => $this->getInvoices(),
+            'invoices' => $invoices['data'],
+            'meta' => [
+                'current_page' => $invoices['current_page'],
+                'per_page' => $invoices['per_page'],
+                'total' => $invoices['total'],
+                'last_page' => $invoices['last_page'],
+            ],
         ]);
     }
 
@@ -24,7 +32,7 @@ class InvoicesController extends Controller
     {
         $invoices = Invoices::whereNull('deleted_at')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(self::PER_PAGE);
         
         $invoices->map(function ($invoice) {
             $invoice['client'] = Clients::find($invoice['client_id'])->toArray();
