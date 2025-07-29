@@ -8,4 +8,5 @@ export interface DashboardProps {
     paidInvoicesCount?: number;
     totalInvoicesCount?: number;
     reminderDashboard?: string | null;
+    endedInvoicesCount?: number;
 }

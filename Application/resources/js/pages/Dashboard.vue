@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Package, FileText, Plus, AlertTriangle, TrendingUp, Check } from 'lucide-vue-next';
+import { Users, Package, FileText, Plus, AlertTriangle, TrendingUp, Check, Clock } from 'lucide-vue-next';
 import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale } from 'chart.js';
 import type { StatCard, InfoListItem, PeriodOption, BreadcrumbItem } from '@/types';
@@ -36,7 +36,7 @@ watch(selectedPeriod, (newValue) => {
     }
 });
 
-const icons: { [key: string]: any } = { Users, Package, FileText };
+const icons: { [key: string]: any } = { Users, Package, FileText, AlertTriangle, Clock };
 const chartData = computed(() => ({
     labels: props.revenueData && Array.isArray(props.revenueData.labels) ? props.revenueData.labels : [],
     datasets: [
@@ -158,15 +158,35 @@ const overdueInvoices: InfoListItem[] = props.overdueInvoices;
             </div>
 
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card v-for="stat in stats" :key="stat.title" class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800">
-                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium text-green-900 dark:text-green-200">{{ stat.title }}</CardTitle>
-                        <component :is="icons[stat.icon]" class="h-4 w-4 text-green-700 dark:text-green-300" />
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold text-green-900 dark:text-green-200">{{ stat.value }}</div>
-                    </CardContent>
-                </Card>
+                <template v-for="stat in stats" :key="stat.title">
+                    <Card v-if="stat.title !== 'Ended Invoices'" class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800">
+                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle class="text-sm font-medium text-green-900 dark:text-green-200 flex items-center">
+                                <span v-if="stat.title === 'Invoices Due Soon'">
+                                    <Clock class="h-4 w-4 text-green-700 dark:text-green-300 mr-2" />
+                                </span>
+                                {{ stat.title }}
+                            </CardTitle>
+                            <component v-if="stat.title !== 'Invoices Due Soon'" :is="icons[stat.icon]" class="h-4 w-4 text-green-700 dark:text-green-300" />
+                        </CardHeader>
+                        <CardContent>
+                            <div class="text-2xl font-bold text-green-900 dark:text-green-200">{{ stat.value }}</div>
+                            <div v-if="stat.title === 'Total Clients'" class="text-xs text-muted-foreground">All clients</div>
+                            <div v-else-if="stat.title === 'Running Invoices'" class="text-xs text-muted-foreground">Ongoing invoices</div>
+                            <div v-else-if="stat.title === 'Invoices Due Soon'" class="text-xs text-muted-foreground">Due in next 7 days</div>
+                        </CardContent>
+                    </Card>
+                    <Card v-else class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800">
+                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle class="text-sm font-medium text-green-900 dark:text-green-200">Ended Invoices</CardTitle>
+                            <TrendingUp class="h-4 w-4 text-green-700 dark:text-green-300" />
+                        </CardHeader>
+                        <CardContent>
+                            <div class="text-2xl font-bold text-green-900 dark:text-green-200">{{ props.endedInvoicesCount ?? 0 }}</div>
+                            <div class="text-xs text-muted-foreground">Fully paid invoices</div>
+                        </CardContent>
+                    </Card>
+                </template>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

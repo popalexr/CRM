@@ -41,6 +41,7 @@ class DashboardController extends Controller
             'reminderDashboard' => auth()->user()->reminder_dashboard,
             'paidInvoicesCount' => $this->getTotalPaidInvoices(),
             'totalInvoicesCount' => $this->getTotalInvoices(),
+            'endedInvoicesCount' => $this->getEndedInvoicesCount(),
         ]);
     }
 
@@ -71,17 +72,19 @@ class DashboardController extends Controller
             ],
             [
                 'title' => 'Running Invoices',
-                'value' => Invoices::where('status', 'active')->whereBetween('created_at', [$this->startDate, $this->endDate])->count(),
+                'value' => Invoices::whereNull('deleted_at')
+                    ->whereNotIn('status', ['paid', 'finalized'])
+                    ->whereBetween('created_at', [$this->startDate, $this->endDate])
+                    ->count(),
                 'icon' => 'FileText',
             ],
             [
-                'title' => 'Pending Invoices',
-                'value' => Invoices::whereNotIn('status', ['anulled', 'storno', 'paid'])
-                    ->whereNull('deleted_at')
-                    ->where(function($query) {
-                        $query->whereNull('payment_deadline')->orWhere('payment_deadline', '>=', now());
-                    })
-                    ->whereBetween('created_at', [$this->startDate, $this->endDate])
+                'title' => 'Invoices Due Soon',
+                'value' => Invoices::whereNull('deleted_at')
+                    ->whereNotIn('status', ['paid', 'finalized'])
+                    ->whereNotNull('payment_deadline')
+                    ->whereDate('payment_deadline', '>=', now()->toDateString())
+                    ->whereDate('payment_deadline', '<=', now()->addDays(7)->toDateString())
                     ->count(),
                 'icon' => 'AlertTriangle',
             ],
@@ -99,6 +102,14 @@ class DashboardController extends Controller
     {
         return Invoices::whereNull('deleted_at')
             ->whereIn('status', ['finalized', 'paid'])
+            ->whereBetween('created_at', [$this->startDate, $this->endDate])
+            ->count();
+    }
+
+    private function getEndedInvoicesCount(): int
+    {
+        return Invoices::whereNull('deleted_at')
+            ->where('status', 'paid')
             ->whereBetween('created_at', [$this->startDate, $this->endDate])
             ->count();
     }
