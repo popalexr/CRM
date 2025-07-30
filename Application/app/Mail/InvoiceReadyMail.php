@@ -54,12 +54,12 @@ class InvoiceReadyMail extends Mailable implements ShouldQueue
      *
      * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */
-    // public function attachments(): array
-    // {
-    //     return [
-    //         Attachment::fromPath(storage_path($this->file_path))
-    //             ->as('invoice_' . $this->invoice->id . '.pdf')
-    //             ->withMime('application/pdf'),
-    //     ];
-    // }
+    public function attachments(): array
+    {
+        return [
+            Attachment::fromPath(storage_path($this->file_path))
+                ->as('invoice_' . $this->invoice->id . '.pdf')
+                ->withMime('application/pdf'),
+        ];
+    }
 }
