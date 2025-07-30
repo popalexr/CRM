@@ -22,4 +22,9 @@ return [
         'products-form'    => 'Products form',
         'products-delete'  => 'Delete Products',
     ],
+    'Invoices' => [
+        'invoices-view'     => 'View Invoices',
+        'invoices-form'     => 'Invoices form',
+        'invoices-delete'   => 'Delete Invoices',
+    ]
 ];

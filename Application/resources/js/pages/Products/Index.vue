@@ -11,6 +11,7 @@ import { Trash2 } from 'lucide-vue-next';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Pencil } from 'lucide-vue-next';
 import { Product, Props_ProductsIndex } from '@/types/products';
+import { hasPermission } from '@/composables/hasPermission';
 
 
 const props = defineProps<Props_ProductsIndex>();
@@ -79,7 +80,7 @@ const formatPrice = (price: number, currency: string) => {
         <div class="container mx-auto px-4 py-6 max-w-6xl another-class">
             <div class="flex items-center justify-between mb-6">
                 <h1 class="text-2xl font-bold">{{ formLabels.headings?.products || 'Products' }}</h1>
-                <Button @click="handleCreateProduct">{{ formLabels.buttons?.add_new || formLabels.buttons?.create || 'Add Product' }}</Button>
+                <Button @click="handleCreateProduct" v-if="hasPermission('products-form')">{{ formLabels.buttons?.add_new || formLabels.buttons?.create || 'Add Product' }}</Button>
             </div>
 
             <div v-if="products.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -127,6 +128,7 @@ const formatPrice = (price: number, currency: string) => {
                                 size="icon"
                                 @click.stop="handleEditProduct(product.id)"
                                 title="Edit"
+                                v-if="hasPermission('products-form')"
                             >
                                 <Pencil class="w-4 h-4" />
                             </Button>
@@ -135,6 +137,7 @@ const formatPrice = (price: number, currency: string) => {
                                 size="icon"
                                 @click.stop="handleDeleteRequest(product)"
                                 title="Delete"
+                                v-if="hasPermission('products-delete')"
                             >
                                 <Trash2 class="w-4 h-4" />
                             </Button>
@@ -154,7 +157,7 @@ const formatPrice = (price: number, currency: string) => {
             </div>
         </div>
 
-        <ConfirmDialog
+        <ConfirmDialog v-if="hasPermission('products-delete')"
             v-model:open="showDeleteDialog"
             :title="formLabels.buttons?.delete || 'Delete'"
             :description="`${formLabels.messages?.product_deleted || 'Are you sure you want to delete'} '${productToDelete?.name}'?`"

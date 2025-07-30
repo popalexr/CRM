@@ -14,6 +14,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { parseDate, parseStatus, getStatusBadgeVariant } from '@/invoices_const'
 import LaravelPagination from '@/components/LaravelPagination.vue';
 import { Invoice } from '@/types/invoices';
+import { hasPermission } from '@/composables/hasPermission';
 
 const props = defineProps<{ invoices: Invoice[], meta: Array<any> }>()
 
@@ -78,7 +79,7 @@ const handleStornoInvoice = (id: number) => {
     <div class="p-6 space-y-6">
       <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-bold">Invoices</h1>
-        <Button @click="router.visit(route('invoices.form'))" variant="default">
+        <Button @click="router.visit(route('invoices.form'))" variant="default" v-if="hasPermission('invoices-form')">
           + Add Invoice
         </Button>
       </div>
@@ -169,16 +170,16 @@ const handleStornoInvoice = (id: number) => {
                             <Eye class="mr-2 h-4 w-4" />
                             View
                           </DropdownMenuItem>
-                          <DropdownMenuItem @click="router.visit(route('invoices.form', { id: invoice.id }))" v-if="invoice.status === 'draft'">
+                          <DropdownMenuItem @click="router.visit(route('invoices.form', { id: invoice.id }))" v-if="invoice.status === 'draft' && hasPermission('invoices-form')">
                             <Edit class="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem @click="handleStornoInvoice(invoice.id)" v-if="!invoice.status.includes('draft', 'anulled', 'storno')">
+                          <DropdownMenuItem @click="handleStornoInvoice(invoice.id)" v-if="!invoice.status.includes('draft', 'anulled', 'storno') && hasPermission('invoices-storno')">
                             <Replace class="mr-2 h-4 w-4" />
                             Storno
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            v-if="invoice.status === 'draft' || invoice.status === 'paid'"
+                            v-if="(invoice.status === 'draft' || invoice.status === 'paid') && hasPermission('invoices-delete')"
                             @click="handleDeleteRequest(invoice)"
                             class="text-red-600 focus:text-red-600"
                           >
@@ -195,16 +196,16 @@ const handleStornoInvoice = (id: number) => {
                     <Eye class="mr-2 h-4 w-4" />
                     View
                   </ContextMenuItem>
-                  <ContextMenuItem @click="router.visit(route('invoices.form', { id: invoice.id }))" v-if="invoice.status === 'draft'">
+                  <ContextMenuItem @click="router.visit(route('invoices.form', { id: invoice.id }))" v-if="invoice.status === 'draft' && hasPermission('invoices-form')">
                     <Edit class="mr-2 h-4 w-4" />
                     Edit
                   </ContextMenuItem>
-                  <ContextMenuItem @click="handleStornoInvoice(invoice.id)" v-if="!invoice.status.includes('draft', 'anulled', 'storno')">
+                  <ContextMenuItem @click="handleStornoInvoice(invoice.id)" v-if="!invoice.status.includes('draft', 'anulled', 'storno') && hasPermission('invoices-storno')">
                     <Replace class="mr-2 h-4 w-4" />
                     Storno
                   </ContextMenuItem>
                   <ContextMenuItem
-                    v-if="invoice.status === 'draft' || invoice.status === 'paid'"
+                    v-if="(invoice.status === 'draft' || invoice.status === 'paid') && hasPermission('invoices-delete')"
                     @click="handleDeleteRequest(invoice)"
                     class="text-red-600 focus:text-red-600"
                   >
@@ -227,7 +228,7 @@ const handleStornoInvoice = (id: number) => {
     </div>
 
     <ConfirmDialog
-      v-if="invoiceToDelete"
+      v-if="invoiceToDelete && hasPermission('invoices-delete')"
       v-model:open="showDeleteDialog"
       title="Delete Invoice"
       :description="`Are you sure you want to delete invoice #${invoiceToDelete.id}? This action cannot be undone.`"

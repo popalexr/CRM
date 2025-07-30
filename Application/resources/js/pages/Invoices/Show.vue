@@ -25,6 +25,7 @@ const invoiceDesign = ref(1);
 const props = defineProps<{ invoice: InvoiceDetails, products: Array<any>, payments: Array<any>, currencies: Record<string, string> }>();
 
 import type { BreadcrumbItem } from '@/types';
+import { hasPermission } from '@/composables/hasPermission';
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Invoices',
@@ -330,6 +331,7 @@ const goToInvoicesIndex = () => {
                     class="text-black border-black hover:bg-gray-100 dark:text-white dark:border-gray-500 dark:hover:bg-gray-800"
                     :disabled="openAmount <= 0"
                     @click="openPaymentModal()"
+                    v-if="hasPermission('invoices-form')"
                   >
                     {{ ui.add }}
                   </Button>

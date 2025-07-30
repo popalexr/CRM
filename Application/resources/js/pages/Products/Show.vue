@@ -16,6 +16,7 @@ import DialogFooter from '@/components/ui/dialog/DialogFooter.vue';
 import ProfileHeader from '@/components/ProfileHeader.vue';
 import SearchInput from '@/components/SearchInput.vue';
 import type { ProductDetails, InvoiceDetails, Props } from '@/types/products.d.ts';
+import { hasPermission } from '@/composables/hasPermission';
 
 const props = defineProps<Props>();
 const formLabels = props.formLabels || {};
@@ -118,7 +119,7 @@ const handleStockSubmit = async () => {
                     <div class="flex items-center justify-between mb-8">
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ formLabels.headings?.product_details || 'Product Details' }}</h3>
                         <div v-if="product.type === 'product'" class="relative">
-                          <Button variant="outline" @click="showStockMenu = !showStockMenu">
+                          <Button variant="outline" @click="showStockMenu = !showStockMenu" v-if="hasPermission('products-form')">
                           {{ formLabels.buttons?.manage_stock || 'Manage Stock' }}
                           </Button>
                           <div v-if="showStockMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg z-10">
