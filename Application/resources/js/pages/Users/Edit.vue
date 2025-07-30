@@ -18,6 +18,7 @@ import Dropzone from '@/components/Dropzone.vue';
 interface Props {
     user: User;
     formData: FormDataStructure;
+    availablePermissions: Permission[];
 }
 
 const props = defineProps<Props>();

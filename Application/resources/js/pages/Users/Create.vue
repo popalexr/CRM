@@ -15,7 +15,8 @@ import InputError from '@/components/InputError.vue';
 import Dropzone from '@/components/Dropzone.vue';
 
 interface Props extends /* @vue-ignore */ UserCreateProps {
-    formData: FormDataStructure;
+    formData: FormDataStructure,
+    availablePermissions: Permission[],
 }
 
 const props = defineProps<Props>();
