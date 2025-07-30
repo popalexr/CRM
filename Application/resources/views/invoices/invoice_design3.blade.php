@@ -6,9 +6,9 @@
         <div class="flex flex-col gap-2">
             <div class="text-3xl font-mono font-bold uppercase tracking-tight">INVOICE</div>
             <div class="flex flex-row gap-6 mt-2">
-                <div class="text-xs">No: <span class="font-bold">{{ $invoice['number'] }} / {{ $invoice['id'] }}</span></div>
+                <div class="text-xs">No: <span class="font-bold">{{ $invoice['id'] }}</span></div>
                 <div class="text-xs">Date: <span class="font-bold">{{ $invoice['created_at'] ? \Carbon\Carbon::parse($invoice['created_at'])->format('Y-m-d') : '-' }}</span></div>
-                <div class="text-xs">Due: <span class="font-bold">{{ $invoice['due_date'] }}</span></div>
+                <div class="text-xs">Due: <span class="font-bold">{{ $invoice['payment_deadline'] }}</span></div>
             </div>
         </div>
         <div class="w-16 h-16 flex items-center justify-center bg-gray-300 text-white text-2xl font-bold uppercase rounded-full overflow-hidden">

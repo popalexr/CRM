@@ -8,7 +8,7 @@
                 <div class="text-3xl font-bold mb-2">INVOICE</div>
                 <div class="text-xs text-gray-500 mb-1">No: <span class="font-semibold text-gray-900">#{{ $invoice['id'] }}</span></div>
                 <div class="text-xs text-gray-500 mb-1">Data: <span class="font-semibold text-gray-900">{{ $invoice['created_at'] ? \Carbon\Carbon::parse($invoice['created_at'])->format('Y-m-d') : '-' }}</span></div>
-                <div class="text-xs text-gray-500 mb-1">Due Date: <span class="font-semibold text-gray-900">{{ $invoice['due_date'] ?? '-' }}</span></div>
+                <div class="text-xs text-gray-500 mb-1">Due Date: <span class="font-semibold text-gray-900">{{ $invoice['payment_deadline'] ?? '-' }}</span></div>
             </div>
 
             <div class="flex flex-col items-start text-left max-w-xs">
