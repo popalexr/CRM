@@ -31,9 +31,7 @@
             @if($logoUrl)
                 <img src="{{ $logoUrl }}" alt="Company Logo" class="w-32 h-32 object-contain" />
             @else
-                <div class="w-32 h-32 flex items-center justify-center bg-gray-300 text-white text-4xl font-bold uppercase rounded-full">
-                    {{ $companyInitial }}
-                </div>
+                <img src="/logo.png" alt="Company Logo" class="w-32 h-32 object-contain" />
             @endif
             <div style="margin-top: 0.9rem;" class="flex flex-col items-start text-left max-w-xs w-full">
                 <div class="text-sm font-semibold uppercase text-gray-500 mb-1">Cumpărător</div>

@@ -15,7 +15,7 @@
             @if($logoUrl)
                 <img src="{{ $logoUrl }}" alt="Company Logo" class="w-full h-full object-contain" />
             @else
-                {{ $companyInitial }}
+                <img src="/logo.png" alt="Company Logo" class="w-full h-full object-contain" />
             @endif
         </div>
     </div>

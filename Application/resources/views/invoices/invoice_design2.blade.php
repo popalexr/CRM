@@ -9,7 +9,7 @@
                 @if($logoUrl)
                     <img src="{{ $logoUrl }}" alt="Logo" class="w-full h-full object-contain" />
                 @else
-                    {{ $companyInitial }}
+                    <img src="/logo.png" alt="Logo" class="w-full h-full object-contain" />
                 @endif
             </div>
             <span class="font-bold text-lg">{{ $companyInfo['company_name'] ?? '-' }}</span>
