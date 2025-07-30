@@ -26,6 +26,8 @@ class CompanySettingsRequest extends FormRequest
         return [
             'company_name' => 'required|string|max:255',
             'company_type' => 'required|string|in:' . $companyTypes,
+            'cui'          => 'nullable|string|max:32',
+            'registration_number' => 'nullable|string|max:32',
             'address'      => 'required|string|max:255',
             'city'         => 'required|string|max:100',
             'county'       => 'required|string|max:100',

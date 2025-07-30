@@ -14,6 +14,8 @@ class UpdateCompanySettingsController extends Controller
     private array $keysToTypes = [
         'company_name' => 'string',
         'company_type' => 'string',
+        'cui'          => 'string',
+        'registration_number' => 'string',
         'address'      => 'string',
         'city'         => 'string',
         'county'       => 'string',

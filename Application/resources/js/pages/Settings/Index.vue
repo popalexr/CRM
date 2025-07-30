@@ -21,6 +21,8 @@ const companyTypes = page.props.companyTypes as Array<{ value: string; label: st
 const companyForm = useForm({
     company_name: companyInfo.value.company_name,
     company_type: companyInfo.value.company_type,
+    cui: companyInfo.value.cui,
+    registration_number: companyInfo.value.registration_number,
     address: companyInfo.value.address,
     city: companyInfo.value.city,
     county: companyInfo.value.county,
@@ -108,7 +110,7 @@ const showVatRates = () => {
                                         placeholder="Company name"
                                     />
                                 </div>
-                                
+
                                 <div class="space-y-2">
                                     <div class="flex justify-between">
                                         <Label for="company_type">Company Type</Label>
@@ -129,7 +131,31 @@ const showVatRates = () => {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                
+
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <Label for="cui">CUI</Label>
+                                        <InputError :message="companyForm.errors.cui" />
+                                    </div>
+                                    <Input 
+                                        id="cui"
+                                        v-model="companyForm.cui"
+                                        placeholder="Cod Unic de Identificare (CUI)"
+                                    />
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <Label for="registration_number">Nr. Înregistrare</Label>
+                                        <InputError :message="companyForm.errors.registration_number" />
+                                    </div>
+                                    <Input 
+                                        id="registration_number"
+                                        v-model="companyForm.registration_number"
+                                        placeholder="Număr de înregistrare la Registrul Comerțului"
+                                    />
+                                </div>
+
                                 <div class="space-y-2">
                                     <div class="flex justify-between">
                                         <Label for="email">Email</Label>
@@ -142,7 +168,7 @@ const showVatRates = () => {
                                         placeholder="Email address"
                                     />
                                 </div>
-                                
+
                                 <div class="space-y-2">
                                     <div class="flex justify-between">
                                         <Label for="phone">Phone Number</Label>
