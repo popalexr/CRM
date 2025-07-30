@@ -82,12 +82,16 @@ const openAmount = computed(() => {
   return props.invoice.total - (payments.value.reduce((sum, p) => sum + (parseFloat(p.converted_amount_paid) || 0), 0) || 0);
 });
 
-const handleSend = () => {
-  router.visit(route('invoices.send_invoice', {id: props.invoice.id}), {
+const handleSend = (designId: number) => {
+  router.visit(route('invoices.send_invoice', {id: props.invoice.id, designId: designId}), {
     method: 'post',
     preserveScroll: true,
   });
 };
+
+const downloadPdf = (designId: number) => {
+  window.location.href = route('invoices.pdf', { id: props.invoice.id, designId: designId });
+}
 
 const handleMarkAsPaid = () => {
   router.visit(route('invoices.change_status', { id: props.invoice.id }), {
@@ -137,14 +141,44 @@ const goToInvoicesIndex = () => {
         </button>
         <span class="text-xl font-semibold">Invoice #{{ invoice.id }}</span>
         <div class="flex gap-2 ml-auto items-center">
-          <Button variant="outline" @click="handleSend">
-            <SendIcon class="w-4 h-4 mr-2" />
-            Send
-          </Button>
-          <Button variant="outline">
-            <FileTextIcon class="w-4 h-4 mr-2" />
-            PDF
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button variant="outline">
+                <SendIcon class="w-4 h-4 mr-2" />
+                Send
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem @click="handleSend(1)">
+                Design 1
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="handleSend(2)">
+                Design 2
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="handleSend(3)">
+                Design 3
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button variant="outline">
+                <FileTextIcon class="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem @click="downloadPdf(1)">
+                Design 1
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="downloadPdf(2)">
+                Design 2
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="downloadPdf(3)">
+                Design 3
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="outline" @click="handleMarkAsPaid" v-if="invoice.status !== 'paid' && invoice.status !== 'storno'">
             <CheckCircleIcon class="w-4 h-4 mr-2" />
             Mark as Paid

@@ -7,76 +7,45 @@ use App\Models\Clients;
 use App\Models\Invoices;
 use App\Models\ProductsToInvoice;
 use App\Models\Settings;
-use App\Models\TemporaryFiles;
-use App\Services\SavePDF;
-use App\Services\SendInvoice;
 use Illuminate\Http\Request;
+use Spatie\LaravelPdf\Enums\Format;
 
-class SendInvoiceToClientController extends Controller
+use function Spatie\LaravelPdf\Support\pdf;
+
+class PDFInvoiceController extends Controller
 {
     private int $invoiceId;
-
+    private int $designId;
     private ?Invoices $invoice = null;
     private ?Clients $client = null;
 
-    private int $designId;
-
     public function __construct(private Request $request)
     {
-        if ($this->request->input('id'))
-        {
-            $this->invoiceId = (int) $this->request->input('id');
-            $this->invoice = Invoices::find($this->invoiceId);
-            $this->client = Clients::find($this->invoice->client_id);
+        $this->invoiceId = (int) $request->input('id', 0);
+        $this->designId = (int) $request->input('designId', 1);
 
-            $this->designId = (int) $this->request->input('design', 1);
+        $this->invoice = Invoices::find($this->invoiceId);
+
+        if ($this->invoice) {
+            $this->client = Clients::find($this->invoice->client_id);
         }
     }
 
     public function __invoke()
     {
-        if (blank($this->invoice)) {
-            return redirect()->back()->with(['error' => 'Invoice not found.']);
+        if (!$this->invoiceId || blank($this->invoice)) {
+            return redirect()->route('invoices.index')->with(['error' => 'Invoice not found.']);
         }
 
-        if ($this->invoice->status !== 'draft') {
-            return redirect()->back()->with(['error' => 'You can only send draft invoices.']);
+        if ($this->designId < 1 || $this->designId > 3) {
+            return redirect()->route('invoices.index')->with(['error' => 'Invalid invoice design selected.']);
         }
 
-        $fileId = $this->saveInvoiceAsPdf();
-
-        $sent = SendInvoice::send($fileId, $this->client->id, $this->invoiceId);
-
-        if ($sent) {
-            $this->markInvoiceAsSubmitted();
-
-            return redirect()->back()->with(['success' => 'Invoice sent successfully.']);
-        } else {
-            return redirect()->back()->with(['error' => 'Failed to send the invoice.']);
-        }
-    }
-
-    private function markInvoiceAsSubmitted(): void
-    {
-        $this->invoice->status = 'submitted';
-        $this->invoice->save();
-    }
-
-    private function saveInvoiceAsPdf(): int
-    {
-        $fileName = sha1($this->invoiceId) . '.pdf';
-        $path = storage_path('app/private/temp/' . $fileName);
-
-        $view = 'invoices.invoice_design' . $this->designId;
         $data = $this->getInvoiceData();
 
-        SavePDF::save($path, $view, $data);
-
-        return TemporaryFiles::insertGetId([
-            'file_name' => $path,
-            'file_path' => 'app/private/temp/' . $fileName,
-            'created_at' => now(),
-        ]);
+        return pdf()->view('invoices.invoice_design' . $this->designId, $data)
+            ->format(Format::A4)
+            ->download('invoice_' . $this->invoice->id . '.pdf');
     }
 
     private function getInvoiceData(): array

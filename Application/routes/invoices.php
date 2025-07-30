@@ -7,12 +7,14 @@ use App\Http\Controllers\Invoices\DeleteInvoiceController;
 use App\Http\Controllers\Invoices\InvoicesFormController;
 use App\Http\Controllers\Invoices\InvoiceStatusFormController;
 use App\Http\Controllers\Invoices\Payments\InvoicePaymentsFormController;
+use App\Http\Controllers\Invoices\PDFInvoiceController;
 use App\Http\Controllers\Invoices\SendInvoiceToClientController;
 use App\Http\Controllers\Invoices\StornoInvoiceFormController;
 
 Route::middleware('auth')->prefix('invoices')->name('invoices.')->group(function () {
     Route::get('/', InvoicesController::class)->name('index');
     Route::get('/details', InvoiceDetailsController::class)->name('details');
+    Route::get('/pdf', PDFInvoiceController::class)->name('pdf');
     Route::get('/form', InvoicesFormController::class)->name('form');
 
     Route::post('/sendInvoice', [SendInvoiceToClientController::class, '__invoke'])->name('send_invoice');
