@@ -121,9 +121,11 @@ const company = page.props.companyInfo as any || {}
 const settings = page.props.settings as any || {}
 
 const logoUrl = computed(() => {
-  if (company.logo_url) return company.logo_url
-  if (settings.logo_path) return `/storage/${settings.logo_path}`
-  return null
+  if (company.logo) {
+    return company.logo;
+  }
+
+  return null;
 })
 
 const companyInitial = computed(() => {

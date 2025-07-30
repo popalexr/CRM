@@ -36,7 +36,7 @@ class UpdateCompanyLogoController extends Controller
             ['key' => 'logo'],
             [
                 'type'  => 'string',
-                'value' => 'storage/company/' . $tmp->file_name
+                'value' => '/storage/company/' . $tmp->file_name
             ]
         );
 

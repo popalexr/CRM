@@ -73,23 +73,22 @@ class InvoiceDetailsController extends Controller
 
     private function getCompanyInfo(): array
     {
-        $settings = Settings::all()->keyBy('key');
-
         return [
-            'company_name' => $settings->get('company_name')?->value ?? '',
-            'company_type' => $settings->get('company_type')?->value ?? '',
-            'address' => $settings->get('address')?->value ?? '',
-            'city' => $settings->get('city')?->value ?? '',
-            'county' => $settings->get('county')?->value ?? '',
-            'country' => $settings->get('country')?->value ?? '',
-            'email' => $settings->get('email')?->value ?? '',
-            'phone' => $settings->get('phone')?->value ?? '',
-            'iban' => $settings->get('iban')?->value ?? '',
-            'bank' => $settings->get('bank')?->value ?? '',
-            'swift' => $settings->get('swift')?->value ?? '',
-            'vat_payer' => filter_var($settings->get('vat_payer')?->value ?? false, FILTER_VALIDATE_BOOLEAN),
-            'cui' => $settings->get('cui')?->value ?? '',
-            'registration_number' => $settings->get('registration_number')?->value ?? '',
+            'company_name' => Settings::get('company_name', ''),
+            'company_type' => Settings::get('company_type', ''),
+            'address' => Settings::get('address', ''),
+            'city' => Settings::get('city', ''),
+            'county' => Settings::get('county', ''),
+            'country' => Settings::get('country', ''),
+            'email' => Settings::get('email', ''),
+            'phone' => Settings::get('phone', ''),
+            'iban' => Settings::get('iban', ''),
+            'bank' => Settings::get('bank', ''),
+            'swift' => Settings::get('swift', ''),
+            'vat_payer' => Settings::get('vat_payer', true),
+            'cui' => Settings::get('cui', ''),
+            'registration_number' => Settings::get('registration_number', ''),
+            'logo' => Settings::get('logo'),
         ];
     }
 
